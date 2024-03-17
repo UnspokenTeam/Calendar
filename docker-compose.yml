@@ -1,0 +1,72 @@
+version: '3'
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+
+  event_service:
+    build: ./event_service
+    expose:
+      - 8080
+    ports:
+      - "8080:8080"
+    links:
+      - postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+
+  identity_service:
+    build: ./identity_service
+    expose:
+      - 8081
+    ports:
+      - "8081:8081"
+    links:
+      - postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+
+  invite_service:
+    build: ./invite_service
+    expose:
+      - 8082
+    ports:
+      - "8082:8082"
+    links:
+      - postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+
+  notification_service:
+    build: ./notification_service
+    expose:
+      - 8083
+    ports:
+      - "8083:8083"
+    links:
+      - postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
