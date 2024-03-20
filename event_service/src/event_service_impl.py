@@ -1,10 +1,14 @@
 from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
-from proto.event_service_pb2 import EventsRequest, EventsResponse, ListOfEvents, Event as GrpcEvent, StandardResponse, DeleteEventRequest
+from proto.event_service_pb2 import (EventsRequest, EventsResponse, ListOfEvents, Event as GrpcEvent, StandardResponse,
+                                     DeleteEventRequest)
 from src.models.event import Event
 from datetime import datetime
 
 
 class EventServiceImpl(GrpcServicer):
+    """
+    Event Service Implement
+    """
     def __init__(self):
         self.events = [
             Event(
@@ -34,6 +38,17 @@ class EventServiceImpl(GrpcServicer):
         ]
 
     def get_events(self, request: EventsRequest, context) -> EventsResponse:
+        """
+
+        Parameters
+        ----------
+        request
+        context
+
+        Returns
+        -------
+
+        """
         if request.offset == -1:
             return EventsResponse(
                 status=400,
@@ -47,10 +62,43 @@ class EventServiceImpl(GrpcServicer):
         )
 
     def create_event(self, request: GrpcEvent, context) -> StandardResponse:
+        """
+
+        Parameters
+        ----------
+        request
+        context
+
+        Returns
+        -------
+
+        """
         pass
 
     def update_event(self, request: GrpcEvent, context) -> StandardResponse:
+        """
+
+        Parameters
+        ----------
+        request
+        context
+
+        Returns
+        -------
+
+        """
         pass
 
     def delete_event(self, request: DeleteEventRequest, context) -> StandardResponse:
+        """
+
+        Parameters
+        ----------
+        request
+        context
+
+        Returns
+        -------
+
+        """
         pass
