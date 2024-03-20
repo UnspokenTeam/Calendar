@@ -2,8 +2,11 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 
-service EventService{
+service EventService {
   rpc get_events(EventsRequest) returns (EventsResponse){}
+  rpc create_event(Event) returns (StandardResponse){}
+  rpc update_event(Event) returns (StandardResponse){}
+  rpc delete_event(DeleteEventRequest) returns (StandardResponse){}
 }
 
 message EventsRequest {
@@ -17,6 +20,7 @@ message EventsRequest {
 message EventsResponse {
   int32 status = 1;
   optional ListOfEvents events = 2;
+  optional string message = 3;
 }
 
 message Event {
@@ -32,4 +36,14 @@ message Event {
 
 message ListOfEvents {
   repeated Event events = 1;
+}
+
+message StandardResponse {
+  int64 code = 1;
+  optional string message = 2;
+}
+
+message DeleteEventRequest {
+  string user_id = 1;
+  string client_id = 2;
 }

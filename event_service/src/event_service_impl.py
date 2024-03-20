@@ -1,5 +1,5 @@
 from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
-from proto.event_service_pb2 import EventsRequest, EventsResponse, ListOfEvents
+from proto.event_service_pb2 import EventsRequest, EventsResponse, ListOfEvents, Event as GrpcEvent, StandardResponse, DeleteEventRequest
 from src.models.event import Event
 from datetime import datetime
 
@@ -45,3 +45,12 @@ class EventServiceImpl(GrpcServicer):
                 events=[event.to_grpc_event() for event in self.events]
             ),
         )
+
+    def create_event(self, request: GrpcEvent, context) -> StandardResponse:
+        pass
+
+    def update_event(self, request: GrpcEvent, context) -> StandardResponse:
+        pass
+
+    def delete_event(self, request: DeleteEventRequest, context) -> StandardResponse:
+        pass
