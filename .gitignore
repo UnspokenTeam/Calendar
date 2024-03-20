@@ -376,3 +376,5 @@ event_service/.idea
 identity_service/.idea
 invite_service/.idea
 notification_service/.idea
+invite_service/proto/*.py
+invite_service/proto/*.pyi
