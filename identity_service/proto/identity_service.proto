@@ -1,7 +1,50 @@
 syntax = "proto3";
 
-service IdentityService{
-  rpc login(LoginRequest) returns (LoginResponse){}
+service IdentityService {
+  rpc logout(AccessToken) returns (BaseResponse){}
+  rpc auth(AccessToken) returns (AuthResponse){}
+  rpc login(LoginRequest) returns (CredentialsResponse){}
+  rpc register(RegisterRequest) returns (CredentialsResponse){}
+  rpc get_new_access_token(GetNewAccessTokenRequest) returns (GetNewAccessTokenResponse){}
+  rpc get_user_by_id(UserByIdRequest) returns (UserByIdResponse){}
+  rpc get_users_by_id(UsersByIdRequest) returns (UsersByIdResponse){}
+  rpc update_user(User) returns (BaseResponse){}
+  rpc delete_user(DeleteUserRequest) returns (BaseResponse){}
+}
+
+message AccessToken {
+  string access_token = 1;
+}
+
+message AuthResponse {
+  int64 status_code = 1;
+  optional string user_id = 2;
+  optional string message = 3;
+}
+
+message DeleteUserRequest {
+  string user_id = 1;
+}
+
+message BaseResponse {
+  int64 code = 1;
+  optional string message = 2;
+}
+
+message GetNewAccessTokenRequest {
+  string refresh_token = 1;
+}
+
+message GetNewAccessTokenResponse {
+  int64 status_code = 1;
+  optional string access_token = 2;
+  optional string message = 3;
+}
+
+message RegisterRequest {
+  string username = 1;
+  string password = 2;
+  string email = 3;
 }
 
 message LoginRequest {
@@ -9,7 +52,49 @@ message LoginRequest {
   string password = 2;
 }
 
-message LoginResponse {
-  string refreshToken = 1;
-  string accessToken = 2;
+message CredentialsResponse {
+  int64 status_code = 1;
+  optional LoginData data = 2;
+  optional string message = 3;
+}
+
+message LoginData {
+  string refresh_token = 1;
+  string access_token = 2;
+}
+
+message UserByIdRequest {
+  string user_id = 1;
+}
+
+message UserByIdResponse {
+  int64 status_code = 1;
+  optional User user = 2;
+  optional string message = 3;
+}
+
+message UsersResponse {
+  int64 status_code = 1;
+  optional ListOfUser users = 2;
+  optional string message = 3;
+}
+
+message ListOfUser {
+  repeated User users = 1;
+}
+
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+}
+
+message UsersByIdRequest {
+  repeated string id = 1;
+}
+
+message UsersByIdResponse {
+  int64 status_code = 1;
+  optional ListOfUser user = 2;
+  optional string message = 3;
 }
