@@ -1,6 +1,4 @@
-"""
-Event Model
-"""
+"""Event Model."""
 from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime
@@ -36,8 +34,9 @@ class Event:
     Methods
     -------
     to_grpc_event()
-        Converts event to grpc event
+        Converts event to grpc event.
     """
+
     id: str
     title: str
     start: datetime
@@ -49,10 +48,12 @@ class Event:
 
     def to_grpc_event(self) -> GrpcEvent:
         """
+        Generate grpc event instance.
 
         Returns
         -------
-
+        event: GrpcEvent
+            GrpcEvent instance.
         """
         event = GrpcEvent(
             id=self.id,

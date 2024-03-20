@@ -44,6 +44,5 @@ message StandardResponse {
 }
 
 message DeleteEventRequest {
-  string user_id = 1;
-  string client_id = 2;
+  string event_id = 1;
 }

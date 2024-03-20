@@ -1,14 +1,40 @@
+"""Event Service Controller"""
 from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
-from proto.event_service_pb2 import (EventsRequest, EventsResponse, ListOfEvents, Event as GrpcEvent, StandardResponse,
-                                     DeleteEventRequest)
+from proto.event_service_pb2 import (
+    EventsRequest,
+    EventsResponse,
+    ListOfEvents,
+    Event as GrpcEvent,
+    StandardResponse,
+    DeleteEventRequest,
+)
 from src.models.event import Event
 from datetime import datetime
 
 
 class EventServiceImpl(GrpcServicer):
     """
-    Event Service Implement
+    Event Service Controller.
+
+    ...
+
+    Attributes
+    ----------
+    events : List[Event]
+        List of events
+
+    Methods
+    -------
+    get_events()
+        Function that need to be bind to the server that returns events list.
+    create_event()
+        Function that need to be bind to the server that creates the event.
+    update_event()
+        Function that need to be bind to the server that updates the event.
+    delete_event()
+        Function that need to be bind to the server that deletes the event.
     """
+
     def __init__(self):
         self.events = [
             Event(
@@ -39,15 +65,19 @@ class EventServiceImpl(GrpcServicer):
 
     def get_events(self, request: EventsRequest, context) -> EventsResponse:
         """
+        Get all events.
 
         Parameters
         ----------
-        request
-        context
+        request : EventsRequest
+            Request data.
+        context : grpc.ServicerContext
+            Request context.
 
         Returns
         -------
-
+        EventsResponse
+            Response object for event response.
         """
         if request.offset == -1:
             return EventsResponse(
@@ -63,42 +93,54 @@ class EventServiceImpl(GrpcServicer):
 
     def create_event(self, request: GrpcEvent, context) -> StandardResponse:
         """
+        Create event.
 
         Parameters
         ----------
-        request
-        context
+        request : GrpcEvent
+            Request data containing GrpcEvent.
+        context : grpc.ServicerContext
+            Request context.
 
         Returns
         -------
-
+        StandardResponse
+            Object containing status code and message if the response status is not 200.
         """
         pass
 
     def update_event(self, request: GrpcEvent, context) -> StandardResponse:
         """
+        Update event.
 
         Parameters
         ----------
-        request
-        context
+        request : GrpcEvent
+            Request data containing GrpcEvent.
+        context : grpc.ServicerContext
+            Request context.
 
         Returns
         -------
-
+        StandardResponse
+            Object containing status code and message if the response status is not 200.
         """
         pass
 
     def delete_event(self, request: DeleteEventRequest, context) -> StandardResponse:
         """
+        Delete event.
 
         Parameters
         ----------
-        request
-        context
+        request : DeleteEventRequest
+            Request data containing event ID.
+        context : grpc.ServicerContext
+            Request context.
 
         Returns
         -------
-
+        StandardResponse
+            Object containing status code and message if the response status is not 200.
         """
         pass
