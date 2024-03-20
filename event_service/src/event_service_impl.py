@@ -14,7 +14,7 @@ from datetime import datetime
 
 class EventServiceImpl(GrpcServicer):
     """
-    Event Service Controller.
+    Implementation of the Event Service.
 
     ...
 
