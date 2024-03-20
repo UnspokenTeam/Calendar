@@ -8,7 +8,7 @@ service IdentityService {
   rpc get_new_access_token(GetNewAccessTokenRequest) returns (GetNewAccessTokenResponse){}
   rpc get_user_by_id(UserByIdRequest) returns (UserByIdResponse){}
   rpc get_users_by_id(UsersByIdRequest) returns (UsersByIdResponse){}
-  rpc update_user(User) returns (BaseResponse){}
+  rpc update_user(UpdateUserRequest) returns (BaseResponse){}
   rpc delete_user(DeleteUserRequest) returns (BaseResponse){}
 }
 
@@ -97,4 +97,9 @@ message UsersByIdResponse {
   int64 status_code = 1;
   optional ListOfUser user = 2;
   optional string message = 3;
+}
+
+message UpdateUserRequest{
+  string user_id = 1;
+  User new_user = 2;
 }

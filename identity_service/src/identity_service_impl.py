@@ -15,8 +15,8 @@ from proto.identity_service_pb2 import (
     UsersByIdResponse,
     UserByIdResponse,
     UserByIdRequest,
-    User as GrpcUser,
     BaseResponse,
+    UpdateUserRequest,
     DeleteUserRequest,
 )
 
@@ -172,15 +172,15 @@ class IdentityServiceImpl(GrpcServicer):
         pass
 
     def update_user(
-        self, request: GrpcUser, context: grpc.ServicerContext
+        self, request: UpdateUserRequest, context: grpc.ServicerContext
     ) -> BaseResponse:
         """
         Updates user data
 
         Parameters
         ----------
-        request: GrpcUser
-            User data to be updated
+        request: UpdateUserRequest
+            User data to be updated and current user id
         context: grpc.ServicerContext
             Request context
 
