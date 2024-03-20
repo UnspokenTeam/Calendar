@@ -1,3 +1,4 @@
+"""User Model"""
 from dataclasses import dataclass
 from proto.identity_service_pb2 import User as GrpcUser
 
@@ -6,8 +7,6 @@ from proto.identity_service_pb2 import User as GrpcUser
 class User:
     """
     Data class that stores user information
-
-    ...
 
     Attributes
     ----------

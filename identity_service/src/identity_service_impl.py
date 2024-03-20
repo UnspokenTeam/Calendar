@@ -25,8 +25,6 @@ class IdentityServiceImpl(GrpcServicer):
     """
     Implementation of the Identity Service.
 
-    ...
-
     Methods
     -------
     login(request, context)
