@@ -4,9 +4,9 @@ import "google/protobuf/timestamp.proto";
 
 service EventService {
   rpc get_events(EventsRequest) returns (EventsResponse){}
-  rpc create_event(Event) returns (StandardResponse){}
-  rpc update_event(Event) returns (StandardResponse){}
-  rpc delete_event(DeleteEventRequest) returns (StandardResponse){}
+  rpc create_event(Event) returns (BaseResponse){}
+  rpc update_event(Event) returns (BaseResponse){}
+  rpc delete_event(DeleteEventRequest) returns (BaseResponse){}
 }
 
 message EventsRequest {
@@ -38,7 +38,7 @@ message ListOfEvents {
   repeated Event events = 1;
 }
 
-message StandardResponse {
+message BaseResponse {
   int64 code = 1;
   optional string message = 2;
 }

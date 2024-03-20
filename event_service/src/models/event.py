@@ -10,8 +10,6 @@ class Event:
     """
     Class with data about the event.
 
-    ...
-
     Attributes
     ----------
     id : str
