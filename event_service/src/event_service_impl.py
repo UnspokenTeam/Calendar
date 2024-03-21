@@ -1,14 +1,7 @@
 """Event Service Controller"""
 
 from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
-from proto.event_service_pb2 import (
-    EventsRequest,
-    EventsResponse,
-    ListOfEvents,
-    Event as GrpcEvent,
-    BaseResponse,
-    DeleteEventRequest,
-)
+import proto.event_service_pb2 as proto
 from src.models.event import Event
 from datetime import datetime
 
@@ -58,7 +51,7 @@ class EventServiceImpl(GrpcServicer):
             ),
         ]
 
-    def get_events(self, request: EventsRequest, context) -> EventsResponse:
+    def get_events(self, request: proto.EventsRequest, context) -> proto.EventsResponse:
         """
         Get all events.
 
@@ -75,18 +68,18 @@ class EventServiceImpl(GrpcServicer):
             Response object for event response.
         """
         if request.offset == -1:
-            return EventsResponse(
+            return proto.EventsResponse(
                 status=400,
             )
 
-        return EventsResponse(
+        return proto.EventsResponse(
             status=200,
-            events=ListOfEvents(
+            events=proto.ListOfEvents(
                 events=[event.to_grpc_event() for event in self.events]
             ),
         )
 
-    def create_event(self, request: GrpcEvent, context) -> BaseResponse:
+    def create_event(self, request: proto.Event, context) -> proto.BaseResponse:
         """
         Create event.
 
@@ -104,7 +97,7 @@ class EventServiceImpl(GrpcServicer):
         """
         pass
 
-    def update_event(self, request: GrpcEvent, context) -> BaseResponse:
+    def update_event(self, request: proto.Event, context) -> proto.BaseResponse:
         """
         Update event.
 
@@ -122,7 +115,7 @@ class EventServiceImpl(GrpcServicer):
         """
         pass
 
-    def delete_event(self, request: DeleteEventRequest, context) -> BaseResponse:
+    def delete_event(self, request: proto.DeleteEventRequest, context) -> proto.BaseResponse:
         """
         Delete event.
 
