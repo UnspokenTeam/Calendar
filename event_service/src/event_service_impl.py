@@ -115,7 +115,9 @@ class EventServiceImpl(GrpcServicer):
         """
         pass
 
-    def delete_event(self, request: proto.DeleteEventRequest, context) -> proto.BaseResponse:
+    def delete_event(
+        self, request: proto.DeleteEventRequest, context
+    ) -> proto.BaseResponse:
         """
         Delete event.
 
