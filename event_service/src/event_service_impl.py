@@ -1,4 +1,5 @@
 """Event Service Controller"""
+
 from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
 from proto.event_service_pb2 import (
     EventsRequest,
