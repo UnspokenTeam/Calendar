@@ -10,12 +10,12 @@ def singleton(class_: Type[T]) -> Type[T]:
 
     Parameters
     ----------
-    class_:
+    class_ : Type[T]
         Any class
 
     Returns
     -------
-    Type[T]:
+    Type[T]
         The class instance
     """
     _instances: dict[Type[T]] = {}

@@ -46,9 +46,9 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request: LoginRequest
+        request : LoginRequest
             Login data
-        context: grpc.ServicerContext
+        context : grpc.ServicerContext
             Request context
 
         Returns
@@ -76,9 +76,9 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request: RegisterRequest
+        request : RegisterRequest
             Registration data
-        context: grpc.ServicerContext
+        context : grpc.ServicerContext
             Request context
 
         Returns
@@ -96,9 +96,9 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request: AccessToken
+        request : AccessToken
             Access token
-        context: grpc.ServicerContext
+        context : grpc.ServicerContext
             Request context
 
         Returns
@@ -118,9 +118,9 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request: GetNewAccessTokenRequest
+        request : GetNewAccessTokenRequest
             Refresh token
-        context: grpc.ServicerContext
+        context : grpc.ServicerContext
             Request context
 
         Returns
@@ -138,9 +138,9 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request: UserByIdRequest
+        request : UserByIdRequest
             User ID
-        context: grpc.ServicerContext
+        context : grpc.ServicerContext
             Request context
 
         Returns
@@ -158,9 +158,9 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request: UsersByIdRequest
+        request : UsersByIdRequest
             User ids
-        context: grpc.ServicerContext
+        context : grpc.ServicerContext
             Request context
 
         Returns
@@ -180,9 +180,9 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request: UpdateUserRequest
+        request : UpdateUserRequest
             User data to be updated and current user id
-        context: grpc.ServicerContext
+        context : grpc.ServicerContext
             Request context
 
         Returns
@@ -202,9 +202,9 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request: DeleteUserRequest
+        request : DeleteUserRequest
             ID of user to be deleted
-        context: grpc.ServicerContext
+        context : grpc.ServicerContext
             Request context
 
         Returns
@@ -222,9 +222,9 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request: AccessToken
+        request : AccessToken
             ID of user to be deleted
-        context: grpc.ServicerContext
+        context : grpc.ServicerContext
             Request context
 
         Returns
