@@ -1,3 +1,4 @@
+"""Database client"""
 from prisma import Prisma, Client
 
 from utils.singleton import singleton

@@ -7,7 +7,7 @@ generator client {
   provider = "prisma-client-py"
 }
 
-model Users {
+model User {
   id String @id @default(uuid())
   username String
   password String
