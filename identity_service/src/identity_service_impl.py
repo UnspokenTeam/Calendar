@@ -1,24 +1,13 @@
 """Identity Service Controller"""
 import grpc
 
-from proto.identity_service_pb2_grpc import IdentityServiceServicer as GrpcServicer
-from proto.identity_service_pb2 import (
-    LoginRequest,
-    CredentialsResponse,
-    LoginData,
-    RegisterRequest,
-    AccessToken,
-    AuthResponse,
-    GetNewAccessTokenRequest,
-    GetNewAccessTokenResponse,
-    UsersByIdRequest,
-    UsersByIdResponse,
-    UserByIdResponse,
-    UserByIdRequest,
-    BaseResponse,
-    UpdateUserRequest,
-    DeleteUserRequest,
-)
+from generated.identity_service_pb2_grpc import IdentityServiceServicer as GrpcServicer
+import generated.identity_service_pb2 as requests_proto
+import generated.auth_pb2 as auth_proto
+import generated.get_access_token_pb2 as get_access_token_proto
+import generated.get_user_pb2 as get_user_proto
+import generated.update_user_pb2 as update_user_proto
+import generated.delete_user_pb2 as delete_user_proto
 
 
 class IdentityServiceImpl(GrpcServicer):
@@ -50,8 +39,8 @@ class IdentityServiceImpl(GrpcServicer):
     """
 
     def login(
-        self, request: LoginRequest, context: grpc.ServicerContext
-    ) -> CredentialsResponse:
+        self, request: auth_proto.LoginRequest, context: grpc.ServicerContext
+    ) -> auth_proto.CredentialsResponse:
         """
         Log the user in and return credentials if user data matches
 
@@ -68,14 +57,20 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with credentials
         """
         if request.username == "username" and request.password == "password":
-            return CredentialsResponse(
+            return auth_proto.CredentialsResponse(
                 status_code=200,
-                data=LoginData(refresh_token="refresh", access_token="access"),
+                data=auth_proto.LoginData(
+                    refresh_token="refresh", access_token="access"
+                ),
             )
 
+        return auth_proto.CredentialsResponse(
+            status_code=200,
+        )
+
     def register(
-        self, request: RegisterRequest, context: grpc.ServicerContext
-    ) -> CredentialsResponse:
+        self, request: auth_proto.RegisterRequest, context: grpc.ServicerContext
+    ) -> auth_proto.CredentialsResponse:
         """
         Creates user if user does not already exist
 
@@ -93,7 +88,9 @@ class IdentityServiceImpl(GrpcServicer):
         """
         pass
 
-    def auth(self, request: AccessToken, context: grpc.ServicerContext) -> AuthResponse:
+    def auth(
+        self, request: auth_proto.AccessToken, context: grpc.ServicerContext
+    ) -> auth_proto.AuthResponse:
         """
         Authenticates user by his token and returns his ID
 
@@ -112,8 +109,10 @@ class IdentityServiceImpl(GrpcServicer):
         pass
 
     def get_new_access_token(
-        self, request: GetNewAccessTokenRequest, context: grpc.ServicerContext
-    ) -> GetNewAccessTokenResponse:
+        self,
+        request: get_access_token_proto.GetNewAccessTokenRequest,
+        context: grpc.ServicerContext,
+    ) -> get_access_token_proto.GetNewAccessTokenResponse:
         """
         Generates new access_token for user to authenticate with
 
@@ -132,8 +131,8 @@ class IdentityServiceImpl(GrpcServicer):
         pass
 
     def get_user_by_id(
-        self, request: UserByIdRequest, context: grpc.ServicerContext
-    ) -> UserByIdResponse:
+        self, request: get_user_proto.UserByIdRequest, context: grpc.ServicerContext
+    ) -> get_user_proto.UserByIdResponse:
         """
         Gets user object that matches given ID
 
@@ -152,8 +151,8 @@ class IdentityServiceImpl(GrpcServicer):
         pass
 
     def get_users_by_id(
-        self, request: UsersByIdRequest, context: grpc.ServicerContext
-    ) -> UsersByIdResponse:
+        self, request: get_user_proto.UsersByIdRequest, context: grpc.ServicerContext
+    ) -> get_user_proto.UsersByIdResponse:
         """
         Gets user objects that matches given ids
 
@@ -172,8 +171,10 @@ class IdentityServiceImpl(GrpcServicer):
         pass
 
     def update_user(
-        self, request: UpdateUserRequest, context: grpc.ServicerContext
-    ) -> BaseResponse:
+        self,
+        request: update_user_proto.UpdateUserRequest,
+        context: grpc.ServicerContext,
+    ) -> requests_proto.BaseResponse:
         """
         Updates user data
 
@@ -192,8 +193,10 @@ class IdentityServiceImpl(GrpcServicer):
         pass
 
     def delete_user(
-        self, request: DeleteUserRequest, context: grpc.ServicerContext
-    ) -> BaseResponse:
+        self,
+        request: delete_user_proto.DeleteUserRequest,
+        context: grpc.ServicerContext,
+    ) -> requests_proto.BaseResponse:
         """
         Deletes user with matching ID
 
@@ -212,8 +215,8 @@ class IdentityServiceImpl(GrpcServicer):
         pass
 
     def logout(
-        self, request: AccessToken, context: grpc.ServicerContext
-    ) -> BaseResponse:
+        self, request: auth_proto.AccessToken, context: grpc.ServicerContext
+    ) -> requests_proto.BaseResponse:
         """
         Logs out and deletes user's access token from database
 

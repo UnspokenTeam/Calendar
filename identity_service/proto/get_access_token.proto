@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+message GetNewAccessTokenRequest {
+  string refresh_token = 1;
+}
+
+message GetNewAccessTokenResponse {
+  int64 status_code = 1;
+  optional string access_token = 2;
+  optional string message = 3;
+}

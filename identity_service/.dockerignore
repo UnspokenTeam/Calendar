@@ -1,2 +1,2 @@
-proto/*.py
-proto/*.pyi
+./generate
+.idea

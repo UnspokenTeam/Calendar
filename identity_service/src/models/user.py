@@ -1,6 +1,6 @@
 """User Model"""
 from dataclasses import dataclass
-from proto.identity_service_pb2 import User as GrpcUser
+from generated.get_user_pb2 import User as GrpcUser
 
 
 @dataclass
