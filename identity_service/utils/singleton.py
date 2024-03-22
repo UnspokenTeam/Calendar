@@ -1,3 +1,4 @@
+"""Singleton decorator"""
 from typing import TypeVar, Type
 
 T = TypeVar("T")
@@ -6,6 +7,7 @@ T = TypeVar("T")
 def singleton(class_: Type[T]) -> Type[T]:
     """
     Decorator to create classes with singleton pattern
+
     Parameters
     ----------
     class_:
