@@ -22,7 +22,6 @@ async def serve():
 
 if __name__ == "__main__":
     logging.basicConfig(
-        level=logging.INFO,
-        handlers=[logging.StreamHandler(sys.stdout)]
+        level=logging.INFO, handlers=[logging.StreamHandler(sys.stdout)]
     )
     asyncio.run(serve())
