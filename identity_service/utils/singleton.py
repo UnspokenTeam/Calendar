@@ -5,10 +5,16 @@ T = TypeVar("T")
 
 def singleton(class_: Type[T]) -> Type[T]:
     """
-    Decorator to create singleton classes
+    Decorator to create classes with singleton pattern
+    Parameters
+    ----------
+    class_:
+        Any class
 
-    :param class_: Any class
-    :return: The class instance
+    Returns
+    -------
+    Type[T]:
+        The class instance
     """
     _instances: dict[Type[T]] = {}
 
