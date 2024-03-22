@@ -373,6 +373,8 @@ dmypy.json
 cython_debug/
 .idea
 event_service/.idea
+event_service/proto/*.py
+event_service/proto/*.pyi
 identity_service/.idea
 invite_service/.idea
 notification_service/.idea
