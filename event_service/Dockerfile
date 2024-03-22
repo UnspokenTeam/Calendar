@@ -28,4 +28,5 @@ COPY . /app
 RUN poetry run python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. --pyi_out=. ./proto/event_service.proto
 
 EXPOSE 8081
+
 CMD [ "poetry", "run", "python", "main.py" ]
