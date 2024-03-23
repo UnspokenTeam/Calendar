@@ -38,7 +38,8 @@ class User:
 
         Returns
         -------
-        User data in GrpcUser instance
+        GrpcUser
+            User data in GrpcUser instance
         """
         return GrpcUser(
             id=self.id,

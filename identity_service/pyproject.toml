@@ -11,6 +11,7 @@ sqlalchemy = "^2.0.28"
 jwcrypto = "^1.5.6"
 grpcio-tools = "^1.62.1"
 2to3 = "^1.0"
+prisma = "^0.13.0"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.1.0"

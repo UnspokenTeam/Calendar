@@ -25,11 +25,12 @@ COPY ./poetry.lock ./pyproject.toml ./
 RUN poetry install --no-interaction --no-cache --without dev
 
 COPY . /app
-RUN cd generated
-RUN echo "from . import *" | cat >> __init__.py
-RUN cd ../
+RUN mkdir generated
+RUN echo "from . import *" | cat >> ./generated/__init__.py
 RUN poetry run python -m grpc_tools.protoc -I proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ./proto/identity_service.proto ./proto/auth.proto ./proto/delete_user.proto ./proto/get_access_token.proto ./proto/get_user.proto ./proto/update_user.proto
 RUN poetry run 2to3 ./generated  -w -n
+RUN poetry run prisma db push
+RUN poetry run prisma generate
 
 EXPOSE 8080
 CMD [ "poetry", "run", "python", "main.py" ]
