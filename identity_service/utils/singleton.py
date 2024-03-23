@@ -17,7 +17,6 @@ def singleton(cls):
     instances = {}
 
     def wrapper(*args, **kwargs):
-        nonlocal instances
         if cls not in instances:
             instances[cls] = cls(*args, **kwargs)
 
