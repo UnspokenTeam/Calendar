@@ -1,5 +1,8 @@
 """User Model"""
 from dataclasses import dataclass
+from typing import Self
+from prisma.models import User as PrismaUser
+
 from generated.get_user_pb2 import User as GrpcUser
 
 
@@ -46,3 +49,22 @@ class User:
             username=self.username,
             email=self.email,
         )
+
+    @classmethod
+    def from_prisma_user(cls, prisma_user: PrismaUser) -> Self:
+        return cls(
+            id=prisma_user.id,
+            username=prisma_user.username,
+            email=prisma_user.email,
+            _password=prisma_user.password,
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "username": self.username,
+            "email": self.email,
+            "password": self._password,
+        }
+
+    def __str__(self) -> str:
+        return str(self.to_dict())

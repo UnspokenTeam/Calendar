@@ -12,9 +12,9 @@ model User {
   username String
   password String
   email String
-  role UserRole
-  created_at DateTime
-  suspended_at DateTime
+  role UserRole @default(User)
+  created_at DateTime @default(now())
+  suspended_at DateTime?
 }
 
 enum UserRole {
