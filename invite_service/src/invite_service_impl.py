@@ -1,4 +1,8 @@
+"""Invite Service Controller"""
+import grpc
+
 from proto.invite_service_pb2_grpc import InviteServiceServicer as GrpcServicer
+import proto.invite_service_pb2 as proto
 from proto.invite_service_pb2 import (
     Invite as GrpcInvite,
     InvitesRequestByUserId,
@@ -21,11 +25,26 @@ class InviteServiceImpl(GrpcServicer):
         ]
 
     def get_invites_by_user_id(
-        self, request: InvitesRequestByUserId, context
-    ) -> InvitesResponseByUserId:
+        self, request: InvitesRequestByUserId, context: grpc.ServicerContext
+    ) -> proto.InvitesResponseByUserId:
         return InvitesResponseByUserId(
             code=200,
             invites=ListOfInvites(
                 invites=[invite.to_grpc_invite() for invite in self.invites]
             ),
         )
+
+    def get_invites_by_event_id(
+        self, request: InvitesResponseByUserId, context: grpc.ServicerContext
+    ) -> proto.InvitesResponseByUserId:
+        pass
+
+    def update_status(
+        self, request: GrpcInviteStatus, context: grpc.ServicerContext
+    ) -> proto.Invite:
+        pass
+
+    def on_accept(
+        self, request: GrpcInvite, context: grpc.ServicerContext
+    ) -> proto.Invite:
+        pass
