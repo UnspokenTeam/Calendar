@@ -10,7 +10,7 @@ from db.redis_client import RedisClient
 from src.identity_service_impl import IdentityServiceImpl
 
 
-async def serve():
+async def serve() -> None:
     """Start an async server"""
     server = grpc.aio.server()
     identity_service_grpc.add_IdentityServiceServicer_to_server(

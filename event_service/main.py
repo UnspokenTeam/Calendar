@@ -9,7 +9,7 @@ from db.postgres_client import PostgresClient
 from src.event_service_impl import EventServiceImpl
 
 
-async def serve():
+async def serve() -> None:
     """Start an async server."""
     server = grpc.aio.server()
     event_service_grpc.add_EventServiceServicer_to_server(EventServiceImpl(), server)
