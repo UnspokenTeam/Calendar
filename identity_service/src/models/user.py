@@ -60,13 +60,12 @@ class User:
         )
 
     def to_dict(self, exclude: Optional[List[str]] = None) -> dict:
-        if exclude is None:
-            exclude = ["id"]
+        exclude_set = set(exclude if exclude is not None else ["id"]) | {"id"}
         attrs = vars(self)
         return {
-            attr.lstrip("_"): getattr(self, attr)
-            for attr in attrs
-            if attr.lstrip("_") not in exclude
+            attr.lstrip("_"): value
+            for attr, value in attrs.items()
+            if attr.lstrip("_") not in exclude_set
         }
 
     def __repr__(self) -> str:
