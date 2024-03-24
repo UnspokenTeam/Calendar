@@ -1,6 +1,7 @@
 """User Model"""
 from dataclasses import dataclass
 from typing import Self, Optional, List
+
 from prisma.models import User as PrismaUser
 
 from generated.get_user_pb2 import User as GrpcUser
@@ -81,7 +82,7 @@ class User:
         Parameters
         ----------
         exclude: Optional[List[str]]
-            Fields to exclude. All field names should be exactly the same as class attribute
+            Fields to exclude. All field names should be exactly the same as class attribute name
 
         Returns
         -------
