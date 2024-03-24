@@ -6,7 +6,7 @@ from prisma.models import User as PrismaUser
 
 from db.db import Db
 from errors.unique_error import UniqueError
-from errors.value_not_found_error import ValueNotFound
+from errors.value_not_found_error import ValueNotFoundError
 from src.models.user import User
 from utils.singleton import singleton
 
@@ -61,14 +61,14 @@ class UserRepository:
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python
-        ValueNotFound
+        ValueNotFoundError
             No user was found for given email
         """
         db_user: Optional[PrismaUser] = await self._db_client.db.user.find_first(
             where={"email": email, "suspended_at": None}
         )
         if db_user is None:
-            raise ValueNotFound("User not found")
+            raise ValueNotFoundError("User not found")
         return User.from_prisma_user(db_user)
 
     async def get_user_by_id(self, user_id: str) -> User:
@@ -89,14 +89,14 @@ class UserRepository:
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python
-        ValueNotFound
+        ValueNotFoundError
             No user was found for given email
         """
         db_user: Optional[PrismaUser] = await self._db_client.db.user.find_first(
             where={"id": user_id, "suspended_at": None}
         )
         if db_user is None:
-            raise ValueNotFound("User not found")
+            raise ValueNotFoundError("User not found")
         return User.from_prisma_user(db_user)
 
     async def get_users_by_ids(self, user_ids: List[str]) -> List[User]:
@@ -117,7 +117,7 @@ class UserRepository:
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python
-        ValueNotFound
+        ValueNotFoundError
             No users was found for given email
         """
         db_users: Optional[List[PrismaUser]] = await self._db_client.db.user.find_many(
@@ -125,10 +125,10 @@ class UserRepository:
         )
 
         if db_users is None:
-            raise ValueNotFound("Value is None")
+            raise ValueNotFoundError("Value is None")
 
         if len(db_users) == 0:
-            raise ValueNotFound("No users not found")
+            raise ValueNotFoundError("No users not found")
 
         return [User.from_prisma_user(db_user) for db_user in db_users]
 
