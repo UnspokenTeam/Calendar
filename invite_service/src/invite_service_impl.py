@@ -42,7 +42,7 @@ class InviteServiceImpl(GrpcServicer):
         self, request: proto.InvitesByUserIdRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
-        Get all invites.
+        Get all invites by user id.
 
         Parameters
         ----------
@@ -54,7 +54,7 @@ class InviteServiceImpl(GrpcServicer):
         Returns
         -------
         InvitesResponse
-            Invites object for event response.
+            Invites object for invite response.
         """
         return proto.InvitesResponse(
             code=200,
@@ -62,6 +62,26 @@ class InviteServiceImpl(GrpcServicer):
                 invites=[invite.to_grpc_invite() for invite in self.invites]
             ),
         )
+
+    def get_invites_by_invitee_id(
+        self, request: proto.GetInviteeByInviteIdRequest, context: grpc.ServicerContext
+    ) -> proto.InvitesResponse:
+        """
+        Get all invites by invitee id.
+
+        Parameters
+        ----------
+        request : InviteeByInviteIdRequest
+            Request data.
+        context : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        InvitesResponse
+            Invites object for invite response.
+        """
+        pass
 
     def create_invite(
         self, request: proto.Invite, context: grpc.ServicerContext
