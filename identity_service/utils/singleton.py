@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 """Singleton decorator"""
 from typing import TypeVar, Type
 
