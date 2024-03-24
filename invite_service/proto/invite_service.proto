@@ -2,6 +2,7 @@ syntax = "proto3";
 
 service InviteService {
   rpc get_invites_by_user_id(InvitesByUserIdRequest) returns (InvitesResponse){}
+  rpc get_invites_by_invitee_id(GetInviteeByInviteIdRequest) returns (InvitesResponse){}
   rpc create_invite(Invite) returns (BaseResponse){}
   rpc update_invite(Invite) returns (BaseResponse){}
   rpc delete_invite(DeleteInviteRequest) returns (BaseResponse){}
@@ -35,7 +36,7 @@ message BaseResponse {
 }
 
 message DeleteInviteRequest {
-  string id = 1;
+  string invite_id = 1;
 }
 
 message GetInvitesByInviteeIdRequest {
