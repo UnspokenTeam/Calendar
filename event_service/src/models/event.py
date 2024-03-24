@@ -1,6 +1,6 @@
 """Event Model."""
 from dataclasses import dataclass
-from typing import Optional, Self, List
+from typing import Optional, Self, List, Any
 from datetime import datetime
 
 from prisma.models import Event as PrismaEvent
@@ -75,7 +75,7 @@ class Event:
 
         return event
 
-    def to_dict(self, exclude: Optional[List[str]] = None) -> dict:
+    def to_dict(self, exclude: Optional[List[str]] = None) -> dict[str, Any]:
         """
         Converts event data to dictionary.
 
@@ -86,7 +86,7 @@ class Event:
 
         Returns
         -------
-        dict
+        dict[str, Any]
             Event data dictionary.
 
         """

@@ -85,7 +85,7 @@ class User:
 
         Returns
         -------
-        dict
+        dict[str, Any]
             User data represented in dictionary
         """
         exclude_set = set(exclude if exclude is not None else []) | {"id"}
