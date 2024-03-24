@@ -3,7 +3,10 @@ import os
 
 from redis import Redis
 
+from utils.singleton import singleton
 
+
+@singleton
 class RedisClient:
     """
     Data class that stores user information
