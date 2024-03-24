@@ -1,3 +1,6 @@
+"""Value not found error type"""
+
+
 class ValueNotFoundError(Exception):
     """Exception raised when value was not found in the database"""
 

@@ -30,6 +30,7 @@ class User:
         Returns user class instance from PrismaUser
     to_dict()
         Returns user's data represented in dictionary
+
     """
 
     id: str
@@ -45,6 +46,7 @@ class User:
         -------
         GrpcUser
             User data in GrpcUser instance
+
         """
         return GrpcUser(
             id=self.id,
@@ -59,13 +61,14 @@ class User:
 
         Parameters
         ----------
-        prisma_user: PrismaUser
+        prisma_user : PrismaUser
             Prisma user
 
         Returns
         -------
         User
             User class instance
+
         """
         return cls(
             id=prisma_user.id,
@@ -80,13 +83,14 @@ class User:
 
         Parameters
         ----------
-        exclude: Optional[List[str]]
-            Fields to exclude. All field names should be exactly the same as class attribute
+        exclude : Optional[List[str]]
+            Fields to exclude. All field names should be exactly the same as class attribute name
 
         Returns
         -------
         dict[str, Any]
             User data represented in dictionary
+
         """
         exclude_set = set(exclude if exclude is not None else []) | {"id"}
         attrs = vars(self)

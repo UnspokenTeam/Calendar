@@ -1,3 +1,6 @@
+"""Unique error type"""
+
+
 class UniqueError(Exception):
     """Exception raised when the new values violates a unique constraint"""
 

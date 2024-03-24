@@ -1,5 +1,6 @@
 """Postgres client"""
 import logging
+
 from prisma import Prisma, Client
 
 from utils.singleton import singleton

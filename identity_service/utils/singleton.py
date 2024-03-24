@@ -14,6 +14,7 @@ def singleton(cls):
     Returns
     -------
     The class instance
+
     """
     instances = {}
 
