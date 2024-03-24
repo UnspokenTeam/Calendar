@@ -60,7 +60,7 @@ class User:
         )
 
     def to_dict(self, exclude: Optional[List[str]] = None) -> dict:
-        exclude_set = set(exclude if exclude is not None else ["id"]) | {"id"}
+        exclude_set = set(exclude if exclude is not None else []) | {"id"}
         attrs = vars(self)
         return {
             attr.lstrip("_"): value
