@@ -63,7 +63,7 @@ class EventRepository:
         db_events: Optional[
             List[PrismaEvent]
         ] = await self._db_client.db.event.find_many(where={"id": author_id})
-        if db_events is None:
+        if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
         return [Event.from_prisma_event(db_event) for db_event in db_events]
 
