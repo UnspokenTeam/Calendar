@@ -65,6 +65,7 @@ class TokenRepository:
         -------
         str
             User's refresh token
+
         Raises
         ------
         ValueNotFoundError
