@@ -1,9 +1,11 @@
-"""Event Service Controller"""
+"""Event Service Controller."""
+from datetime import datetime
+
+import grpc
 
 from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
 import proto.event_service_pb2 as proto
 from src.models.event import Event
-from datetime import datetime
 
 
 class EventServiceImpl(GrpcServicer):
@@ -13,21 +15,22 @@ class EventServiceImpl(GrpcServicer):
     Attributes
     ----------
     events : List[Event]
-        List of events
+        List of events.
 
     Methods
     -------
-    get_events()
+    get_events(request, context)
         Function that need to be bind to the server that returns events list.
-    create_event()
+    create_event(request, context)
         Function that need to be bind to the server that creates the event.
-    update_event()
+    update_event(request, context)
         Function that need to be bind to the server that updates the event.
-    delete_event()
+    delete_event(request, context)
         Function that need to be bind to the server that deletes the event.
+
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.events = [
             Event(
                 id="1",
@@ -51,7 +54,9 @@ class EventServiceImpl(GrpcServicer):
             ),
         ]
 
-    def get_events(self, request: proto.EventsRequest, context) -> proto.EventsResponse:
+    def get_events(
+        self, request: proto.EventsRequest, context: grpc.ServicerContext
+    ) -> proto.EventsResponse:
         """
         Get all events.
 
@@ -66,6 +71,7 @@ class EventServiceImpl(GrpcServicer):
         -------
         EventsResponse
             Response object for event response.
+
         """
         if request.offset == -1:
             return proto.EventsResponse(
@@ -79,7 +85,9 @@ class EventServiceImpl(GrpcServicer):
             ),
         )
 
-    def create_event(self, request: proto.Event, context) -> proto.BaseResponse:
+    def create_event(
+        self, request: proto.Event, context: grpc.ServicerContext
+    ) -> proto.BaseResponse:
         """
         Create event.
 
@@ -94,10 +102,13 @@ class EventServiceImpl(GrpcServicer):
         -------
         BaseResponse
             Object containing status code and message if the response status is not 200.
+
         """
         pass
 
-    def update_event(self, request: proto.Event, context) -> proto.BaseResponse:
+    def update_event(
+        self, request: proto.Event, context: grpc.ServicerContext
+    ) -> proto.BaseResponse:
         """
         Update event.
 
@@ -112,11 +123,12 @@ class EventServiceImpl(GrpcServicer):
         -------
         BaseResponse
             Object containing status code and message if the response status is not 200.
+
         """
         pass
 
     def delete_event(
-        self, request: proto.DeleteEventRequest, context
+        self, request: proto.DeleteEventRequest, context: grpc.ServicerContext
     ) -> proto.BaseResponse:
         """
         Delete event.
@@ -132,5 +144,6 @@ class EventServiceImpl(GrpcServicer):
         -------
         BaseResponse
             Object containing status code and message if the response status is not 200.
+
         """
         pass

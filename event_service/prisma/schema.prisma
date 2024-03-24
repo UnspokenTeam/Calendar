@@ -16,4 +16,6 @@ model Event {
   end DateTime
   repeating_delay DateTime
   author_id String
+  created_at DateTime
+  deleted_at DateTime?
 }
