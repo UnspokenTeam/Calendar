@@ -22,7 +22,6 @@ class User:
     _password : str
         Hashed password of the user
 
-
     Methods
     -------
     to_grpc_user()
@@ -31,7 +30,6 @@ class User:
         Returns user class instance from PrismaUser
     to_dict()
         Returns user's data represented in dictionary
-
     """
 
     id: str
@@ -89,7 +87,6 @@ class User:
         -------
         dict
             User data represented in dictionary
-
         """
         exclude_set = set(exclude if exclude is not None else []) | {"id"}
         attrs = vars(self)

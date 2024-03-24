@@ -4,7 +4,7 @@ from typing import Optional, List
 
 from prisma.models import User as PrismaUser
 
-from db.db import Db
+from db.postgres_client import PostgresClient
 from errors.unique_error import UniqueError
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.user import User
@@ -20,7 +20,6 @@ class UserRepository:
     ----------
     _db_client : prisma.Client
         Postgres db client
-
 
     Methods
     -------
@@ -38,10 +37,10 @@ class UserRepository:
         Deletes user that has matching id from database or throws an exception
     """
 
-    _db_client: Db
+    _db_client: PostgresClient
 
     def __init__(self):
-        self._db_client = Db()
+        self._db_client = PostgresClient()
 
     async def get_user_by_email(self, email: str) -> User:
         """
