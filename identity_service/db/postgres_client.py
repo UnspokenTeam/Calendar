@@ -1,4 +1,4 @@
-"""Database client"""
+"""Postgres client"""
 import logging
 from prisma import Prisma, Client
 
@@ -6,9 +6,9 @@ from utils.singleton import singleton
 
 
 @singleton
-class Db:
+class PostgresClient:
     """
-    Data class that stores user information
+    Postgres client
 
     Attributes
     ----------
