@@ -15,7 +15,6 @@ class RedisClient:
     ----------
     db : redis.Redis
         Redis client
-
     """
 
     db: Redis
