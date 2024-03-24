@@ -67,4 +67,4 @@ class User:
         }
 
     def __str__(self) -> str:
-        return str(self.to_dict())
+        return f"{vars(self)}"
