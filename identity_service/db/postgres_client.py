@@ -26,7 +26,7 @@ class PostgresClient:
 
     db: Client
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.db = Prisma(auto_register=True)
 
     async def connect(self) -> None:

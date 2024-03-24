@@ -15,11 +15,12 @@ class RedisClient:
     ----------
     db : redis.Redis
         Redis client
+
     """
 
     db: Redis
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.db = Redis(
             host=os.environ["REDIS_HOST"],
             port=os.environ["REDIS_PORT"],

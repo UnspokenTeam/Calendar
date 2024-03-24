@@ -23,6 +23,7 @@ class TokenRepository:
         Stores refresh token in Redis database
     delete_refresh_token(user_id)
         Deletes refresh token corresponding to provided user_id
+
     """
 
     _redis_db: RedisClient
@@ -40,6 +41,7 @@ class TokenRepository:
             User's refresh token
         user_id : str
             User's id
+
         """
         self._redis_db.db.set(
             user_id,
@@ -60,6 +62,7 @@ class TokenRepository:
         -------
         str
             User's refresh token
+
         """
         result: Optional[bytes] = self._redis_db.db.get(user_id)
 
@@ -76,5 +79,6 @@ class TokenRepository:
         ----------
         user_id : str
             User's id
+
         """
         self._redis_db.db.delete(user_id)
