@@ -49,7 +49,7 @@ class TokenRepository:
         await self._redis_db.db.set(
             user_id,
             refresh_token,
-            ex=timedelta(days=int(os.environ.get("REFRESH_TOKEN_EXPIRATION"))),
+            ex=timedelta(days=int(os.environ["REFRESH_TOKEN_EXPIRATION"])),
         )
 
     async def get_refresh_token(self, user_id: str) -> str:
