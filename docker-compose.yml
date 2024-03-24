@@ -15,12 +15,12 @@ services:
       timeout: 5s
       retries: 5
 
-  event_service:
-    build: ./event_service
+  identity_service:
+    build: ./identity_service
     expose:
-      - 8080
+      - 8081
     ports:
-      - "8080:8080"
+      - "8081:8081"
     links:
       - postgres
     depends_on:
@@ -29,12 +29,12 @@ services:
     env_file:
       - .env
 
-  identity_service:
-    build: ./identity_service
+  event_service:
+    build: ./event_service
     expose:
-      - 8081
+      - 8080
     ports:
-      - "8081:8081"
+      - "8080:8080"
     links:
       - postgres
     depends_on:
