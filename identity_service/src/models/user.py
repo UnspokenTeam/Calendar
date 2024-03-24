@@ -27,6 +27,10 @@ class User:
     -------
     to_grpc_user()
         Returns user's information as a GrpcUser class instance
+    from_prisma_user(prisma_user)
+        Returns user class instance from PrismaUser
+    to_dict()
+        Returns user's data represented in dictionary
 
     """
 
@@ -52,6 +56,19 @@ class User:
 
     @classmethod
     def from_prisma_user(cls, prisma_user: PrismaUser) -> Self:
+        """
+        Returns user class instance from PrismaUser
+
+        Parameters
+        ----------
+        prisma_user: PrismaUser
+            Prisma user
+
+        Returns
+        -------
+        User
+            User class instance
+        """
         return cls(
             id=prisma_user.id,
             username=prisma_user.username,
@@ -60,6 +77,20 @@ class User:
         )
 
     def to_dict(self, exclude: Optional[List[str]] = None) -> dict:
+        """
+        Get user data represented in dictionary
+
+        Parameters
+        ----------
+        exclude: Optional[List[str]]
+            Fields to exclude. All field names should be exactly the same as class attribute
+
+        Returns
+        -------
+        dict
+            User data represented in dictionary
+
+        """
         exclude_set = set(exclude if exclude is not None else []) | {"id"}
         attrs = vars(self)
         return {
