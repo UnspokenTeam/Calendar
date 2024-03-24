@@ -39,7 +39,7 @@ class UserRepository:
 
     _db_client: PostgresClient
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._db_client = PostgresClient()
 
     async def get_user_by_email(self, email: str) -> User:

@@ -1,6 +1,6 @@
 """User Model"""
 from dataclasses import dataclass
-from typing import Self, Optional, List
+from typing import Self, Optional, List, Any
 from prisma.models import User as PrismaUser
 
 from generated.get_user_pb2 import User as GrpcUser
@@ -74,7 +74,7 @@ class User:
             _password=prisma_user.password,
         )
 
-    def to_dict(self, exclude: Optional[List[str]] = None) -> dict:
+    def to_dict(self, exclude: Optional[List[str]] = None) -> dict[str, Any]:
         """
         Get user data represented in dictionary
 
@@ -85,7 +85,7 @@ class User:
 
         Returns
         -------
-        dict
+        dict[str, Any]
             User data represented in dictionary
         """
         exclude_set = set(exclude if exclude is not None else []) | {"id"}
