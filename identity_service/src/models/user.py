@@ -65,7 +65,7 @@ class User:
         return {
             attr.lstrip("_"): value
             for attr, value in attrs.items()
-            if attr.lstrip("_") not in exclude_set
+            if attr not in exclude_set
         }
 
     def __repr__(self) -> str:
