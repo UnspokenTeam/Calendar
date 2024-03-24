@@ -4,8 +4,11 @@ from datetime import timedelta
 from typing import Optional
 
 from db.redis_client import RedisClient
+from errors.value_not_found_error import ValueNotFoundError
+from utils.singleton import singleton
 
 
+@singleton
 class TokenRepository:
     """
     Data class that stores user information
@@ -17,11 +20,11 @@ class TokenRepository:
 
     Methods
     -------
-    get_refresh_token(user_id)
+    async get_refresh_token(user_id)
         Returns refresh token for provided user_id
-    store_refresh_token(refresh_token)
+    async store_refresh_token(refresh_token)
         Stores refresh token in Redis database
-    delete_refresh_token(user_id)
+    async delete_refresh_token(user_id)
         Deletes refresh token corresponding to provided user_id
 
     """
@@ -31,7 +34,7 @@ class TokenRepository:
     def __init__(self) -> None:
         self._redis_db = RedisClient()
 
-    def store_refresh_token(self, refresh_token: str, user_id: str) -> None:
+    async def store_refresh_token(self, refresh_token: str, user_id: str) -> None:
         """
         Create refresh token with provided data
 
@@ -43,13 +46,13 @@ class TokenRepository:
             User's id
 
         """
-        self._redis_db.db.set(
+        await self._redis_db.db.set(
             user_id,
             refresh_token,
             ex=timedelta(days=int(os.environ.get("REFRESH_TOKEN_EXPIRATION"))),
         )
 
-    def get_refresh_token(self, user_id: str) -> str:
+    async def get_refresh_token(self, user_id: str) -> str:
         """
         Get user's refresh token
 
@@ -62,16 +65,20 @@ class TokenRepository:
         -------
         str
             User's refresh token
+        Raises
+        ------
+        ValueNotFoundError
+            No refresh token found for provided user_id
 
         """
-        result: Optional[bytes] = self._redis_db.db.get(user_id)
+        result: Optional[bytes] = await self._redis_db.db.get(user_id)
 
         if result is None:
-            raise ValueError("Token not found")
+            raise ValueNotFoundError("Token not found")
 
         return result.decode()
 
-    def delete_refresh_token(self, user_id: str) -> None:
+    async def delete_refresh_token(self, user_id: str) -> None:
         """
         Delete user's refresh token
 
@@ -81,4 +88,4 @@ class TokenRepository:
             User's id
 
         """
-        self._redis_db.db.delete(user_id)
+        await self._redis_db.db.delete(user_id)

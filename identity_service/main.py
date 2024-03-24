@@ -18,7 +18,7 @@ async def serve() -> None:
     )
     server.add_insecure_port("0.0.0.0:8080")
     await PostgresClient().connect()
-    RedisClient()
+    await RedisClient().connect()
     await server.start()
     logging.info("Server started on http://localhost:8080")
     await server.wait_for_termination()
