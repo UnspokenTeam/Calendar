@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+service EventService {
+  rpc get_events(EventsRequest) returns (EventsResponse){}
+  rpc create_event(Event) returns (BaseResponse){}
+  rpc update_event(Event) returns (BaseResponse){}
+  rpc delete_event(DeleteEventRequest) returns (BaseResponse){}
+}
+
+message EventsRequest {
+  string user_id = 1;
+  int64 offset = 2;
+  int64 item_amount = 3;
+  optional google.protobuf.Timestamp bottom_time_limit = 4;
+  optional google.protobuf.Timestamp upper_time_limit = 5;
+}
+
+message EventsResponse {
+  int32 status = 1;
+  optional ListOfEvents events = 2;
+  optional string message = 3;
+}
+
+message Event {
+  string id = 1;
+  string title = 2;
+  optional string description = 3;
+  string color = 4;
+  google.protobuf.Timestamp start = 5;
+  google.protobuf.Timestamp end = 6;
+  optional google.protobuf.Timestamp repeating_delay = 7;
+  string author_id = 8;
+}
+
+message ListOfEvents {
+  repeated Event events = 1;
+}
+
+message BaseResponse {
+  int64 code = 1;
+  optional string message = 2;
+}
+
+message DeleteEventRequest {
+  string event_id = 1;
+}

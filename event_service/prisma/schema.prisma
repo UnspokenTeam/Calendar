@@ -1,0 +1,19 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-py"
+}
+
+model Event {
+  id String @id @default(uuid())
+  title String
+  description String?
+  color String?
+  start DateTime
+  end DateTime
+  repeating_delay DateTime
+  author_id String
+}
