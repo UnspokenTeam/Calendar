@@ -7,11 +7,12 @@ class Encoder:
     Encoder class
 
     Methods
-    _______
+    -------
     encode(password)
         Returns hashed password
     compare(password, hashed_password)
         Returns True if passwords match and False if not
+
     """
 
     @staticmethod
@@ -49,6 +50,7 @@ class Encoder:
         -------
         bool
             Flag if passwords are matching
+
         """
         return bool(
             checkpw(
