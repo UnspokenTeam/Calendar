@@ -106,12 +106,14 @@ class JwtController:
             else self._refresh_key
         )
         try:
-            return decode(
-                jwt=token,
-                key=key,
-                algorithms=[
-                    "HS256",
-                ],
+            return dict(
+                decode(
+                    jwt=token,
+                    key=key,
+                    algorithms=[
+                        "HS256",
+                    ],
+                )
             )
         except Exception as e:
             logging.info(e)
