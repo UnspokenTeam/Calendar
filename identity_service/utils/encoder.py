@@ -31,7 +31,7 @@ class Encoder:
 
         """
         salt = gensalt()
-        return hashpw(password=password.encode("UTF-8"), salt=salt).decode("UTF-8")
+        return str(hashpw(password=password.encode("UTF-8"), salt=salt).decode("UTF-8"))
 
     @staticmethod
     def compare(password: str, hashed_password: str) -> bool:
@@ -50,7 +50,9 @@ class Encoder:
         bool
             Flag if passwords are matching
         """
-        return checkpw(
-            password=password.encode("UTF-8"),
-            hashed_password=hashed_password.encode("UTF-8"),
+        return bool(
+            checkpw(
+                password=password.encode("UTF-8"),
+                hashed_password=hashed_password.encode("UTF-8"),
+            )
         )
