@@ -1,0 +1,33 @@
+exclude = [
+    ".venv",
+    "__pycache__",
+    "event_service/proto/*.py",
+    "event_service/proto/*.pyi",
+    "identity_service/generated"
+]
+
+line-length = 119
+indent-width = 4
+
+target-version = "py311"
+
+[lint]
+select = ["D", "E4", "E7", "E9", "F", "I", "ANN", "S", "RET", "FIX", "RUF", "TD", "ARG"]
+ignore = [
+    "E226",
+    "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107",
+    "D203", "D212", "D214", "D215",
+    "D400", "D401", "D402", "D404", "D405", "D406", "D407", "D408", "D409", "D410", "D411",
+    "D412" , "D413", "D414", "D416", "D417",
+    "E266"
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
+
+[lint.pydocstyle]
+convention = "numpy"
