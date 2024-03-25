@@ -12,6 +12,7 @@ grpcio-tools = "^1.62.1"
 2to3 = "^1.0"
 prisma = "^0.13.0"
 redis = "^5.0.3"
+bcrypt = "^4.1.2"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.1.0"
