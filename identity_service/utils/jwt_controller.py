@@ -36,6 +36,7 @@ class JwtController:
         Generate access and refresh tokens for user with provided id
     decode(token, token_type)
         Decode token with provided type or throw an error
+
     """
 
     _access_key: str
