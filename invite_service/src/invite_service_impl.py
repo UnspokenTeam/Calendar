@@ -14,21 +14,22 @@ class InviteServiceImpl(GrpcServicer):
     Attributes
     ----------
     invites : List[Invite]
-        List of invites
+        List of invites.
 
     Methods
     -------
-    get_invites_by_user_id()
+    get_invites_by_user_id(request, context)
         Function that need to be bind to the server that returns invites list.
-    create_invite()
+    create_invite(request, context)
         Function that need to be bind to the server that creates the invite.
-    update_invite()
+    update_invite(request, context)
         Function that need to be bind to the server that updates the invite.
-    delete_invite()
+    delete_invite(request, context)
         Function that need to be bind to the server that deletes the invite.
+
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.invites = [
             Invite(
                 "id", "event_id", "author_id", "invitee_id", proto.InviteStatus.PENDING
@@ -46,15 +47,16 @@ class InviteServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : InvitesByUserIdRequest
+        request : proto.InvitesByUserIdRequest
             Request data.
         context : grpc.ServicerContext
             Request context.
 
         Returns
         -------
-        InvitesResponse
+        proto.InvitesResponse
             Invites object for invite response.
+
         """
         return proto.InvitesResponse(
             code=200,
@@ -71,15 +73,16 @@ class InviteServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : InviteeByInviteIdRequest
+        request : proto.GetInviteeByInviteIdRequest
             Request data.
         context : grpc.ServicerContext
             Request context.
 
         Returns
         -------
-        InvitesResponse
+        proto.InvitesResponse
             Invites object for invite response.
+
         """
         pass
 
@@ -91,15 +94,16 @@ class InviteServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : GrpcInvite
+        request : proto.Invite
             Request data containing GrpcInvite.
         context : grpc.ServicerContext
             Request context.
 
         Returns
         -------
-        BaseResponse
+        proto.BaseResponse
             Object containing status code and message if the response status is not 200.
+
         """
         pass
 
@@ -111,15 +115,16 @@ class InviteServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : GrpcInvite
+        request : proto.Invite
             Request data containing GrpcInvite.
         context : grpc.ServicerContext
             Request context.
 
         Returns
         -------
-        BaseResponse
+        proto.BaseResponse
             Object containing status code and message if the response status is not 200.
+
         """
         pass
 
@@ -131,14 +136,15 @@ class InviteServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : DeleteInviteRequest
+        request : proto.DeleteInviteRequest
             Request data containing invite ID.
         context : grpc.ServicerContext
             Request context.
 
         Returns
         -------
-        BaseResponse
+        proto.BaseResponse
             Object containing status code and message if the response status is not 200.
+
         """
         pass

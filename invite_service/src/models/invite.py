@@ -43,6 +43,7 @@ class Invite:
         -------
         GrpcInvite
             Invite data in GrpcInvite instance
+
         """
         invite = GrpcInvite(
             id=self.id,

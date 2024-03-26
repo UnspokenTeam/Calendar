@@ -8,7 +8,7 @@ import proto.invite_service_pb2_grpc as invite_service_grpc
 from src.invite_service_impl import InviteServiceImpl
 
 
-async def serve():
+async def serve() -> None:
     """Start an async server"""
     server = grpc.aio.server()
     invite_service_grpc.add_InviteServiceServicer_to_server(InviteServiceImpl(), server)
