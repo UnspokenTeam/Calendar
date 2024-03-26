@@ -36,6 +36,7 @@ class IdentityServiceImpl(GrpcServicer):
         Function that need to be bind to the server that deletes user with given user_id
     logout(request, context)
         Function that need to be bind to the server that deletes refresh_token from database and logs the user off
+
     """
 
     def login(
@@ -55,6 +56,7 @@ class IdentityServiceImpl(GrpcServicer):
         -------
         CredentialsResponse
             Response object with credentials
+
         """
         if request.username == "username" and request.password == "password":
             return auth_proto.CredentialsResponse(
@@ -85,6 +87,7 @@ class IdentityServiceImpl(GrpcServicer):
         -------
         CredentialsResponse
             Response object with credentials
+
         """
         pass
 
@@ -105,6 +108,7 @@ class IdentityServiceImpl(GrpcServicer):
         -------
         AuthResponse
             Response object with ID of currently signed in user
+
         """
         pass
 
@@ -127,6 +131,7 @@ class IdentityServiceImpl(GrpcServicer):
         -------
         GetNewAccessTokenResponse
             Response object with new access token
+
         """
         pass
 
@@ -147,6 +152,7 @@ class IdentityServiceImpl(GrpcServicer):
         -------
         UserByIdResponse
             Response object with public user data
+
         """
         pass
 
@@ -167,6 +173,7 @@ class IdentityServiceImpl(GrpcServicer):
         -------
         UsersByIdResponse
             Response object with array of public user data
+
         """
         pass
 
@@ -189,6 +196,7 @@ class IdentityServiceImpl(GrpcServicer):
         -------
         BaseResponse
             Base response with status code and optional message
+
         """
         pass
 
@@ -211,6 +219,7 @@ class IdentityServiceImpl(GrpcServicer):
         -------
         BaseResponse
             Base response with status code and optional message
+
         """
         pass
 
@@ -231,5 +240,6 @@ class IdentityServiceImpl(GrpcServicer):
         -------
         BaseResponse
             Base response with status code and optional message
+
         """
         pass

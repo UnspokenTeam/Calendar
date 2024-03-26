@@ -1,29 +1,28 @@
-"""Singleton decorator"""
-from typing import TypeVar, Type
-
-T = TypeVar("T")
+# mypy: ignore-errors
+"""Singleton decorator."""
 
 
-def singleton(class_: Type[T]) -> Type[T]:
+def singleton(cls):
     """
-    Decorator to create singleton classes
+    Decorator to create classes with singleton pattern.
 
     Parameters
     ----------
-    class_ : Type[T]
-        Any class
+    cls
+        Any class.
 
     Returns
     -------
-    Type[T]
-        The class instance
+    The class instance.
+
     """
-    _instances: dict[Type[T]] = {}
+    instances = {}
 
-    def wrapper(*args, **kwargs) -> Type[T]:
-        if class_ not in _instances:
-            _instances[class_] = class_(*args, **kwargs)
+    def wrapper(*args, **kwargs):
+        nonlocal instances
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
 
-        return _instances[class_]
+        return instances[cls]
 
     return wrapper

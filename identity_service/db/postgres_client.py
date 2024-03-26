@@ -1,13 +1,15 @@
-"""Database client"""
+"""Postgres client"""
+import logging
+
 from prisma import Prisma, Client
 
 from utils.singleton import singleton
 
 
 @singleton
-class Db:
+class PostgresClient:
     """
-    Data class that stores user information
+    Postgres client
 
     Attributes
     ----------
@@ -24,9 +26,10 @@ class Db:
 
     db: Client
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.db = Prisma(auto_register=True)
 
     async def connect(self) -> None:
         """Connect to database"""
         await self.db.connect()
+        logging.info("Connected to Postgres")
