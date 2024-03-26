@@ -62,14 +62,14 @@ class EventServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : EventsRequest
+        request : proto.EventsRequestConfiguration Editor
             Request data.
         context : grpc.ServicerContext
             Request context.
 
         Returns
         -------
-        EventsResponse
+        proto.EventsResponse
             Response object for event response.
 
         """
@@ -93,14 +93,14 @@ class EventServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : GrpcEvent
+        request : proto.Event
             Request data containing GrpcEvent.
         context : grpc.ServicerContext
             Request context.
 
         Returns
         -------
-        BaseResponse
+        proto.BaseResponse
             Object containing status code and message if the response status is not 200.
 
         """
@@ -114,14 +114,14 @@ class EventServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : GrpcEvent
+        request : proto.Event
             Request data containing GrpcEvent.
         context : grpc.ServicerContext
             Request context.
 
         Returns
         -------
-        BaseResponse
+        proto.BaseResponse
             Object containing status code and message if the response status is not 200.
 
         """
@@ -135,14 +135,14 @@ class EventServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : DeleteEventRequest
+        request : proto.DeleteEventRequest
             Request data containing event ID.
         context : grpc.ServicerContext
             Request context.
 
         Returns
         -------
-        BaseResponse
+        proto.BaseResponse
             Object containing status code and message if the response status is not 200.
 
         """
