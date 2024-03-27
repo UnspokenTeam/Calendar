@@ -100,7 +100,7 @@ class User:
             if attr not in exclude_set
         }
 
-    def __eq__(self, other: Self) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, User):
             return NotImplemented
         return self.id == other.id
