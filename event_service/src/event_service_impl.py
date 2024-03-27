@@ -32,7 +32,7 @@ class EventServiceImpl(GrpcServicer):
     def __init__(
         self,
         event_repository: EventRepositoryInterface,
-    ):
+    ) -> None:
         self._event_repository = event_repository
 
     def get_events(
