@@ -6,6 +6,7 @@ import grpc
 from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
 import proto.event_service_pb2 as proto
 from src.models.event import Event
+from repository.event_repository_interface import EventRepositoryInterface
 
 
 class EventServiceImpl(GrpcServicer):
@@ -14,8 +15,7 @@ class EventServiceImpl(GrpcServicer):
 
     Attributes
     ----------
-    events : List[Event]
-        List of events.
+    _event_repository : EventRepositoryInterface
 
     Methods
     -------
@@ -30,29 +30,13 @@ class EventServiceImpl(GrpcServicer):
 
     """
 
-    def __init__(self) -> None:
-        self.events = [
-            Event(
-                id="1",
-                title="Sample Event",
-                description="This is a sample event.",
-                color="blue",
-                start=datetime(2024, 3, 19, 10, 0),
-                end=datetime(2024, 3, 19, 12, 0),
-                repeating_delay=datetime(2024, 3, 19, 12, 0),
-                author_id="123",
-            ),
-            Event(
-                id="2",
-                title="Sample Event",
-                description="This is a sample event.",
-                color="blue",
-                start=datetime(2024, 3, 19, 10, 0),
-                end=datetime(2024, 3, 19, 12, 0),
-                repeating_delay=datetime(2024, 3, 19, 12, 0),
-                author_id="123",
-            ),
-        ]
+    _event_repository: EventRepositoryInterface
+
+    def __init__(
+        self,
+        event_repository: EventRepositoryInterface,
+    ):
+        self._event_repository = event_repository
 
     def get_events(
         self, request: proto.EventsRequest, context: grpc.ServicerContext
@@ -81,7 +65,7 @@ class EventServiceImpl(GrpcServicer):
         return proto.EventsResponse(
             status=200,
             events=proto.ListOfEvents(
-                events=[event.to_grpc_event() for event in self.events]
+                events=[event.to_grpc_event() for event in self._event_repository]
             ),
         )
 
