@@ -1,8 +1,9 @@
 """Mock token repository"""
 from errors.value_not_found_error import ValueNotFoundError
+from repository.token_repository_interface import TokenRepositoryInterface
 
 
-class MockTokenRepository:
+class MockTokenRepositoryImpl(TokenRepositoryInterface):
     """
     Mock class for manipulating with token data
 

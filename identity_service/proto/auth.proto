@@ -11,7 +11,7 @@ message AuthResponse {
 }
 
 message LoginRequest {
-  string username = 1;
+  string email = 1;
   string password = 2;
 }
 
@@ -30,4 +30,8 @@ message RegisterRequest {
 message LoginData {
   string refresh_token = 1;
   string access_token = 2;
+}
+
+message LogoutRequest {
+  string user_id = 1;
 }
