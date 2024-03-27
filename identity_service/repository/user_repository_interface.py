@@ -1,11 +1,11 @@
 """User repository interface"""
-# mypy: ignore-errors
 from typing import List
+from abc import ABC, abstractmethod
 
 from src.models.user import User
 
 
-class UserRepositoryInterface:
+class UserRepositoryInterface(ABC):
     """
     Interface for class for manipulating with user data
 
@@ -26,6 +26,7 @@ class UserRepositoryInterface:
 
     """
 
+    @abstractmethod
     async def get_user_by_email(self, email: str) -> User:
         """
         Returns user that has matching email from database or throws an exception
@@ -50,6 +51,7 @@ class UserRepositoryInterface:
         """
         pass
 
+    @abstractmethod
     async def get_user_by_id(self, user_id: str) -> User:
         """
         Returns user that has matching id from database or throws an exception
@@ -74,6 +76,7 @@ class UserRepositoryInterface:
         """
         pass
 
+    @abstractmethod
     async def get_users_by_ids(self, user_ids: List[str]) -> List[User]:
         """
         Returns users that has matching ids from database or throws an exception
@@ -98,6 +101,7 @@ class UserRepositoryInterface:
         """
         pass
 
+    @abstractmethod
     async def create_user(self, user: User) -> None:
         """
         Creates user with matching data or throws an exception
@@ -117,6 +121,7 @@ class UserRepositoryInterface:
         """
         pass
 
+    @abstractmethod
     async def update_user(self, user: User) -> None:
         """
         Updates user with matching id or throws an exception
@@ -136,6 +141,7 @@ class UserRepositoryInterface:
         """
         pass
 
+    @abstractmethod
     async def delete_user(self, user_id: str) -> None:
         """
         Deletes user with matching id or throws an exception

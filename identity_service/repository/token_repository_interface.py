@@ -1,8 +1,8 @@
 """Token repository interface"""
-# mypy: ignore-errors
+from abc import ABC, abstractmethod
 
 
-class TokenRepositoryInterface:
+class TokenRepositoryInterface(ABC):
     """
     Interface for class for manipulating with user data
 
@@ -17,6 +17,7 @@ class TokenRepositoryInterface:
 
     """
 
+    @abstractmethod
     async def store_refresh_token(self, refresh_token: str, user_id: str) -> None:
         """
         Create refresh token with provided data
@@ -31,6 +32,7 @@ class TokenRepositoryInterface:
         """
         pass
 
+    @abstractmethod
     async def get_refresh_token(self, user_id: str) -> str:
         """
         Get user's refresh token
@@ -53,6 +55,7 @@ class TokenRepositoryInterface:
         """
         pass
 
+    @abstractmethod
     async def delete_refresh_token(self, user_id: str) -> None:
         """
         Delete user's refresh token
