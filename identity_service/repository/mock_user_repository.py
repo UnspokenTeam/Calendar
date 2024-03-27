@@ -8,11 +8,11 @@ from src.models.user import User
 
 class MockUserRepositoryImpl(UserRepositoryInterface):
     """
-    Data class that stores user information
+    Mock class for manipulating with user data
 
     Attributes
     ----------
-    users: List[User]
+    _users: List[User]
         List of users
 
     Methods
@@ -32,10 +32,10 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
 
     """
 
-    users: List[User]
+    _users: List[User]
 
     def __init__(self):
-        self.users = []
+        self._users = []
 
     async def get_user_by_email(self, email: str) -> User:
         """
@@ -56,7 +56,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         ValueError
             User does not exist
         """
-        return [user for user in self.users if user.email == email][0]
+        return [user for user in self._users if user.email == email][0]
 
     async def get_user_by_id(self, user_id: str) -> User:
         """
@@ -78,7 +78,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             User does not exist
 
         """
-        return [user for user in self.users if user.id == user_id][0]
+        return [user for user in self._users if user.id == user_id][0]
 
     async def get_users_by_ids(self, user_ids: List[str]) -> List[User]:
         """
@@ -95,7 +95,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             Users that has matching id
 
         """
-        return [user for user in self.users if user.id in user_ids]
+        return [user for user in self._users if user.id in user_ids]
 
     async def create_user(self, user: User) -> None:
         """
@@ -116,7 +116,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             len(
                 [
                     True
-                    for userdb in self.users
+                    for userdb in self._users
                     if userdb.username == user.username and user.email == userdb.email
                 ]
             )
@@ -125,7 +125,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             raise UniqueError("User with this data already exists")
 
         user.id = uuid4()
-        self.users.append(user)
+        self._users.append(user)
 
     async def update_user(self, user: User) -> None:
         """
@@ -142,8 +142,8 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             Can't update user with provided data
 
         """
-        index: int = self.users.index(user)
-        self.users[index] = user
+        index: int = self._users.index(user)
+        self._users[index] = user
 
     async def delete_user(self, user_id: str) -> None:
         """
@@ -160,7 +160,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             Can't delete user with provided data
 
         """
-        index: int = [i for i in range(len(self.users)) if self.users[i].id == user_id][
-            0
-        ]
-        self.users.pop(index)
+        index: int = [
+            i for i in range(len(self._users)) if self._users[i].id == user_id
+        ][0]
+        self._users.pop(index)

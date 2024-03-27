@@ -15,7 +15,7 @@ from utils.singleton import singleton
 @singleton
 class UserRepositoryImpl(UserRepositoryInterface):
     """
-    Data class that stores user information
+    Class for manipulating with user data
 
     Attributes
     ----------

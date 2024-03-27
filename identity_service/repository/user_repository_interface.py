@@ -1,3 +1,4 @@
+"""User repository interface"""
 from typing import List
 
 from src.models.user import User
@@ -5,7 +6,7 @@ from src.models.user import User
 
 class UserRepositoryInterface:
     """
-    Data class that stores user information
+    Interface for class for manipulating with user data
 
     Methods
     -------
@@ -61,6 +62,13 @@ class UserRepositoryInterface:
         -------
         User
             User that has matching id
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
+        ValueNotFoundError
+            No user was found for given email
 
         """
         pass
