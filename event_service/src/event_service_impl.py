@@ -1,11 +1,8 @@
 """Event Service Controller."""
-from datetime import datetime
-
 import grpc
 
 from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
 import proto.event_service_pb2 as proto
-from src.models.event import Event
 from repository.event_repository_interface import EventRepositoryInterface
 
 
@@ -57,17 +54,7 @@ class EventServiceImpl(GrpcServicer):
             Response object for event response.
 
         """
-        if request.offset == -1:
-            return proto.EventsResponse(
-                status=400,
-            )
-
-        return proto.EventsResponse(
-            status=200,
-            events=proto.ListOfEvents(
-                events=[event.to_grpc_event() for event in self._event_repository]
-            ),
-        )
+        pass
 
     def create_event(
         self, request: proto.Event, context: grpc.ServicerContext
