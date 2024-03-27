@@ -1,11 +1,11 @@
 """Event repository interface"""
-# mypy: ignore-errors
+from abc import ABC, abstractmethod
 from typing import List
 
 from src.models.event import Event
 
 
-class EventRepositoryInterface:
+class EventRepositoryInterface(ABC):
     """
     Interface for class for manipulating with event data
 
@@ -22,6 +22,7 @@ class EventRepositoryInterface:
 
     """
 
+    @abstractmethod
     async def get_events(self, author_id: str) -> List[Event]:
         """
         Get events by author id.
@@ -46,6 +47,7 @@ class EventRepositoryInterface:
         """
         pass
 
+    @abstractmethod
     async def create_event(self, event: Event) -> None:
         """
         Create an event.
@@ -63,6 +65,7 @@ class EventRepositoryInterface:
         """
         pass
 
+    @abstractmethod
     async def update_event(self, event: Event) -> None:
         """
         Update event data.
@@ -80,6 +83,7 @@ class EventRepositoryInterface:
         """
         pass
 
+    @abstractmethod
     async def delete_event(self, event_id: str) -> None:
         """
         Delete the event.

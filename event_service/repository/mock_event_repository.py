@@ -1,3 +1,4 @@
+"""Mock event repository"""
 from typing import List
 from uuid import uuid4
 
