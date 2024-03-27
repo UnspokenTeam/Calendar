@@ -1,15 +1,23 @@
 """Identity Service Controller"""
-import grpc
 
-from generated.identity_service_pb2_grpc import IdentityServiceServicer as GrpcServicer
-from repository.token_repository_interface import TokenRepositoryInterface
-from repository.user_repository_interface import UserRepositoryInterface
+import grpc
+import prisma.errors
+
 import generated.auth_pb2 as auth_proto
 import generated.delete_user_pb2 as delete_user_proto
 import generated.get_access_token_pb2 as get_access_token_proto
 import generated.get_user_pb2 as get_user_proto
 import generated.identity_service_pb2 as requests_proto
 import generated.update_user_pb2 as update_user_proto
+from errors.InvalidTokenError import InvalidTokenError
+from errors.unique_error import UniqueError
+from errors.value_not_found_error import ValueNotFoundError
+from generated.identity_service_pb2_grpc import IdentityServiceServicer as GrpcServicer
+from repository.token_repository_interface import TokenRepositoryInterface
+from repository.user_repository_interface import UserRepositoryInterface
+from utils.encoder import Encoder
+from utils.jwt_controller import JwtController, TokenType
+from src.models.user import User
 
 
 class IdentityServiceImpl(GrpcServicer):
@@ -43,24 +51,28 @@ class IdentityServiceImpl(GrpcServicer):
 
     _user_repository: UserRepositoryInterface
     _token_repository: TokenRepositoryInterface
+    _jwt_controller: JwtController
+    _encoder: Encoder
 
     def __init__(
         self,
         user_repository: UserRepositoryInterface,
         token_repository: TokenRepositoryInterface,
-    ) -> None:
+    ):
         self._user_repository = user_repository
         self._token_repository = token_repository
+        self._jwt_controller = JwtController()
+        self._encoder = Encoder()
 
-    def login(
-        self, _: auth_proto.LoginRequest, context: grpc.ServicerContext
+    async def login(
+        self, request: auth_proto.LoginRequest, context: grpc.ServicerContext
     ) -> auth_proto.CredentialsResponse:
         """
         Log the user in and return credentials if user data matches
 
         Parameters
         ----------
-        _ : LoginRequest
+        request : LoginRequest
             Login data
         context : grpc.ServicerContext
             Request context
@@ -71,13 +83,39 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with credentials
 
         """
-        context.set_code(grpc.StatusCode.OK)
+        try:
+            user = await self._user_repository.get_user_by_email(request.email)
 
-        return auth_proto.CredentialsResponse(
-            status_code=200,
-        )
+            if not self._encoder.compare(
+                password=request.password, hashed_password=user.password
+            ):
+                raise ValueNotFoundError("Invalid password")
 
-    def register(
+            access_token = self._jwt_controller.generate_access_token(user_id=user.id)
+            refresh_token = self._jwt_controller.generate_refresh_token(user_id=user.id)
+            await self._token_repository.store_refresh_token(
+                refresh_token=refresh_token, user_id=user.id
+            )
+
+            context.set_code(grpc.StatusCode.OK)
+            return auth_proto.CredentialsResponse(
+                status_code=200,
+                data=auth_proto.LoginData(
+                    access_token=access_token, refresh_token=refresh_token
+                ),
+            )
+        except ValueNotFoundError:
+            context.set_code(grpc.StatusCode.UNAUTHENTICATED)
+            return auth_proto.CredentialsResponse(
+                status_code=403, message="Email or password are incorrect"
+            )
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return auth_proto.CredentialsResponse(
+                status_code=500, message="Internal server error"
+            )
+
+    async def register(
         self, request: auth_proto.RegisterRequest, context: grpc.ServicerContext
     ) -> auth_proto.CredentialsResponse:
         """
@@ -96,9 +134,37 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with credentials
 
         """
-        pass
+        try:
+            user = User.from_register_request(request)
+            user.password = self._encoder.encode(user.password)
 
-    def auth(
+            await self._user_repository.create_user(user=user)
+
+            access_token = self._jwt_controller.generate_access_token(user_id=user.id)
+            refresh_token = self._jwt_controller.generate_refresh_token(user_id=user.id)
+            await self._token_repository.store_refresh_token(
+                refresh_token=refresh_token, user_id=user.id
+            )
+
+            context.set_code(grpc.StatusCode.OK)
+            return auth_proto.CredentialsResponse(
+                status_code=200,
+                data=auth_proto.LoginData(
+                    access_token=access_token, refresh_token=refresh_token
+                ),
+            )
+        except UniqueError:
+            context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+            return auth_proto.CredentialsResponse(
+                status_code=400, message="User with this data already exists"
+            )
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return auth_proto.CredentialsResponse(
+                status_code=500, message="Internal server error"
+            )
+
+    async def auth(
         self, request: auth_proto.AccessToken, context: grpc.ServicerContext
     ) -> auth_proto.AuthResponse:
         """
@@ -117,9 +183,23 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with ID of currently signed in user
 
         """
-        pass
+        try:
+            user_id = self._jwt_controller.decode(
+                request.access_token, TokenType.ACCESS_TOKEN
+            )
+            await self._user_repository.get_user_by_id(user_id)
+            context.set_code(grpc.StatusCode.OK)
+            return auth_proto.AuthResponse(status_code=200, user_id=user_id)
+        except InvalidTokenError or ValueNotFoundError:
+            context.set_code(grpc.StatusCode.UNAUTHENTICATED)
+            return auth_proto.AuthResponse(status_code=403, message="Unauthorized")
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return auth_proto.AuthResponse(
+                status_code=500, message="Internal server error"
+            )
 
-    def get_new_access_token(
+    async def get_new_access_token(
         self,
         request: get_access_token_proto.GetNewAccessTokenRequest,
         context: grpc.ServicerContext,
@@ -140,9 +220,28 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with new access token
 
         """
-        pass
+        try:
+            user_id = self._jwt_controller.decode(
+                request.refresh_token, TokenType.ACCESS_TOKEN
+            )
+            _ = await self._user_repository.get_user_by_id(user_id)
+            access_token = self._jwt_controller.generate_access_token(user_id=user_id)
+            context.set_code(grpc.StatusCode.OK)
+            return get_access_token_proto.GetNewAccessTokenResponse(
+                status_code=200, access_token=access_token
+            )
+        except InvalidTokenError or ValueNotFoundError:
+            context.set_code(grpc.StatusCode.UNAUTHENTICATED)
+            return get_access_token_proto.GetNewAccessTokenResponse(
+                status_code=403, message="Unauthorized"
+            )
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return get_access_token_proto.GetNewAccessTokenResponse(
+                status_code=500, message="Internal server error"
+            )
 
-    def get_user_by_id(
+    async def get_user_by_id(
         self, request: get_user_proto.UserByIdRequest, context: grpc.ServicerContext
     ) -> get_user_proto.UserByIdResponse:
         """
@@ -161,9 +260,24 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with public user data
 
         """
-        pass
+        try:
+            user = await self._user_repository.get_user_by_id(request.user_id)
+            context.set_code(grpc.StatusCode.OK)
+            return get_user_proto.UserByIdResponse(
+                status_code=200, user=user.to_dict(exclude=["password"])
+            )
+        except ValueNotFoundError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return get_user_proto.UserByIdResponse(
+                status_code=404, message="User not found"
+            )
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return get_user_proto.UserByIdResponse(
+                status_code=500, message="Internal server error"
+            )
 
-    def get_users_by_id(
+    async def get_users_by_id(
         self, request: get_user_proto.UsersByIdRequest, context: grpc.ServicerContext
     ) -> get_user_proto.UsersByIdResponse:
         """
@@ -182,13 +296,28 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with array of public user data
 
         """
-        pass
+        try:
+            users = await self._user_repository.get_users_by_ids(list(request.id))
+            context.set_code(grpc.StatusCode.OK)
+            return get_user_proto.UsersByIdResponse(
+                status_code=200, user=get_user_proto.ListOfUser(users=users)
+            )
+        except ValueNotFoundError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return get_user_proto.UsersByIdResponse(
+                status_code=404, message="Users not found"
+            )
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return get_user_proto.UsersByIdResponse(
+                status_code=500, message="Internal server error"
+            )
 
-    def update_user(
+    async def update_user(
         self,
         request: update_user_proto.UpdateUserRequest,
         context: grpc.ServicerContext,
-    ) -> requests_proto.BaseResponse:
+    ) -> auth_proto.CredentialsResponse:
         """
         Updates user data
 
@@ -205,9 +334,42 @@ class IdentityServiceImpl(GrpcServicer):
             Base response with status code and optional message
 
         """
-        pass
+        try:
+            user = User(
+                id=request.new_user.id,
+                email=request.new_user.email,
+                username=request.new_user.username,
+                password=request.new_user.password,
+            )
 
-    def delete_user(
+            await self._user_repository.update_user(user=user)
+            await self._token_repository.delete_refresh_token(user.id)
+
+            access_token = self._jwt_controller.generate_access_token(user_id=user.id)
+            refresh_token = self._jwt_controller.generate_refresh_token(user_id=user.id)
+            await self._token_repository.store_refresh_token(
+                refresh_token=refresh_token, user_id=user.id
+            )
+
+            context.set_code(grpc.StatusCode.OK)
+            return auth_proto.CredentialsResponse(
+                status_code=200,
+                data=auth_proto.LoginData(
+                    access_token=access_token, refresh_token=refresh_token
+                ),
+            )
+        except UniqueError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return auth_proto.CredentialsResponse(
+                status_code=400, message="User with provided data already exists"
+            )
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return auth_proto.CredentialsResponse(
+                status_code=500, message="Internal server error"
+            )
+
+    async def delete_user(
         self,
         request: delete_user_proto.DeleteUserRequest,
         context: grpc.ServicerContext,
@@ -228,10 +390,19 @@ class IdentityServiceImpl(GrpcServicer):
             Base response with status code and optional message
 
         """
-        pass
+        try:
+            await self._user_repository.delete_user(request.user_id)
+            await self._token_repository.delete_refresh_token(request.user_id)
+            context.set_code(grpc.StatusCode.OK)
+            return requests_proto.BaseResponse(status_code=200)
+        except KeyError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return requests_proto.BaseResponse(
+                status_code=404, message="Users not found"
+            )
 
-    def logout(
-        self, request: auth_proto.AccessToken, context: grpc.ServicerContext
+    async def logout(
+        self, request: auth_proto.LogoutRequest, context: grpc.ServicerContext
     ) -> requests_proto.BaseResponse:
         """
         Logs out and deletes user's access token from database
@@ -249,4 +420,12 @@ class IdentityServiceImpl(GrpcServicer):
             Base response with status code and optional message
 
         """
-        pass
+        try:
+            await self._token_repository.delete_refresh_token(request.user_id)
+            context.set_code(grpc.StatusCode.OK)
+            return requests_proto.BaseResponse(status_code=200)
+        except KeyError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return requests_proto.BaseResponse(
+                status_code=404, message="Users not found"
+            )

@@ -8,6 +8,8 @@ from db.postgres_client import PostgresClient
 from db.redis_client import RedisClient
 from src.identity_service_impl import IdentityServiceImpl
 from utils.jwt_controller import JwtController
+from repository.mock_user_repository import MockUserRepositoryImpl
+from repository.mock_token_repository import MockTokenRepositoryImpl
 
 import dotenv
 import generated.identity_service_pb2_grpc as identity_service_grpc
@@ -17,7 +19,11 @@ async def serve() -> None:
     """Start an async server"""
     server = grpc.aio.server()
     identity_service_grpc.add_IdentityServiceServicer_to_server(
-        IdentityServiceImpl(), server
+        IdentityServiceImpl(
+            user_repository=MockUserRepositoryImpl(),
+            token_repository=MockTokenRepositoryImpl(),
+        ),
+        server,
     )
     server.add_insecure_port("0.0.0.0:8080")
     await PostgresClient().connect()

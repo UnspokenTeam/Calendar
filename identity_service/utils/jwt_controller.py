@@ -1,14 +1,13 @@
 """Jwt controller"""
-from enum import Enum
-from typing import Tuple
 import datetime
 import logging
 import os
+from enum import Enum
+
+from jwt import encode, decode
 
 from errors.InvalidTokenError import InvalidTokenError
 from utils.singleton import singleton
-
-from jwt import decode, encode
 
 
 class TokenType(Enum):
@@ -46,7 +45,18 @@ class JwtController:
         self._access_key = os.environ["ACCESS_SECRET"]
         self._refresh_key = os.environ["REFRESH_SECRET"]
 
-    def generate(self, user_id: str) -> Tuple[str, str]:
+    def generate_access_token(self, user_id: str) -> str:
+        access_token: str = encode(
+            {
+                "user_id": user_id,
+                "exp": datetime.datetime.now() + datetime.timedelta(days=3),
+            },
+            self._access_key,
+            algorithm="HS256",
+        )
+        return access_token
+
+    def generate_refresh_token(self, user_id: str) -> str:
         """
         Generate access and refresh tokens for user with provided id
 
@@ -57,19 +67,11 @@ class JwtController:
 
         Returns
         -------
-        Tuple[str, str]
-            Access and refresh tokens
+        str
+            Refresh token
 
         """
-        access_token = encode(
-            {
-                "user_id": user_id,
-                "exp": datetime.datetime.now() + datetime.timedelta(days=3),
-            },
-            self._access_key,
-            algorithm="HS256",
-        )
-        refresh_token = encode(
+        refresh_token: str = encode(
             {
                 "user_id": user_id,
                 "exp": datetime.datetime.now() + datetime.timedelta(days=3),
@@ -77,9 +79,9 @@ class JwtController:
             self._refresh_key,
             algorithm="HS256",
         )
-        return access_token, refresh_token
+        return refresh_token
 
-    def decode(self, token: str, token_type: TokenType) -> dict[str, str]:
+    def decode(self, token: str, token_type: TokenType) -> str:
         """
         Decode token with provided type or throw an error
 
@@ -92,8 +94,8 @@ class JwtController:
 
         Returns
         -------
-        dict[str, str]
-            Decoded data inside token
+        str
+            User's id
 
         Raises
         ------
@@ -107,14 +109,16 @@ class JwtController:
             else self._refresh_key
         )
         try:
-            return dict(
-                decode(
-                    jwt=token,
-                    key=key,
-                    algorithms=[
-                        "HS256",
-                    ],
-                )
+            return str(
+                dict(
+                    decode(
+                        jwt=token,
+                        key=key,
+                        algorithms=[
+                            "HS256",
+                        ],
+                    )
+                )["user_id"]
             )
         except Exception as e:
             logging.info(e)

@@ -4,6 +4,7 @@ from typing import Any, List, Optional, Self
 
 from prisma.models import User as PrismaUser
 
+from generated.auth_pb2 import RegisterRequest
 from generated.get_user_pb2 import User as GrpcUser
 
 
@@ -20,7 +21,7 @@ class User:
         User's name
     email : str
         Email of the user
-    _password : str
+    password : str
         Hashed password of the user
 
     Methods
@@ -37,7 +38,7 @@ class User:
     id: str
     username: str
     email: str
-    _password: str
+    password: str
 
     def to_grpc_user(self) -> GrpcUser:
         """
@@ -75,7 +76,7 @@ class User:
             id=prisma_user.id,
             username=prisma_user.username,
             email=prisma_user.email,
-            _password=prisma_user.password,
+            password=prisma_user.password,
         )
 
     def to_dict(self, exclude: Optional[List[str]] = None) -> dict[str, Any]:
@@ -100,6 +101,15 @@ class User:
             for attr, value in attrs.items()
             if attr not in exclude_set
         }
+
+    @classmethod
+    def from_register_request(cls, request: RegisterRequest) -> Self:
+        return cls(
+            id="",
+            username=request.username,
+            email=request.email,
+            password=request.password,
+        )
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, User):

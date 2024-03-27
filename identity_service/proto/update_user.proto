@@ -2,7 +2,13 @@ syntax = "proto3";
 
 import "get_user.proto";
 
-message UpdateUserRequest{
-  string user_id = 1;
-  User new_user = 2;
+message UpdateUserRequest {
+  UserToUpdate new_user = 1;
+}
+
+message UserToUpdate {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string password = 4;
 }
