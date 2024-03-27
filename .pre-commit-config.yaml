@@ -28,6 +28,12 @@ repos:
     hooks:
       - id: python-check-blanket-noqa
 
+  - repo: https://github.com/jsh9/pydoclint
+    rev: 0.4.1
+    hooks:
+      - id: pydoclint
+        args: [ --style=numpy, --check-return-types=True ]
+
   - repo: https://github.com/pycqa/flake8
     rev: 6.1.0
     hooks:
