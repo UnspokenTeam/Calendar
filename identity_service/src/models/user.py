@@ -100,5 +100,8 @@ class User:
             if attr not in exclude_set
         }
 
+    def __eq__(self, other: Self) -> bool:
+        return self.id == other.id
+
     def __repr__(self) -> str:
         return f"{vars(self)}"
