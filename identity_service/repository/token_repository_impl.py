@@ -9,9 +9,9 @@ from utils.singleton import singleton
 
 
 @singleton
-class TokenRepository:
+class TokenRepositoryImpl:
     """
-    Data class that stores user information
+    Class for manipulating with token data
 
     Attributes
     ----------
