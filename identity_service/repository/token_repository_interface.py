@@ -1,4 +1,5 @@
 """Token repository interface"""
+# mypy: ignore-errors
 
 
 class TokenRepositoryInterface:

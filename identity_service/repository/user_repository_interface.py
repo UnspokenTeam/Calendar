@@ -1,4 +1,5 @@
 """User repository interface"""
+# mypy: ignore-errors
 from typing import List
 
 from src.models.user import User

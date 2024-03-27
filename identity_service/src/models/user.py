@@ -101,6 +101,8 @@ class User:
         }
 
     def __eq__(self, other: Self) -> bool:
+        if not isinstance(other, User):
+            return NotImplemented
         return self.id == other.id
 
     def __repr__(self) -> str:
