@@ -27,6 +27,9 @@ RUN poetry install --no-interaction --no-cache --without dev
 COPY . /app
 RUN poetry run python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. --pyi_out=. ./proto/event_service.proto
 
+RUN poetry run prisma db push
+RUN poetry run prisma generate
+
 EXPOSE 8081
 
 CMD [ "poetry", "run", "python", "main.py" ]
