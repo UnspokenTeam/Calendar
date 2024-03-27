@@ -1,22 +1,10 @@
-"""Tokens repository"""
-import os
-from datetime import timedelta
-from typing import Optional
-
-from db.redis_client import RedisClient
-from errors.value_not_found_error import ValueNotFoundError
-from utils.singleton import singleton
+"""Token repository interface"""
+from abc import ABC, abstractmethod
 
 
-@singleton
-class TokenRepository:
+class TokenRepositoryInterface(ABC):
     """
-    Data class that stores user information
-
-    Attributes
-    ----------
-    _redis_db : RedisClient
-        Redis client instance
+    Interface for class for manipulating with user data
 
     Methods
     -------
@@ -29,11 +17,7 @@ class TokenRepository:
 
     """
 
-    _redis_db: RedisClient
-
-    def __init__(self) -> None:
-        self._redis_db = RedisClient()
-
+    @abstractmethod
     async def store_refresh_token(self, refresh_token: str, user_id: str) -> None:
         """
         Create refresh token with provided data
@@ -46,12 +30,9 @@ class TokenRepository:
             User's id
 
         """
-        await self._redis_db.db.set(
-            user_id,
-            refresh_token,
-            ex=timedelta(days=int(os.environ["REFRESH_TOKEN_EXPIRATION"])),
-        )
+        pass
 
+    @abstractmethod
     async def get_refresh_token(self, user_id: str) -> str:
         """
         Get user's refresh token
@@ -72,13 +53,9 @@ class TokenRepository:
             No refresh token found for provided user_id
 
         """
-        result: Optional[bytes] = await self._redis_db.db.get(user_id)
+        pass
 
-        if result is None:
-            raise ValueNotFoundError("Token not found")
-
-        return result.decode()
-
+    @abstractmethod
     async def delete_refresh_token(self, user_id: str) -> None:
         """
         Delete user's refresh token
@@ -89,4 +66,4 @@ class TokenRepository:
             User's id
 
         """
-        await self._redis_db.db.delete(user_id)
+        pass

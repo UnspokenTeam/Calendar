@@ -11,9 +11,9 @@ from errors.value_not_found_error import ValueNotFoundError
 
 
 @singleton
-class EventRepository:
+class EventRepositoryImpl:
     """
-    Data class that stores event information.
+    Class for manipulating with event data
 
     Attributes
     ----------

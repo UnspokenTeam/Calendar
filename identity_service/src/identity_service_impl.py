@@ -8,6 +8,8 @@ import generated.get_access_token_pb2 as get_access_token_proto
 import generated.get_user_pb2 as get_user_proto
 import generated.update_user_pb2 as update_user_proto
 import generated.delete_user_pb2 as delete_user_proto
+from repository.token_repository_interface import TokenRepositoryInterface
+from repository.user_repository_interface import UserRepositoryInterface
 
 
 class IdentityServiceImpl(GrpcServicer):
@@ -38,6 +40,17 @@ class IdentityServiceImpl(GrpcServicer):
         Function that need to be bind to the server that deletes refresh_token from database and logs the user off
 
     """
+
+    _user_repository: UserRepositoryInterface
+    _token_repository: TokenRepositoryInterface
+
+    def __init__(
+        self,
+        user_repository: UserRepositoryInterface,
+        token_repository: TokenRepositoryInterface,
+    ):
+        self._user_repository = user_repository
+        self._token_repository = token_repository
 
     def login(
         self, request: auth_proto.LoginRequest, context: grpc.ServicerContext
