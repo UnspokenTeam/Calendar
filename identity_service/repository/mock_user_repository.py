@@ -55,6 +55,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         ------
         ValueError
             User does not exist
+
         """
         return [user for user in self._users if user.email == email][0]
 
