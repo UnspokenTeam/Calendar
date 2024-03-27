@@ -6,12 +6,12 @@ from proto.invite_service_pb2 import Invite as GrpcInvite, InviteStatus
 @dataclass
 class Invite:
     """
-    Data class that stores user information
+    Data class that stores invite information
 
     Attributes
     ----------
     id : str
-        ID of the user
+        ID of the invite
     event_id : str
         ID of the event
     author_id : str
@@ -45,12 +45,10 @@ class Invite:
             Invite data in GrpcInvite instance
 
         """
-        invite = GrpcInvite(
+        return GrpcInvite(
             id=self.id,
             event_id=self.event_id,
             author_id=self.author_id,
             invitee_id=self.invitee_id,
             status=self.status,
         )
-
-        return invite

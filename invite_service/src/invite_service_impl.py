@@ -19,13 +19,15 @@ class InviteServiceImpl(GrpcServicer):
     Methods
     -------
     get_invites_by_user_id(request, context)
-        Function that need to be bind to the server that returns invites list.
+        Function that need to be bind to the server that returns invites list by user id.
     create_invite(request, context)
         Function that need to be bind to the server that creates the invite.
     update_invite(request, context)
         Function that need to be bind to the server that updates the invite.
     delete_invite(request, context)
         Function that need to be bind to the server that deletes the invite.
+     get_invites_by_invitee_id(request, context)
+        Function that need to be bind to the server that returns invites list by invitee id.
 
     """
 
