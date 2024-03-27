@@ -62,7 +62,7 @@ class EventServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : proto.EventsRequestConfiguration Editor
+        request : proto.EventsRequest
             Request data.
         context : grpc.ServicerContext
             Request context.
