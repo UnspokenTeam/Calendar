@@ -287,6 +287,17 @@ files = [
 license = ["ukkonen"]
 
 [[package]]
+name = "invite"
+version = "0.0.1"
+description = "A small example package"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "invite-0.0.1-py3-none-any.whl", hash = "sha256:a59e249d384a815e024756990cfca0daee9aeb9f481a6988419727877c325eec"},
+    {file = "invite-0.0.1.tar.gz", hash = "sha256:4d4d0795a8330e4f580116e7ce0bd445a1230c6fc8b346cdef0a7d5181770456"},
+]
+
+[[package]]
 name = "mccabe"
 version = "0.7.0"
 description = "McCabe checker, plugin for flake8"
@@ -546,4 +557,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "5ed608e635035acf45e2e1cad649a6122a2d911b76ffb8a5982195780428e6e0"
+content-hash = "79110be8dcbdc82bb544d409b78e36976a5bc37a247b0ee5e64b92475ba898f0"
