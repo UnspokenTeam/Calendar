@@ -6,6 +6,7 @@ from prisma.models import Event as PrismaEvent
 
 from db.postgres_client import PostgresClient
 from errors.value_not_found_error import ValueNotFoundError
+from proto.event_service_pb2 import ListOfEventsIds
 from repository.event_repository_interface import EventRepositoryInterface
 from src.models.event import Event
 from utils.singleton import singleton
@@ -23,8 +24,12 @@ class EventRepositoryImpl(EventRepositoryInterface):
 
     Methods
     -------
-    async get_events(author_id)
+    async get_events_by_author_id(author_id)
         Returns events that has matches with given author id.
+    async get_event_by_event_id(event_id)
+        Returns event that has matches with given event id.
+    async get_events_by_events_ids(events_ids)
+        Returns events that has matches with given list of event ids.
     async create_event(event)
         Creates new event inside db or throws an exception.
     async update_event(event)
@@ -39,7 +44,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
     def __init__(self) -> None:
         self._db_client = PostgresClient()
 
-    async def get_events(self, author_id: str) -> List[Event]:
+    async def get_events_by_author_id(self, author_id: str) -> List[Event]:
         """
         Get events by author id.
 
@@ -64,6 +69,70 @@ class EventRepositoryImpl(EventRepositoryInterface):
         db_events: Optional[
             List[PrismaEvent]
         ] = await self._db_client.db.event.find_many(where={"id": author_id})
+        if db_events is None or len(db_events) == 0:
+            raise ValueNotFoundError("Events not found")
+        return [
+            Event.from_prisma_event(prisma_event=db_event) for db_event in db_events
+        ]
+
+    async def get_event_by_event_id(self, event_id: str) -> Event:
+        """
+        Get events by event id.
+
+        Parameters
+        ----------
+        event_id : str
+            Event's id.
+
+        Returns
+        -------
+        Event
+            Event that matches by event id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+        ValueNotFoundError
+            No events was found for given event id.
+
+        """
+        db_event: Optional[PrismaEvent] = await self._db_client.db.event.find_first(
+            where={"id": event_id}
+        )
+        if db_event is None:
+            raise ValueNotFoundError("Event not found")
+        return Event.from_prisma_event(prisma_event=db_event)
+
+    async def get_events_by_events_ids(
+        self, events_ids: ListOfEventsIds
+    ) -> List[Event]:
+        """
+        Get events by events ids.
+
+        Parameters
+        ----------
+        events_ids : ListOfEventsIds
+            Event's ids.
+
+        Returns
+        -------
+        List[Event]
+            List of events that matches by event id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+        ValueNotFoundError
+            No events was found for given events ids.
+
+        """
+        db_events: Optional[
+            List[PrismaEvent]
+        ] = await self._db_client.db.event.find_many(
+            where={"id": {"in": [event_id for event_id in events_ids.ids]}}
+        )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
         return [

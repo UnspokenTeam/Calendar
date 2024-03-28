@@ -3,18 +3,30 @@ syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 
 service EventService {
-  rpc get_events(EventsRequest) returns (EventsResponse){}
+  rpc get_event_by_event_id(EventRequestByEventId) returns (EventResponse){}
+  rpc get_events_by_events_ids(EventsRequestByEventsIds) returns (EventsResponse){}
+  rpc get_events_by_author_id(EventsRequestByAuthorId) returns (EventsResponse){}
   rpc create_event(Event) returns (BaseResponse){}
   rpc update_event(Event) returns (BaseResponse){}
   rpc delete_event(DeleteEventRequest) returns (BaseResponse){}
 }
 
-message EventsRequest {
+message EventsRequestByAuthorId {
   string author_id = 1;
-  int64 offset = 2;
-  int64 item_amount = 3;
-  optional google.protobuf.Timestamp bottom_time_limit = 4;
-  optional google.protobuf.Timestamp upper_time_limit = 5;
+}
+
+message EventRequestByEventId {
+  string event_id = 1;
+}
+
+message EventsRequestByEventsIds {
+  ListOfEventsIds events_ids = 1;
+}
+
+message EventResponse {
+  int32 status_code = 1;
+  Event event = 2;
+  optional string message = 3;
 }
 
 message EventsResponse {
@@ -36,6 +48,10 @@ message Event {
 
 message ListOfEvents {
   repeated Event events = 1;
+}
+
+message ListOfEventsIds {
+  repeated string ids = 1;
 }
 
 message BaseResponse {
