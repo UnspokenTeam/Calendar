@@ -1,7 +1,9 @@
 """Identity Service Controller"""
+from typing import Tuple
 
 import grpc
 import prisma.errors
+from uuid import uuid4
 
 import generated.auth_pb2 as auth_proto
 import generated.delete_user_pb2 as delete_user_proto
@@ -91,10 +93,12 @@ class IdentityServiceImpl(GrpcServicer):
             ):
                 raise ValueNotFoundError("Invalid password")
 
-            access_token = self._jwt_controller.generate_access_token(user_id=user.id)
-            refresh_token = self._jwt_controller.generate_refresh_token(user_id=user.id)
+            session_id = str(uuid4())
+            access_token, refresh_token = self.get_tokens(
+                user_id=user.id, session_id=session_id
+            )
             await self._token_repository.store_refresh_token(
-                refresh_token=refresh_token, user_id=user.id
+                refresh_token=refresh_token, session_id=session_id
             )
 
             context.set_code(grpc.StatusCode.OK)
@@ -140,10 +144,12 @@ class IdentityServiceImpl(GrpcServicer):
 
             await self._user_repository.create_user(user=user)
 
-            access_token = self._jwt_controller.generate_access_token(user_id=user.id)
-            refresh_token = self._jwt_controller.generate_refresh_token(user_id=user.id)
+            session_id = str(uuid4())
+            access_token, refresh_token = self.get_tokens(
+                user_id=user.id, session_id=session_id
+            )
             await self._token_repository.store_refresh_token(
-                refresh_token=refresh_token, user_id=user.id
+                refresh_token=refresh_token, session_id=session_id
             )
 
             context.set_code(grpc.StatusCode.OK)
@@ -184,13 +190,17 @@ class IdentityServiceImpl(GrpcServicer):
 
         """
         try:
-            user_id = self._jwt_controller.decode(
+            user_id, session_id = self._jwt_controller.decode(
                 request.access_token, TokenType.ACCESS_TOKEN
             )
-            await self._user_repository.get_user_by_id(user_id)
+            _ = await self._token_repository.get_refresh_token(session_id)
+            _ = await self._user_repository.get_user_by_id(user_id)
             context.set_code(grpc.StatusCode.OK)
             return auth_proto.AuthResponse(status_code=200, user_id=user_id)
-        except InvalidTokenError or ValueNotFoundError:
+        except InvalidTokenError:
+            context.set_code(grpc.StatusCode.UNAUTHENTICATED)
+            return auth_proto.AuthResponse(status_code=403, message="Unauthorized")
+        except ValueNotFoundError:
             context.set_code(grpc.StatusCode.UNAUTHENTICATED)
             return auth_proto.AuthResponse(status_code=403, message="Unauthorized")
         except prisma.errors.PrismaError:
@@ -221,11 +231,13 @@ class IdentityServiceImpl(GrpcServicer):
 
         """
         try:
-            user_id = self._jwt_controller.decode(
+            user_id, session_id = self._jwt_controller.decode(
                 request.refresh_token, TokenType.ACCESS_TOKEN
             )
             _ = await self._user_repository.get_user_by_id(user_id)
-            access_token = self._jwt_controller.generate_access_token(user_id=user_id)
+            access_token = self._jwt_controller.generate_access_token(
+                user_id=user_id, session_id=session_id
+            )
             context.set_code(grpc.StatusCode.OK)
             return get_access_token_proto.GetNewAccessTokenResponse(
                 status_code=200, access_token=access_token
@@ -264,7 +276,7 @@ class IdentityServiceImpl(GrpcServicer):
             user = await self._user_repository.get_user_by_id(request.user_id)
             context.set_code(grpc.StatusCode.OK)
             return get_user_proto.UserByIdResponse(
-                status_code=200, user=user.to_dict(exclude=["password"])
+                status_code=200, user=user.to_grpc_user()
             )
         except ValueNotFoundError:
             context.set_code(grpc.StatusCode.NOT_FOUND)
@@ -300,7 +312,10 @@ class IdentityServiceImpl(GrpcServicer):
             users = await self._user_repository.get_users_by_ids(list(request.id))
             context.set_code(grpc.StatusCode.OK)
             return get_user_proto.UsersByIdResponse(
-                status_code=200, user=get_user_proto.ListOfUser(users=users)
+                status_code=200,
+                user=get_user_proto.ListOfUser(
+                    users=[user.to_grpc_user() for user in users]
+                ),
             )
         except ValueNotFoundError:
             context.set_code(grpc.StatusCode.NOT_FOUND)
@@ -342,13 +357,23 @@ class IdentityServiceImpl(GrpcServicer):
                 password=request.new_user.password,
             )
 
+            user_db = await self._user_repository.get_user_by_id(user.id)
+            if self._encoder.compare(
+                password=user.password, hashed_password=user_db.password
+            ):
+                user.password = user_db.password
+            else:
+                user.password = self._encoder.encode(user.password)
+
             await self._user_repository.update_user(user=user)
             await self._token_repository.delete_refresh_token(user.id)
 
-            access_token = self._jwt_controller.generate_access_token(user_id=user.id)
-            refresh_token = self._jwt_controller.generate_refresh_token(user_id=user.id)
+            session_id = str(uuid4())
+            access_token, refresh_token = self.get_tokens(
+                user_id=user.id, session_id=session_id
+            )
             await self._token_repository.store_refresh_token(
-                refresh_token=refresh_token, user_id=user.id
+                refresh_token=refresh_token, session_id=session_id
             )
 
             context.set_code(grpc.StatusCode.OK)
@@ -357,6 +382,11 @@ class IdentityServiceImpl(GrpcServicer):
                 data=auth_proto.LoginData(
                     access_token=access_token, refresh_token=refresh_token
                 ),
+            )
+        except ValueNotFoundError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return auth_proto.CredentialsResponse(
+                status_code=404, message="User not found"
             )
         except UniqueError:
             context.set_code(grpc.StatusCode.NOT_FOUND)
@@ -395,14 +425,14 @@ class IdentityServiceImpl(GrpcServicer):
             await self._token_repository.delete_refresh_token(request.user_id)
             context.set_code(grpc.StatusCode.OK)
             return requests_proto.BaseResponse(status_code=200)
-        except KeyError:
+        except ValueNotFoundError:
             context.set_code(grpc.StatusCode.NOT_FOUND)
             return requests_proto.BaseResponse(
                 status_code=404, message="Users not found"
             )
 
     async def logout(
-        self, request: auth_proto.LogoutRequest, context: grpc.ServicerContext
+        self, request: auth_proto.AccessToken, context: grpc.ServicerContext
     ) -> requests_proto.BaseResponse:
         """
         Logs out and deletes user's access token from database
@@ -421,7 +451,8 @@ class IdentityServiceImpl(GrpcServicer):
 
         """
         try:
-            await self._token_repository.delete_refresh_token(request.user_id)
+            _, session_id = self._jwt_controller.decode(request.access_token, TokenType.ACCESS_TOKEN)
+            await self._token_repository.delete_refresh_token(session_id)
             context.set_code(grpc.StatusCode.OK)
             return requests_proto.BaseResponse(status_code=200)
         except KeyError:
@@ -429,3 +460,12 @@ class IdentityServiceImpl(GrpcServicer):
             return requests_proto.BaseResponse(
                 status_code=404, message="Users not found"
             )
+
+    def get_tokens(self, user_id: str, session_id: str) -> Tuple[str, str]:
+        access_token = self._jwt_controller.generate_access_token(
+            user_id=user_id, session_id=session_id
+        )
+        refresh_token = self._jwt_controller.generate_refresh_token(
+            user_id=user_id, session_id=session_id
+        )
+        return access_token, refresh_token

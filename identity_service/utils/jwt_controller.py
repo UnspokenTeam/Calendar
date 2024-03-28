@@ -3,6 +3,7 @@ import datetime
 import logging
 import os
 from enum import Enum
+from typing import Tuple
 
 from jwt import encode, decode
 
@@ -45,10 +46,11 @@ class JwtController:
         self._access_key = os.environ["ACCESS_SECRET"]
         self._refresh_key = os.environ["REFRESH_SECRET"]
 
-    def generate_access_token(self, user_id: str) -> str:
+    def generate_access_token(self, user_id: str, session_id: str) -> str:
         access_token: str = encode(
             {
                 "user_id": user_id,
+                "session_id": session_id,
                 "exp": datetime.datetime.now() + datetime.timedelta(days=3),
             },
             self._access_key,
@@ -56,7 +58,7 @@ class JwtController:
         )
         return access_token
 
-    def generate_refresh_token(self, user_id: str) -> str:
+    def generate_refresh_token(self, user_id: str, session_id: str) -> str:
         """
         Generate access and refresh tokens for user with provided id
 
@@ -64,6 +66,8 @@ class JwtController:
         ----------
         user_id: str
             User's id
+        session_id : str
+            Id of the current session
 
         Returns
         -------
@@ -74,6 +78,7 @@ class JwtController:
         refresh_token: str = encode(
             {
                 "user_id": user_id,
+                "session_id": session_id,
                 "exp": datetime.datetime.now() + datetime.timedelta(days=3),
             },
             self._refresh_key,
@@ -81,7 +86,7 @@ class JwtController:
         )
         return refresh_token
 
-    def decode(self, token: str, token_type: TokenType) -> str:
+    def decode(self, token: str, token_type: TokenType) -> Tuple[str, str]:
         """
         Decode token with provided type or throw an error
 
@@ -94,8 +99,8 @@ class JwtController:
 
         Returns
         -------
-        str
-            User's id
+        Tuple[str, str]
+            User's id and session id
 
         Raises
         ------
@@ -109,17 +114,16 @@ class JwtController:
             else self._refresh_key
         )
         try:
-            return str(
-                dict(
-                    decode(
-                        jwt=token,
-                        key=key,
-                        algorithms=[
-                            "HS256",
-                        ],
-                    )
-                )["user_id"]
+            data = dict(
+                decode(
+                    jwt=token,
+                    key=key,
+                    algorithms=[
+                        "HS256",
+                    ],
+                )
             )
+            return str(data["user_id"]), str(data["session_id"])
         except Exception as e:
             logging.info(e)
             raise InvalidTokenError("Invalid token")

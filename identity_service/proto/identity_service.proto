@@ -6,7 +6,7 @@ import "update_user.proto";
 import "delete_user.proto";
 
 service IdentityService {
-  rpc logout(LogoutRequest) returns (BaseResponse){}
+  rpc logout(AccessToken) returns (BaseResponse){}
   rpc auth(AccessToken) returns (AuthResponse){}
   rpc login(LoginRequest) returns (CredentialsResponse){}
   rpc register(RegisterRequest) returns (CredentialsResponse){}

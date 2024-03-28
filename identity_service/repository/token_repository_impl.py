@@ -5,11 +5,12 @@ import os
 
 from db.redis_client import RedisClient
 from errors.value_not_found_error import ValueNotFoundError
+from repository.token_repository_interface import TokenRepositoryInterface
 from utils.singleton import singleton
 
 
 @singleton
-class TokenRepositoryImpl:
+class TokenRepositoryImpl(TokenRepositoryInterface):
     """
     Class for manipulating with token data
 
@@ -34,7 +35,7 @@ class TokenRepositoryImpl:
     def __init__(self) -> None:
         self._redis_db = RedisClient()
 
-    async def store_refresh_token(self, refresh_token: str, user_id: str) -> None:
+    async def store_refresh_token(self, refresh_token: str, session_id: str) -> None:
         """
         Create refresh token with provided data
 
@@ -42,24 +43,24 @@ class TokenRepositoryImpl:
         ----------
         refresh_token : str
             User's refresh token
-        user_id : str
-            User's id
+        session_id : str
+            Id of the current session
 
         """
         await self._redis_db.db.set(
-            user_id,
+            session_id,
             refresh_token,
             ex=timedelta(days=int(os.environ["REFRESH_TOKEN_EXPIRATION"])),
         )
 
-    async def get_refresh_token(self, user_id: str) -> str:
+    async def get_refresh_token(self, session_id: str) -> str:
         """
         Get user's refresh token
 
         Parameters
         ----------
-        user_id : str
-            User's id
+        session_id : str
+            Id of the current session
 
         Returns
         -------
@@ -72,21 +73,21 @@ class TokenRepositoryImpl:
             No refresh token found for provided user_id
 
         """
-        result: Optional[bytes] = await self._redis_db.db.get(user_id)
+        result: Optional[bytes] = await self._redis_db.db.get(session_id)
 
         if result is None:
             raise ValueNotFoundError("Token not found")
 
         return result.decode()
 
-    async def delete_refresh_token(self, user_id: str) -> None:
+    async def delete_refresh_token(self, session_id: str) -> None:
         """
         Delete user's refresh token
 
         Parameters
         ----------
-        user_id : str
-            User's id
+        session_id : str
+            Id of the current session
 
         """
-        await self._redis_db.db.delete(user_id)
+        await self._redis_db.db.delete(session_id)

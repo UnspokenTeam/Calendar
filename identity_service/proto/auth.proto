@@ -31,7 +31,3 @@ message LoginData {
   string refresh_token = 1;
   string access_token = 2;
 }
-
-message LogoutRequest {
-  string user_id = 1;
-}

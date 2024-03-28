@@ -28,7 +28,7 @@ class MockTokenRepositoryImpl(TokenRepositoryInterface):
     def __init__(self) -> None:
         self._tokens = {}
 
-    async def store_refresh_token(self, refresh_token: str, user_id: str) -> None:
+    async def store_refresh_token(self, refresh_token: str, session_id: str) -> None:
         """
         Create refresh token with provided data
 
@@ -36,20 +36,20 @@ class MockTokenRepositoryImpl(TokenRepositoryInterface):
         ----------
         refresh_token : str
             User's refresh token
-        user_id : str
-            User's id
+        session_id : str
+            Id of the current session
 
         """
-        self._tokens[user_id] = refresh_token
+        self._tokens[session_id] = refresh_token
 
-    async def get_refresh_token(self, user_id: str) -> str:
+    async def get_refresh_token(self, session_id: str) -> str:
         """
         Get user's refresh token
 
         Parameters
         ----------
-        user_id : str
-            User's id
+        session_id : str
+            Id of the current session
 
         Returns
         -------
@@ -62,21 +62,21 @@ class MockTokenRepositoryImpl(TokenRepositoryInterface):
             No refresh token found for provided user_id
 
         """
-        result = self._tokens.get(user_id)
+        result = self._tokens.get(session_id)
 
         if result is None:
             raise ValueNotFoundError("Token not found")
 
         return result
 
-    async def delete_refresh_token(self, user_id: str) -> None:
+    async def delete_refresh_token(self, session_id: str) -> None:
         """
         Delete user's refresh token
 
         Parameters
         ----------
-        user_id : str
-            User's id
+        session_id : str
+            Id of the current session
 
         """
-        self._tokens.pop(user_id)
+        self._tokens.pop(session_id)

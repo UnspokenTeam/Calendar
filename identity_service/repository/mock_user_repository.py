@@ -3,9 +3,9 @@ from typing import List
 from uuid import uuid4
 
 from errors.unique_error import UniqueError
-from src.models.user import User
-
+from errors.value_not_found_error import ValueNotFoundError
 from repository.user_repository_interface import UserRepositoryInterface
+from src.models.user import User
 
 
 class MockUserRepositoryImpl(UserRepositoryInterface):
@@ -59,7 +59,10 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             User does not exist
 
         """
-        return next(user for user in self._users if user.email == email)
+        values = [user for user in self._users if user.email == email]
+        if len(values) == 0:
+            raise ValueNotFoundError("No user found for this id")
+        return values[0]
 
     async def get_user_by_id(self, user_id: str) -> User:
         """
@@ -81,7 +84,10 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             User does not exist
 
         """
-        return next(user for user in self._users if user.id == user_id)
+        values = [user for user in self._users if user.id == user_id]
+        if len(values) == 0:
+            raise ValueNotFoundError("No user found for this id")
+        return values[0]
 
     async def get_users_by_ids(self, user_ids: List[str]) -> List[User]:
         """
@@ -98,7 +104,10 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             Users that has matching id
 
         """
-        return [user for user in self._users if user.id in user_ids]
+        values = [user for user in self._users if user.id in user_ids]
+        if len(values) == 0:
+            raise ValueNotFoundError("Users with these ids not exist")
+        return values
 
     async def create_user(self, user: User) -> None:
         """
@@ -120,14 +129,14 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
                 [
                     True
                     for userdb in self._users
-                    if userdb.username == user.username and user.email == userdb.email
+                    if userdb.username == user.username or user.email == userdb.email
                 ]
             )
             != 0
         ):
             raise UniqueError("User with this data already exists")
 
-        user.id = uuid4()
+        user.id = str(uuid4())
         self._users.append(user)
 
     async def update_user(self, user: User) -> None:
@@ -141,12 +150,15 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
 
         Raises
         ------
-        ValueError
+        ValueNotFoundError
             Can't update user with provided data
 
         """
-        index: int = self._users.index(user)
-        self._users[index] = user
+        try:
+            index: int = self._users.index(user)
+            self._users[index] = user
+        except ValueError:
+            raise ValueNotFoundError("No user found")
 
     async def delete_user(self, user_id: str) -> None:
         """
@@ -159,9 +171,13 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
 
         Raises
         ------
-        ValueError
+        ValueNotFoundError
             Can't delete user with provided data
 
         """
-        index = next(i for i in range(len(self._users)) if self._users[i].id == user_id)
-        self._users.pop(index)
+        values: List[int] = [
+            i for i in range(len(self._users)) if self._users[i].id == user_id
+        ]
+        if len(values) == 0:
+            raise ValueNotFoundError("No user found")
+        self._users.pop(values[0])
