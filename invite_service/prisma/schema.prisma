@@ -12,6 +12,7 @@ model Invite {
   event_id String
   user_id String
   status InviteStatus
+  deleted_at DateTime?
 }
 
 enum InviteStatus {
