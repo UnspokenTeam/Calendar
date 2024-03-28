@@ -10,7 +10,7 @@ service EventService {
 }
 
 message EventsRequest {
-  string user_id = 1;
+  string author_id = 1;
   int64 offset = 2;
   int64 item_amount = 3;
   optional google.protobuf.Timestamp bottom_time_limit = 4;
@@ -18,7 +18,7 @@ message EventsRequest {
 }
 
 message EventsResponse {
-  int32 status = 1;
+  int32 status_code = 1;
   optional ListOfEvents events = 2;
   optional string message = 3;
 }
@@ -39,7 +39,7 @@ message ListOfEvents {
 }
 
 message BaseResponse {
-  int64 code = 1;
+  int64 status_code = 1;
   optional string message = 2;
 }
 

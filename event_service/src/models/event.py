@@ -1,7 +1,7 @@
 """Event Model."""
 from dataclasses import dataclass
-from typing import Optional, Self, List, Any, Dict
 from datetime import datetime
+from typing import Optional, Self, List, Any, Dict
 
 from prisma.models import Event as PrismaEvent
 

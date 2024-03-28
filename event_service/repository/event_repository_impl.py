@@ -1,17 +1,18 @@
 """Event repository with data from database."""
-from typing import Optional, List
 from datetime import datetime
+from typing import Optional, List
 
 from prisma.models import Event as PrismaEvent
 
 from db.postgres_client import PostgresClient
+from errors.value_not_found_error import ValueNotFoundError
+from repository.event_repository_interface import EventRepositoryInterface
 from src.models.event import Event
 from utils.singleton import singleton
-from errors.value_not_found_error import ValueNotFoundError
 
 
 @singleton
-class EventRepositoryImpl:
+class EventRepositoryImpl(EventRepositoryInterface):
     """
     Class for manipulating with event data
 
@@ -65,7 +66,9 @@ class EventRepositoryImpl:
         ] = await self._db_client.db.event.find_many(where={"id": author_id})
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
-        return [Event.from_prisma_event(db_event) for db_event in db_events]
+        return [
+            Event.from_prisma_event(prisma_event=db_event) for db_event in db_events
+        ]
 
     async def create_event(self, event: Event) -> None:
         """

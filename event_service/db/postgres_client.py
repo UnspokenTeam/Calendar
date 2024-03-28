@@ -1,4 +1,6 @@
 """Postgres client"""
+import logging
+
 from prisma import Prisma, Client
 
 from utils.singleton import singleton
@@ -29,3 +31,4 @@ class PostgresClient:
     async def connect(self) -> None:
         """Connect to database."""
         await self.db.connect()
+        logging.info("Connected to Postgres")
