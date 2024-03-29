@@ -57,7 +57,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             User does not exist
 
         """
-        return [user for user in self._users if user.email == email][0]
+        return next(user for user in self._users if user.email == email)
 
     async def get_user_by_id(self, user_id: str) -> User:
         """
@@ -79,7 +79,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             User does not exist
 
         """
-        return [user for user in self._users if user.id == user_id][0]
+        return next(user for user in self._users if user.id == user_id)
 
     async def get_users_by_ids(self, user_ids: List[str]) -> List[User]:
         """
@@ -161,7 +161,5 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             Can't delete user with provided data
 
         """
-        index: int = [
-            i for i in range(len(self._users)) if self._users[i].id == user_id
-        ][0]
+        index = next(i for i in range(len(self._users)) if self._users[i].id == user_id)
         self._users.pop(index)

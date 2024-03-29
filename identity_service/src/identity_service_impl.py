@@ -53,14 +53,14 @@ class IdentityServiceImpl(GrpcServicer):
         self._token_repository = token_repository
 
     def login(
-        self, request: auth_proto.LoginRequest, context: grpc.ServicerContext
+        self, _: auth_proto.LoginRequest, context: grpc.ServicerContext
     ) -> auth_proto.CredentialsResponse:
         """
         Log the user in and return credentials if user data matches
 
         Parameters
         ----------
-        request : LoginRequest
+        _ : LoginRequest
             Login data
         context : grpc.ServicerContext
             Request context
