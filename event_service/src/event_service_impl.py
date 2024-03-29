@@ -3,6 +3,7 @@ import grpc
 import prisma.errors
 
 from errors.value_not_found_error import ValueNotFoundError
+import google.protobuf.empty_pb2 as proto_empty
 from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
 import proto.event_service_pb2 as proto
 from repository.event_repository_interface import EventRepositoryInterface
@@ -24,6 +25,8 @@ class EventServiceImpl(GrpcServicer):
         Function that need to be bind to the server that returns event.
     async get_events_by_events_ids(request, context)
         Function that need to be bind to the server that returns events list.
+    async get_all_events(request, context)
+        Function that need to be bind to the server that returns all events in list.
     async create_event(request, context)
         Function that need to be bind to the server that creates the event.
     async update_event(request, context)
@@ -132,6 +135,40 @@ class EventServiceImpl(GrpcServicer):
             events = await self._event_repository.get_events_by_events_ids(
                 events_ids=request.events_ids
             )
+            context.set_code(grpc.StatusCode.OK)
+            return proto.EventsResponse(
+                status_code=200, events=proto.ListOfEvents(events=events)
+            )
+        except ValueNotFoundError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return proto.EventsResponse(status_code=404, message="Events not found")
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return proto.EventsResponse(
+                status_code=500, message="Internal server error"
+            )
+
+    async def get_all_events(
+        self, request: proto_empty, context: grpc.ServicerContext
+    ) -> proto.EventsResponse:
+        """
+        Get events by author id.
+
+        Parameters
+        ----------
+        request : proto_empty
+            Request data.
+        context : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        EventsResponse
+            Response object for event response.
+
+        """
+        try:
+            events = await self._event_repository.get_all_events()
             context.set_code(grpc.StatusCode.OK)
             return proto.EventsResponse(
                 status_code=200, events=proto.ListOfEvents(events=events)

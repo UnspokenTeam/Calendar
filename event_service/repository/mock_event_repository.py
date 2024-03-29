@@ -10,12 +10,12 @@ from src.models.event import Event
 
 class MockEventRepositoryImpl(EventRepositoryInterface):
     """
-    Mock class for manipulating with event data
+    Mock class for manipulating with event data.
 
     Attributes
     ----------
     _events: List[Event]
-        List of events
+        List of events.
 
     Methods
     -------
@@ -25,6 +25,8 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         Returns event that has matches with given event id.
     async get_events_by_events_ids(events_ids)
         Returns events that has matches with given list of event ids.
+    async get_all_events()
+        Returns all events.
     async create_event(event)
         Creates new event inside db or throws an exception.
     async update_event(event)
@@ -85,10 +87,10 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         """
         try:
-           event = next(event for event in self._events if event.id == event_id)
-           return event
+            event = next(event for event in self._events if event.id == event_id)
+            return event
         except StopIteration:
-           raise ValueNotFoundError("Events not found")
+            raise ValueNotFoundError("Events not found")
 
     async def get_events_by_events_ids(
         self, events_ids: ListOfEventsIds
@@ -117,14 +119,34 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             raise ValueNotFoundError("Events not found")
         return events
 
+    async def get_all_events(self) -> List[Event]:
+        """
+        Get all events.
+
+        Returns
+        -------
+        List[Event]
+            List of events that matches by event id.
+
+        Raises
+        ------
+        ValueNotFoundError
+            No events was found for given author id.
+
+        """
+        if self._events is None or len(self._events) == 0:
+            raise ValueNotFoundError("Events not found")
+        else:
+            return self._events
+
     async def create_event(self, event: Event) -> None:
         """
-        Creates event with matching data or throws an exception
+        Creates event with matching data or throws an exception.
 
         Parameters
         ----------
         event : Event
-            Event data
+            Event data.
 
         """
         event.id = str(uuid4())
@@ -132,21 +154,23 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
     async def update_event(self, event: Event) -> None:
         """
-        Updates event with matching id or throws an exception
+        Updates event with matching id or throws an exception.
 
         Parameters
         ----------
         event : Event
-            Event data
+            Event data.
 
         Raises
         ------
         ValueNotFoundError
-            Can't update event with provided data
+            Can't update event with provided data.
 
         """
         try:
-            index = next(i for i in range(len(self._events)) if self._events[i].id == event.id)
+            index = next(
+                i for i in range(len(self._events)) if self._events[i].id == event.id
+            )
             if self._events[index].author_id == event.author_id:
                 self._events[index] = event
             else:
@@ -156,21 +180,23 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
     async def delete_event(self, event_id: str) -> None:
         """
-        Deletes event with matching id or throws an exception
+        Deletes event with matching id or throws an exception.
 
         Parameters
         ----------
         event_id : str
-            Event's id
+            Event's id.
 
         Raises
         ------
         ValueNotFoundError
-            Can't delete event with provided data
+            Can't delete event with provided data.
 
         """
         try:
-            index = next(i for i in range(len(self._events)) if self._events[i].id == event_id)
+            index = next(
+                i for i in range(len(self._events)) if self._events[i].id == event_id
+            )
             self._events.pop(index)
         except StopIteration:
             raise ValueNotFoundError("Event not found")

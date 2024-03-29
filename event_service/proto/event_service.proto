@@ -1,11 +1,13 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 service EventService {
   rpc get_event_by_event_id(EventRequestByEventId) returns (EventResponse){}
   rpc get_events_by_events_ids(EventsRequestByEventsIds) returns (EventsResponse){}
   rpc get_events_by_author_id(EventsRequestByAuthorId) returns (EventsResponse){}
+  rpc get_all_events(google.protobuf.Empty) returns (EventsResponse){}
   rpc create_event(Event) returns (BaseResponse){}
   rpc update_event(Event) returns (BaseResponse){}
   rpc delete_event(DeleteEventRequest) returns (BaseResponse){}
