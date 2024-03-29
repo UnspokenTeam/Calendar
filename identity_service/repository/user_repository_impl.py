@@ -197,7 +197,10 @@ class UserRepositoryImpl(UserRepositoryInterface):
         )
         if db_user_counter != 0:
             raise UniqueError("User with this email or username already exists")
-        await self._db_client.db.user.update(where={"id": user.id}, data=user.to_dict())
+        await self._db_client.db.user.update(
+            where={"id": user.id},
+            data=user.to_dict(exclude=["type", "created_at", "suspended_at"]),
+        )
 
     async def delete_user(self, user_id: str) -> None:
         """
@@ -217,3 +220,9 @@ class UserRepositoryImpl(UserRepositoryInterface):
         await self._db_client.db.user.update(
             where={"id": user_id}, data={"suspended_at": datetime.now()}
         )
+
+    async def get_all_users(self) -> List[User]:
+        users = await self._db_client.db.user.find_many()
+        if len(users) == 0:
+            raise ValueNotFoundError("No users found")
+        return [User.from_prisma_user(user) for user in users]

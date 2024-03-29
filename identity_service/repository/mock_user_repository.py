@@ -181,3 +181,8 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         if len(values) == 0:
             raise ValueNotFoundError("No user found")
         self._users.pop(values[0])
+
+    async def get_all_users(self) -> List[User]:
+        if len(self._users) == 0:
+            raise ValueNotFoundError("No users found")
+        return self._users

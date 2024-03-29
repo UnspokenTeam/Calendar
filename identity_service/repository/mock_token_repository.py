@@ -79,4 +79,5 @@ class MockTokenRepositoryImpl(TokenRepositoryInterface):
             Id of the current session
 
         """
-        self._tokens.pop(session_id)
+        if session_id in self._tokens:
+            self._tokens.pop(session_id)

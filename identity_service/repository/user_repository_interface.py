@@ -158,3 +158,8 @@ class UserRepositoryInterface(ABC):
 
         """
         pass
+
+    @abstractmethod
+    async def get_all_users(self) -> List[User]:
+        """Get all users"""
+        pass

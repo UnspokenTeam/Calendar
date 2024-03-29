@@ -19,6 +19,8 @@ async def serve() -> None:
     """Start an async server"""
     server = grpc.aio.server()
     dotenv.load_dotenv()
+    await PostgresClient().connect()
+    await RedisClient().connect()
     identity_service_grpc.add_IdentityServiceServicer_to_server(
         IdentityServiceImpl(
             user_repository=MockUserRepositoryImpl(),
@@ -27,8 +29,6 @@ async def serve() -> None:
         server,
     )
     server.add_insecure_port("0.0.0.0:8080")
-    # await PostgresClient().connect()
-    # await RedisClient().connect()
     JwtController()
     await server.start()
     logging.info("Server started on http://localhost:8080")

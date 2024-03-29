@@ -1,11 +1,24 @@
 """User Model"""
 from dataclasses import dataclass
-from typing import Any, List, Optional, Self
+from datetime import datetime
+from enum import StrEnum
+from typing import Self, Optional, List, Any
 
 from prisma.models import User as PrismaUser
 
 from generated.auth_pb2 import RegisterRequest
+from generated.update_user_pb2 import UserToUpdate as GrpcUserToUpdate
 from generated.get_user_pb2 import User as GrpcUser
+from generated.get_user_pb2 import UserType as GrpcUserType
+
+
+class UserType(StrEnum):
+    USER = "USER"
+    ADMIN = "ADMIN"
+
+    @classmethod
+    def from_grpc_user_type(cls, grpc_user_type: GrpcUserType) -> Self:
+        return cls.USER if grpc_user_type == GrpcUserType.USER else cls.ADMIN
 
 
 @dataclass
@@ -39,6 +52,9 @@ class User:
     username: str
     email: str
     password: str
+    type: UserType
+    created_at: datetime
+    suspended_at: datetime | None
 
     def to_grpc_user(self) -> GrpcUser:
         """
@@ -50,11 +66,19 @@ class User:
             User data in GrpcUser instance
 
         """
-        return GrpcUser(
+        user = GrpcUser(
             id=self.id,
             username=self.username,
             email=self.email,
+            type=GrpcUserType.USER
+            if self.type == UserType.USER
+            else GrpcUserType.ADMIN,
+            suspended_at=None,
         )
+        user.created_at.FromDatetime(self.created_at)
+        if self.suspended_at is not None:
+            user.suspended_at.FromDatetime(self.suspended_at)
+        return user
 
     @classmethod
     def from_prisma_user(cls, prisma_user: PrismaUser) -> Self:
@@ -77,6 +101,9 @@ class User:
             username=prisma_user.username,
             email=prisma_user.email,
             password=prisma_user.password,
+            type=UserType(prisma_user.role),
+            created_at=prisma_user.created_at,
+            suspended_at=prisma_user.suspended_at,
         )
 
     def to_dict(self, exclude: Optional[List[str]] = None) -> dict[str, Any]:
@@ -94,7 +121,7 @@ class User:
             User data represented in dictionary
 
         """
-        exclude_set = set(exclude if exclude is not None else []) | {"id"}
+        exclude_set = set(exclude if exclude is not None else [])
         attrs = vars(self)
         return {
             attr.lstrip("_"): value
@@ -109,6 +136,25 @@ class User:
             username=request.username,
             email=request.email,
             password=request.password,
+            type=UserType.USER,
+            created_at=datetime.now(),
+            suspended_at=None,
+        )
+
+    @classmethod
+    def from_update_grpc_user(cls, grpc_user: GrpcUserToUpdate) -> Self:
+        return cls(
+            id=grpc_user.id,
+            username=grpc_user.username,
+            password=grpc_user.password,
+            email=grpc_user.email,
+            type=UserType.from_grpc_user_type(grpc_user.type),
+            created_at=datetime.fromtimestamp(
+                grpc_user.created_at.seconds + grpc_user.created_at.nanos / 1e9
+            ),
+            suspended_at=datetime.fromtimestamp(
+                grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
+            ),
         )
 
     def __eq__(self, other: object) -> bool:
