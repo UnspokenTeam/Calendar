@@ -48,10 +48,12 @@ docstring-code-line-length = "dynamic"
 convention = "numpy"
 
 [tool.ruff.lint.isort]
-section-order = ["future", "standard-library", "third-party", "first-party", "prisma", "proto", "local-folder"]
+section-order = ["future", "standard-library", "third-party", "first-party", "prisma", "proto", "local", "local-folder"]
 default-section = "local-folder"
 from-first = true
+known-third-party = ["grpc"]
 
 [tool.ruff.lint.isort.sections]
 "prisma" = ["prisma"]
 "proto" = ["proto"]
+"local" = ["src", "db", "utils", "errors"]
