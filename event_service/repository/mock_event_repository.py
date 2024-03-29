@@ -84,10 +84,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             No events was found for given event id.
 
         """
-        events = [event for event in self._events if event.id == event_id]
-        if events is None or len(events) != 1:
-            raise ValueNotFoundError("Events not found")
-        return events[0]
+        try:
+           event = next(event for event in self._events if event.id == event_id)
+           return event
+        except StopIterationError:
+           raise ValueNotFoundError("Events not found")
 
     async def get_events_by_events_ids(
         self, events_ids: ListOfEventsIds
@@ -144,13 +145,14 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             Can't update event with provided data
 
         """
-        index = [i for i in range(len(self._events)) if self._events[i].id == event.id]
-        if index is None or len(index) == 0:
+        try:
+            index = next(i for i in range(len(self._events)) if self._events[i].id == event.id)
+            if self._events[index].author_id == event.author_id:
+                self._events[index] = event
+            else:
+                raise ValueNotFoundError("Events authors must be same")
+        except StopIterationError:
             raise ValueNotFoundError("Event not found")
-        if self._events[index[0]].author_id == event.author_id:
-            self._events[index[0]] = event
-        else:
-            raise ValueNotFoundError("Events authors must be same")
 
     async def delete_event(self, event_id: str) -> None:
         """
@@ -167,7 +169,8 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             Can't delete event with provided data
 
         """
-        index = [i for i in range(len(self._events)) if self._events[i].id == event_id]
-        if len(index) == 0:
+        try:
+            index = next(i for i in range(len(self._events)) if self._events[i].id == event_id)
+            self._events.pop(index)
+        except StopIterationError:
             raise ValueNotFoundError("Event not found")
-        self._events.pop(index[0])
