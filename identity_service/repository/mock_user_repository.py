@@ -2,8 +2,9 @@ from typing import List
 from uuid import uuid4
 
 from errors.unique_error import UniqueError
-from repository.user_repository_interface import UserRepositoryInterface
 from src.models.user import User
+
+from repository.user_repository_interface import UserRepositoryInterface
 
 
 class MockUserRepositoryImpl(UserRepositoryInterface):

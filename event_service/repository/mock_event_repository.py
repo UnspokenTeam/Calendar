@@ -3,8 +3,9 @@ from typing import List
 from uuid import uuid4
 
 from errors.value_not_found_error import ValueNotFoundError
-from repository.event_repository_interface import EventRepositoryInterface
 from src.models.event import Event
+
+from repository.event_repository_interface import EventRepositoryInterface
 
 
 class MockEventRepositoryImpl(EventRepositoryInterface):

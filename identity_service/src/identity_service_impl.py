@@ -2,14 +2,14 @@
 import grpc
 
 from generated.identity_service_pb2_grpc import IdentityServiceServicer as GrpcServicer
-import generated.identity_service_pb2 as requests_proto
-import generated.auth_pb2 as auth_proto
-import generated.get_access_token_pb2 as get_access_token_proto
-import generated.get_user_pb2 as get_user_proto
-import generated.update_user_pb2 as update_user_proto
-import generated.delete_user_pb2 as delete_user_proto
 from repository.token_repository_interface import TokenRepositoryInterface
 from repository.user_repository_interface import UserRepositoryInterface
+import generated.auth_pb2 as auth_proto
+import generated.delete_user_pb2 as delete_user_proto
+import generated.get_access_token_pb2 as get_access_token_proto
+import generated.get_user_pb2 as get_user_proto
+import generated.identity_service_pb2 as requests_proto
+import generated.update_user_pb2 as update_user_proto
 
 
 class IdentityServiceImpl(GrpcServicer):
