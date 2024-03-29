@@ -48,7 +48,7 @@ class IdentityServiceImpl(GrpcServicer):
         self,
         user_repository: UserRepositoryInterface,
         token_repository: TokenRepositoryInterface,
-    ):
+    ) -> None:
         self._user_repository = user_repository
         self._token_repository = token_repository
 
@@ -71,13 +71,7 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with credentials
 
         """
-        if request.username == "username" and request.password == "password":
-            return auth_proto.CredentialsResponse(
-                status_code=200,
-                data=auth_proto.LoginData(
-                    refresh_token="refresh", access_token="access"
-                ),
-            )
+        context.set_code(grpc.StatusCode.OK)
 
         return auth_proto.CredentialsResponse(
             status_code=200,
