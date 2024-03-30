@@ -15,5 +15,5 @@ message UserToUpdate {
   string password = 4;
   google.protobuf.Timestamp created_at = 5;
   optional google.protobuf.Timestamp suspended_at = 6;
-  UserType type = 7;
+  GrpcUserType type = 7;
 }

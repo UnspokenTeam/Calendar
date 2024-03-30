@@ -22,7 +22,7 @@ message ListOfUser {
   repeated GrpcUser users = 1;
 }
 
-enum UserType {
+enum GrpcUserType {
     USER = 0;
     ADMIN = 1;
 }
@@ -33,7 +33,7 @@ message GrpcUser {
   string email = 3;
   google.protobuf.Timestamp created_at = 4;
   optional google.protobuf.Timestamp suspended_at = 5;
-  UserType type = 6;
+  GrpcUserType type = 6;
 }
 
 message UsersByIdRequest {

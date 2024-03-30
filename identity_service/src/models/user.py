@@ -9,7 +9,7 @@ from prisma.models import User as PrismaUser
 from generated.auth_pb2 import RegisterRequest
 from generated.update_user_pb2 import UserToUpdate as GrpcUserToUpdate
 from generated.get_user_pb2 import GrpcUser
-from generated.get_user_pb2 import UserType as GrpcUserType
+from generated.get_user_pb2 import GrpcUserType
 
 
 class UserType(StrEnum):
@@ -18,7 +18,7 @@ class UserType(StrEnum):
 
     @classmethod
     def from_grpc_user_type(cls, grpc_user_type: GrpcUserType) -> Self:
-        return cls.USER if grpc_user_type == GrpcUserType.USER else cls.ADMIN
+        return cls("USER") if grpc_user_type == GrpcUserType.USER else cls("ADMIN")
 
 
 @dataclass

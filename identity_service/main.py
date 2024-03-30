@@ -19,8 +19,8 @@ async def serve() -> None:
     """Start an async server"""
     server = grpc.aio.server()
     dotenv.load_dotenv()
-    await PostgresClient().connect()
-    await RedisClient().connect()
+    # await PostgresClient().connect()
+    # await RedisClient().connect()
     identity_service_grpc.add_IdentityServiceServicer_to_server(
         IdentityServiceImpl(
             user_repository=MockUserRepositoryImpl(),

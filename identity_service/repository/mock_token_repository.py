@@ -79,5 +79,7 @@ class MockTokenRepositoryImpl(TokenRepositoryInterface):
             Id of the current session
 
         """
-        if session_id in self._tokens:
+        try:
             self._tokens.pop(session_id)
+        except KeyError:
+            raise ValueNotFoundError("Token not found")
