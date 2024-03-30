@@ -63,4 +63,3 @@ style = 'google'
 exclude = 'singleton.py'
 check-return-types = true
 require-return-section-when-returning-nothing = true
-show-filenames-in-every-violation-message = true
