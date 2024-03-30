@@ -5,7 +5,6 @@ from typing import Optional, Self, List, Any, Dict
 
 from prisma.models import Invite as PrismaInvite
 
-
 @dataclass
 class Invite:
     """

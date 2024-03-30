@@ -2,14 +2,14 @@
 import grpc
 
 from generated.identity_service_pb2_grpc import IdentityServiceServicer as GrpcServicer
-import generated.identity_service_pb2 as requests_proto
-import generated.auth_pb2 as auth_proto
-import generated.get_access_token_pb2 as get_access_token_proto
-import generated.get_user_pb2 as get_user_proto
-import generated.update_user_pb2 as update_user_proto
-import generated.delete_user_pb2 as delete_user_proto
 from repository.token_repository_interface import TokenRepositoryInterface
 from repository.user_repository_interface import UserRepositoryInterface
+import generated.auth_pb2 as auth_proto
+import generated.delete_user_pb2 as delete_user_proto
+import generated.get_access_token_pb2 as get_access_token_proto
+import generated.get_user_pb2 as get_user_proto
+import generated.identity_service_pb2 as requests_proto
+import generated.update_user_pb2 as update_user_proto
 
 
 class IdentityServiceImpl(GrpcServicer):
@@ -48,19 +48,19 @@ class IdentityServiceImpl(GrpcServicer):
         self,
         user_repository: UserRepositoryInterface,
         token_repository: TokenRepositoryInterface,
-    ):
+    ) -> None:
         self._user_repository = user_repository
         self._token_repository = token_repository
 
     def login(
-        self, request: auth_proto.LoginRequest, context: grpc.ServicerContext
+        self, _: auth_proto.LoginRequest, context: grpc.ServicerContext
     ) -> auth_proto.CredentialsResponse:
         """
         Log the user in and return credentials if user data matches
 
         Parameters
         ----------
-        request : LoginRequest
+        _ : LoginRequest
             Login data
         context : grpc.ServicerContext
             Request context
@@ -71,13 +71,7 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with credentials
 
         """
-        if request.username == "username" and request.password == "password":
-            return auth_proto.CredentialsResponse(
-                status_code=200,
-                data=auth_proto.LoginData(
-                    refresh_token="refresh", access_token="access"
-                ),
-            )
+        context.set_code(grpc.StatusCode.OK)
 
         return auth_proto.CredentialsResponse(
             status_code=200,

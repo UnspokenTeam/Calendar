@@ -1,10 +1,11 @@
-import logging
 import asyncio
+import logging
 import sys
 
 import grpc
 
 import proto.invite_service_pb2_grpc as invite_service_grpc
+
 from src.invite_service_impl import InviteServiceImpl
 
 
