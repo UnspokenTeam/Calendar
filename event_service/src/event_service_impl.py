@@ -7,6 +7,7 @@ import google.protobuf.empty_pb2 as proto_empty
 from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
 import proto.event_service_pb2 as proto
 from repository.event_repository_interface import EventRepositoryInterface
+from src.models.event import Event
 
 
 class EventServiceImpl(GrpcServicer):
@@ -52,7 +53,7 @@ class EventServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : EventsRequest
+        request : proto.EventsRequest
             Request data.
         context : grpc.ServicerContext
             Request context.
@@ -69,7 +70,10 @@ class EventServiceImpl(GrpcServicer):
             )
             context.set_code(grpc.StatusCode.OK)
             return proto.EventsResponse(
-                status_code=200, events=proto.ListOfEvents(events=events)
+                status_code=200,
+                events=proto.ListOfEvents(
+                    events=[event.to_grpc_event() for event in events]
+                ),
             )
         except ValueNotFoundError:
             context.set_code(grpc.StatusCode.NOT_FOUND)
@@ -88,7 +92,7 @@ class EventServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : EventRequestByEventId
+        request : proto.EventRequestByEventId
             Request data.
         context : grpc.ServicerContext
             Request context.
@@ -104,7 +108,7 @@ class EventServiceImpl(GrpcServicer):
                 event_id=request.event_id
             )
             context.set_code(grpc.StatusCode.OK)
-            return proto.EventResponse(status_code=200, event=event)
+            return proto.EventResponse(status_code=200, event=event.to_grpc_event())
         except ValueNotFoundError:
             context.set_code(grpc.StatusCode.NOT_FOUND)
             return proto.EventResponse(status_code=404, message="Events not found")
@@ -120,7 +124,7 @@ class EventServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : EventsRequestByEventsIds
+        request : proto.EventsRequestByEventsIds
             Request data.
         context : grpc.ServicerContext
             Request context.
@@ -133,11 +137,14 @@ class EventServiceImpl(GrpcServicer):
         """
         try:
             events = await self._event_repository.get_events_by_events_ids(
-                events_ids=request.events_ids
+                events_ids=[event_id for event_id in request.events_ids.ids]
             )
             context.set_code(grpc.StatusCode.OK)
             return proto.EventsResponse(
-                status_code=200, events=proto.ListOfEvents(events=events)
+                status_code=200,
+                events=proto.ListOfEvents(
+                    events=[event.to_grpc_event() for event in events]
+                ),
             )
         except ValueNotFoundError:
             context.set_code(grpc.StatusCode.NOT_FOUND)
@@ -171,7 +178,10 @@ class EventServiceImpl(GrpcServicer):
             events = await self._event_repository.get_all_events()
             context.set_code(grpc.StatusCode.OK)
             return proto.EventsResponse(
-                status_code=200, events=proto.ListOfEvents(events=events)
+                status_code=200,
+                events=proto.ListOfEvents(
+                    events=[event.to_grpc_event() for event in events]
+                ),
             )
         except ValueNotFoundError:
             context.set_code(grpc.StatusCode.NOT_FOUND)
@@ -183,14 +193,14 @@ class EventServiceImpl(GrpcServicer):
             )
 
     async def create_event(
-        self, request: proto.Event, context: grpc.ServicerContext
+        self, request: proto.GrpcEvent, context: grpc.ServicerContext
     ) -> proto.BaseResponse:
         """
         Create event.
 
         Parameters
         ----------
-        request : GrpcEvent
+        request : proto.GrpcEvent
             Request data containing GrpcEvent.
         context : grpc.ServicerContext
             Request context.
@@ -202,7 +212,8 @@ class EventServiceImpl(GrpcServicer):
 
         """
         try:
-            await self._event_repository.create_event(event=request)
+            event = Event.from_grpc_event(request)
+            await self._event_repository.create_event(event=event)
             context.set_code(grpc.StatusCode.OK)
             return proto.BaseResponse(status_code=200)
         except ValueNotFoundError:
@@ -213,14 +224,14 @@ class EventServiceImpl(GrpcServicer):
             return proto.BaseResponse(status_code=500, message="Internal server error")
 
     async def update_event(
-        self, request: proto.Event, context: grpc.ServicerContext
+        self, request: proto.GrpcEvent, context: grpc.ServicerContext
     ) -> proto.BaseResponse:
         """
         Update event.
 
         Parameters
         ----------
-        request : GrpcEvent
+        request : proto.GrpcEvent
             Request data containing GrpcEvent.
         context : grpc.ServicerContext
             Request context.
@@ -232,7 +243,8 @@ class EventServiceImpl(GrpcServicer):
 
         """
         try:
-            await self._event_repository.update_event(event=request)
+            event = Event.from_grpc_event(request)
+            await self._event_repository.update_event(event=event)
             context.set_code(grpc.StatusCode.OK)
             return proto.BaseResponse(status_code=200)
         except ValueNotFoundError:
@@ -250,7 +262,7 @@ class EventServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : DeleteEventRequest
+        request : proto.DeleteEventRequest
             Request data containing event ID.
         context : grpc.ServicerContext
             Request context.

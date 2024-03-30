@@ -1,12 +1,11 @@
 """Event repository with data from database."""
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
 
 from prisma.models import Event as PrismaEvent
 
 from db.postgres_client import PostgresClient
 from errors.value_not_found_error import ValueNotFoundError
-from proto.event_service_pb2 import ListOfEventsIds
 from repository.event_repository_interface import EventRepositoryInterface
 from src.models.event import Event
 from utils.singleton import singleton
@@ -70,7 +69,9 @@ class EventRepositoryImpl(EventRepositoryInterface):
         """
         db_events: Optional[
             List[PrismaEvent]
-        ] = await self._db_client.db.event.find_many(where={"id": author_id})
+        ] = await self._db_client.db.event.find_many(
+            where={"id": author_id, "deleted_at": None}
+        )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
         return [
@@ -100,21 +101,19 @@ class EventRepositoryImpl(EventRepositoryInterface):
 
         """
         db_event: Optional[PrismaEvent] = await self._db_client.db.event.find_first(
-            where={"id": event_id}
+            where={"id": event_id, "deleted_at": None}
         )
         if db_event is None:
             raise ValueNotFoundError("Event not found")
         return Event.from_prisma_event(prisma_event=db_event)
 
-    async def get_events_by_events_ids(
-        self, events_ids: ListOfEventsIds
-    ) -> List[Event]:
+    async def get_events_by_events_ids(self, events_ids: List[str]) -> List[Event]:
         """
         Get events by events ids.
 
         Parameters
         ----------
-        events_ids : ListOfEventsIds
+        events_ids : List[str]
             Event's ids.
 
         Returns
@@ -133,7 +132,10 @@ class EventRepositoryImpl(EventRepositoryInterface):
         db_events: Optional[
             List[PrismaEvent]
         ] = await self._db_client.db.event.find_many(
-            where={"id": {"in": [event_id for event_id in events_ids.ids]}}
+            where={
+                "id": {"in": [event_id for event_id in events_ids]},
+                "deleted_at": None,
+            }
         )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
@@ -160,7 +162,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
         """
         db_events: Optional[
             List[PrismaEvent]
-        ] = await self._db_client.db.event.find_many()
+        ] = await self._db_client.db.event.find_many(where={"deleted_at": None})
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
         return [
@@ -199,8 +201,8 @@ class EventRepositoryImpl(EventRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.event.update(
-            where={"id": event.id}, data=event.to_dict()
+        await self._db_client.db.event.update_many(
+            where={"id": event.id, "deleted_at": None}, data=event.to_dict()
         )
 
     async def delete_event(self, event_id: str) -> None:
@@ -218,6 +220,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.event.update(
-            where={"id": event_id}, data={"deleted_at": datetime.now()}
+        await self._db_client.db.event.update_many(
+            where={"id": event_id, "deleted_at": None},
+            data={"deleted_at": datetime.now()},
         )

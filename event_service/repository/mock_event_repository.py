@@ -3,7 +3,6 @@ from typing import List
 from uuid import uuid4
 
 from errors.value_not_found_error import ValueNotFoundError
-from proto.event_service_pb2 import ListOfEventsIds
 from repository.event_repository_interface import EventRepositoryInterface
 from src.models.event import Event
 
@@ -92,15 +91,13 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         except StopIteration:
             raise ValueNotFoundError("Events not found")
 
-    async def get_events_by_events_ids(
-        self, events_ids: ListOfEventsIds
-    ) -> List[Event]:
+    async def get_events_by_events_ids(self, events_ids: List[str]) -> List[Event]:
         """
         Get events by events ids.
 
         Parameters
         ----------
-        events_ids : ListOfEventsIds
+        events_ids : List[str]
             List of events ids.
 
         Returns
@@ -114,7 +111,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             No events was found for given author id.
 
         """
-        events = [event for event in self._events if event.id in events_ids.ids]
+        events = [event for event in self._events if event.id in events_ids]
         if events is None or len(events) == 0:
             raise ValueNotFoundError("Events not found")
         return events
@@ -134,7 +131,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             No events was found for given author id.
 
         """
-        if self._events is None or len(self._events) == 0:
+        if len(self._events) == 0:
             raise ValueNotFoundError("Events not found")
         else:
             return self._events
@@ -171,10 +168,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             index = next(
                 i for i in range(len(self._events)) if self._events[i].id == event.id
             )
-            if self._events[index].author_id == event.author_id:
-                self._events[index] = event
-            else:
-                raise ValueNotFoundError("Events authors must be same")
+            self._events[index] = event
         except StopIteration:
             raise ValueNotFoundError("Event not found")
 

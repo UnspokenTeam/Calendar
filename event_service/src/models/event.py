@@ -1,11 +1,11 @@
 """Event Model."""
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, Self, List, Any, Dict
+from typing import Any, Dict, List, Optional, Self
 
 from prisma.models import Event as PrismaEvent
 
-from proto.event_service_pb2 import Event as GrpcEvent
+from proto.event_service_pb2 import GrpcEvent
 
 
 @dataclass
@@ -51,6 +51,8 @@ class Event:
     description: Optional[str] = None
     color: Optional[str] = None
     repeating_delay: Optional[datetime] = None
+    created_at: datetime = datetime.now()
+    deleted_at: Optional[datetime] = None
 
     def to_grpc_event(self) -> GrpcEvent:
         """
@@ -72,6 +74,8 @@ class Event:
         event.start.FromDatetime(self.start)
         event.end.FromDatetime(self.end)
         event.repeating_delay.FromDatetime(self.repeating_delay)
+        event.created_at.FromDatetime(self.created_at)
+        event.deleted_at.FromDatetime(self.created_at)
 
         return event
 
@@ -90,7 +94,7 @@ class Event:
             Event data dictionary.
 
         """
-        exclude_set = set(exclude if exclude is not None else []) | {"id", "author_id"}
+        exclude_set = set(exclude if exclude is not None else []) | {"id"}
         attrs = vars(self)
         return {
             attr.lstrip("_"): value
@@ -122,6 +126,47 @@ class Event:
             description=prisma_event.description,
             color=prisma_event.color,
             repeating_delay=prisma_event.repeating_delay,
+            created_at=prisma_event.created_at,
+            deleted_at=prisma_event.deleted_at,
+        )
+
+    @classmethod
+    def from_grpc_event(cls, grpc_event: GrpcEvent) -> Self:
+        """
+        Converts grpc event.
+
+        Parameters
+        ----------
+        grpc_event : GrpcEvent
+            Prisma event.
+        Returns
+        -------
+        Event
+            Event class instance.
+
+        """
+        return cls(
+            id=grpc_event.id,
+            title=grpc_event.title,
+            start=datetime.fromtimestamp(
+                grpc_event.start.seconds + grpc_event.start.nanos / 1e9
+            ),
+            end=datetime.fromtimestamp(
+                grpc_event.end.seconds + grpc_event.end.nanos / 1e9
+            ),
+            author_id=grpc_event.author_id,
+            description=grpc_event.description,
+            color=grpc_event.color,
+            repeating_delay=datetime.fromtimestamp(
+                grpc_event.repeating_delay.seconds
+                + grpc_event.repeating_delay.nanos / 1e9
+            ),
+            created_at=datetime.fromtimestamp(
+                grpc_event.created_at.seconds + grpc_event.created_at.nanos / 1e9
+            ),
+            deleted_at=datetime.fromtimestamp(
+                grpc_event.deleted_at.seconds + grpc_event.deleted_at.nanos / 1e9
+            ),
         )
 
     def __repr__(self) -> str:

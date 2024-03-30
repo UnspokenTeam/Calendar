@@ -8,8 +8,8 @@ service EventService {
   rpc get_events_by_events_ids(EventsRequestByEventsIds) returns (EventsResponse){}
   rpc get_events_by_author_id(EventsRequestByAuthorId) returns (EventsResponse){}
   rpc get_all_events(google.protobuf.Empty) returns (EventsResponse){}
-  rpc create_event(Event) returns (BaseResponse){}
-  rpc update_event(Event) returns (BaseResponse){}
+  rpc create_event(GrpcEvent) returns (BaseResponse){}
+  rpc update_event(GrpcEvent) returns (BaseResponse){}
   rpc delete_event(DeleteEventRequest) returns (BaseResponse){}
 }
 
@@ -27,7 +27,7 @@ message EventsRequestByEventsIds {
 
 message EventResponse {
   int32 status_code = 1;
-  Event event = 2;
+  GrpcEvent event = 2;
   optional string message = 3;
 }
 
@@ -37,7 +37,7 @@ message EventsResponse {
   optional string message = 3;
 }
 
-message Event {
+message GrpcEvent {
   string id = 1;
   string title = 2;
   optional string description = 3;
@@ -46,10 +46,12 @@ message Event {
   google.protobuf.Timestamp end = 6;
   optional google.protobuf.Timestamp repeating_delay = 7;
   string author_id = 8;
+  google.protobuf.Timestamp created_at = 9;
+  optional google.protobuf.Timestamp deleted_at = 10;
 }
 
 message ListOfEvents {
-  repeated Event events = 1;
+  repeated GrpcEvent events = 1;
 }
 
 message ListOfEventsIds {

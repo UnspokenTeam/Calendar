@@ -2,7 +2,6 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from proto.event_service_pb2 import ListOfEventsIds
 from src.models.event import Event
 
 
@@ -78,15 +77,13 @@ class EventRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_events_by_events_ids(
-        self, events_ids: ListOfEventsIds
-    ) -> List[Event]:
+    async def get_events_by_events_ids(self, events_ids: List[str]) -> List[Event]:
         """
         Get events by events ids.
 
         Parameters
         ----------
-        events_ids : ListOfEventsIds
+        events_ids : List[str]
             List of events ids.
 
         Returns
