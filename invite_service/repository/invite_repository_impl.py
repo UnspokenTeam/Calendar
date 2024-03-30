@@ -7,7 +7,6 @@ from prisma.models import Invite as PrismaInvite
 from db.postgres_client import PostgresClient
 from errors.value_not_found_error import ValueNotFoundError
 from repository.invite_repository_interface import InviteRepositoryInterface
-from proto.invite_service_pb2 import InviteStatus
 from src.models.invite import Invite
 from utils.singleton import singleton
 
@@ -27,7 +26,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
     async get_invites(author_id)
         Returns invites that has matches with given author id.
     async create_invite(invite)
-        Creates new event inside db or throws an exception.
+        Creates new invite inside db or throws an exception.
     async update_invite(incite)
         Updates invite that has the same id as provided invite object inside db or throws an exception.
     async delete_invite(invite_id)
@@ -59,7 +58,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No events was found for given author id.
+            No invites was found for given author id.
 
         """
 

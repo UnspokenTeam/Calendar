@@ -1,5 +1,4 @@
 """Invite Service Controller"""
-
 import grpc
 
 from proto.invite_service_pb2_grpc import InviteServiceServicer as GrpcServicer
@@ -9,7 +8,7 @@ from src.models.invite import Invite
 
 class InviteServiceImpl(GrpcServicer):
     """
-    Implementation of the Event Service.
+    Implementation of the Invite Service.
 
     Attributes
     ----------
