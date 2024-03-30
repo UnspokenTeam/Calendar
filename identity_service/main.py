@@ -5,7 +5,6 @@ import sys
 import grpc
 
 from db.postgres_client import PostgresClient
-from db.redis_client import RedisClient
 from src.identity_service_impl import IdentityServiceImpl
 from utils.jwt_controller import JwtController
 from repository.mock_user_repository import MockUserRepositoryImpl
@@ -20,7 +19,6 @@ async def serve() -> None:
     server = grpc.aio.server()
     dotenv.load_dotenv()
     # await PostgresClient().connect()
-    # await RedisClient().connect()
     identity_service_grpc.add_IdentityServiceServicer_to_server(
         IdentityServiceImpl(
             user_repository=MockUserRepositoryImpl(),
