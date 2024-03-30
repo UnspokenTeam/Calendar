@@ -23,6 +23,10 @@ class UserRepositoryInterface(ABC):
         Updates user that has the same id as provided user object inside db or throws an exception
     async delete_user(user_id)
         Deletes user that has matching id from database or throws an exception
+    async get_all_users()
+        Get all existing users from database
+    async get_user_by_session_id(session_id)
+        Get user by session id
 
     """
 
@@ -161,10 +165,45 @@ class UserRepositoryInterface(ABC):
 
     @abstractmethod
     async def get_all_users(self) -> List[User]:
-        """Get all users"""
+        """
+        Get all existing users
+
+        Returns
+        -------
+        List[User]
+            All existing users
+
+        Raises
+        ------
+        ValueNotFoundError
+            No users found
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
+
+        """
         pass
 
     @abstractmethod
     async def get_user_by_session_id(self, session_id: str) -> User:
-        """Get user by session_id"""
+        """
+        Get user by session id
+
+        Parameters
+        ----------
+        session_id
+            Id of the session
+
+        Returns
+        -------
+        User
+            User with corresponding session
+
+        Raises
+        ------
+        ValueNotFoundError
+            User not found
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
+
+        """
         pass

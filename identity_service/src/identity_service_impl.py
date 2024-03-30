@@ -31,26 +31,30 @@ class IdentityServiceImpl(GrpcServicer):
 
     Methods
     -------
-    login(request, context)
+    async login(request, context)
         Function that need to be bind to the server that returns access and
         refresh tokens for user if user data matches
-    register(request, context)
+    async register(request, context)
         Function that need to be bind to the server that creates user and returns access and refresh tokens for user
-    auth(request, context)
+    async auth(request, context)
         Function that need to be bind to the server that returns user_id of
         currently signed in user by user access token
-    get_new_access_token(request, context)
+    async get_new_access_token(request, context)
         Function that need to be bind to the server that returns new access token for user if refresh token matches
-    get_user_by_id(request, context)
+    async get_user_by_id(request, context)
         Function that need to be bind to the server that returns user by its user_id
-    get_users_by_id(request, context)
+    async get_users_by_id(request, context)
         Function that need to be bind to the server that returns users that match provided user ids
-    update_user(request, context)
+    async update_user(request, context)
         Function that need to be bind to the server that updates user information
-    delete_user(request, context)
+    async delete_user(request, context)
         Function that need to be bind to the server that deletes user with given user_id
-    logout(request, context)
+    async logout(request, context)
         Function that need to be bind to the server that deletes refresh_token from database and logs the user off
+    async get_all_users(request, context)
+        Function that need to be bind to the server that returns all existing users
+    async _generate_tokens(session_id, user_id)
+        Generate access and refresh tokens
 
     """
 
@@ -314,7 +318,7 @@ class IdentityServiceImpl(GrpcServicer):
         Returns
         -------
         UsersResponse
-            Response object with array of public user data
+            Response object with array of user data
 
         """
         try:
@@ -338,6 +342,21 @@ class IdentityServiceImpl(GrpcServicer):
             )
 
     async def get_all_users(self, _: Empty, context: grpc.ServicerContext) -> get_user_proto.UsersResponse:
+        """
+        Get all existing users
+
+        Parameters
+        ----------
+        _
+            Empty request
+        context
+            Request context
+
+        Returns
+        -------
+        UsersResponse
+            Response object with array of user data
+        """
         try:
             users = await self._user_repository.get_all_users()
             context.set_code(grpc.StatusCode.OK)
@@ -494,6 +513,22 @@ class IdentityServiceImpl(GrpcServicer):
             )
 
     def _generate_tokens(self, session_id: str, user_id: str) -> Tuple[str, str]:
+        """
+        Generate access and refresh tokens
+
+        Parameters
+        ----------
+        session_id
+            Id of the session
+        user_id
+            Id of the user
+
+        Returns
+        -------
+        Tuple[str, str]
+            Access and refresh tokens
+
+        """
         access_token = self._jwt_controller.generate_access_token(
             user_id=user_id, session_id=session_id
         )

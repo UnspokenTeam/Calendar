@@ -12,11 +12,36 @@ from generated.update_user_pb2 import UserToUpdate as GrpcUserToUpdate
 
 
 class UserType(StrEnum):
+    """
+    Enum of user types
+
+    Methods
+    -------
+    from_grpc_user_type(grpc_user_type)
+        Get user type from grpc user type
+    """
+
     USER = "USER"
+    """Standard user type"""
     ADMIN = "ADMIN"
+    """Admin user type"""
 
     @classmethod
     def from_grpc_user_type(cls, grpc_user_type: GrpcUserType) -> Self:
+        """
+        Get user type from grpc user type
+
+        Parameters
+        ----------
+        grpc_user_type
+            Grpc user type
+
+        Returns
+        -------
+        UserType
+            UserType enum instance
+
+        """
         return cls("USER") if grpc_user_type == GrpcUserType.USER else cls("ADMIN")
 
 
@@ -35,6 +60,12 @@ class User:
         Email of the user
     password : str
         Hashed password of the user
+    type: UserType
+        Type of the user
+    created_at: datetime
+        Date and time when the user was created
+    suspended_at: datetime
+        Date and time when the user was suspended
 
     Methods
     -------
@@ -44,6 +75,10 @@ class User:
         Returns user class instance from PrismaUser
     to_dict()
         Returns user's data represented in dictionary
+    from_update_grpc_user(grpc_user)
+        Get user instance from update user request data
+    from_register_request(request)
+        Get user instance from registration request
 
     """
 
@@ -130,6 +165,21 @@ class User:
 
     @classmethod
     def from_register_request(cls, request: RegisterRequest) -> Self:
+        """
+        Get user instance from registration request
+
+        Parameters
+        ----------
+        request
+            Registration request
+
+
+        Returns
+        -------
+        User
+            User class instance
+
+        """
         return cls(
             id="",
             username=request.username,
@@ -142,6 +192,20 @@ class User:
 
     @classmethod
     def from_update_grpc_user(cls, grpc_user: GrpcUserToUpdate) -> Self:
+        """
+        Get user instance from update user request data
+
+        Parameters
+        ----------
+        grpc_user
+            Update user request data
+
+        Returns
+        -------
+        User
+            User class instance
+
+        """
         return cls(
             id=grpc_user.id,
             username=grpc_user.username,

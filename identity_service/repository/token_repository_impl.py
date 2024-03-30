@@ -1,5 +1,4 @@
 """Tokens repository"""
-
 from db.postgres_client import PostgresClient
 from errors.value_not_found_error import ValueNotFoundError
 from utils.singleton import singleton
@@ -25,7 +24,8 @@ class TokenRepositoryImpl(TokenRepositoryInterface):
         Stores refresh token in Redis database
     async delete_refresh_token(user_id)
         Deletes refresh token corresponding to provided user_id
-
+    async delete_all_refresh_tokens(user_id)
+        Delete all user's refresh tokens
     """
 
     _postgres_client: PostgresClient
@@ -47,6 +47,11 @@ class TokenRepositoryImpl(TokenRepositoryInterface):
             User's refresh token
         session_id : str
             Id of the current session
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
 
         """
         await self._postgres_client.db.token.create(
@@ -71,6 +76,8 @@ class TokenRepositoryImpl(TokenRepositoryInterface):
         ------
         ValueNotFoundError
             No refresh token found for provided user_id
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
 
         """
         result = await self._postgres_client.db.token.find_first(
@@ -91,8 +98,27 @@ class TokenRepositoryImpl(TokenRepositoryInterface):
         session_id : str
             Id of the current session
 
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
+
         """
         await self._postgres_client.db.token.delete(where={"id": session_id})
 
     async def delete_all_refresh_tokens(self, user_id: str) -> None:
+        """
+        Delete all user's refresh tokens
+
+        Parameters
+        ----------
+        user_id
+            Id of the user
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
+
+        """
         await self._postgres_client.db.token.delete_many(where={"user_id": user_id})

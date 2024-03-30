@@ -4,6 +4,7 @@ import sys
 
 import grpc
 
+from db.postgres_client import PostgresClient
 from src.identity_service_impl import IdentityServiceImpl
 from utils.jwt_controller import JwtController
 
@@ -17,7 +18,7 @@ async def serve() -> None:
     """Start an async server"""
     server = grpc.aio.server()
     dotenv.load_dotenv()
-    # await PostgresClient().connect()
+    await PostgresClient().connect()
     identity_service_grpc.add_IdentityServiceServicer_to_server(
         IdentityServiceImpl(
             user_repository=MockUserRepositoryImpl(),

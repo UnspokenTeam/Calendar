@@ -12,17 +12,19 @@ class MockTokenRepositoryImpl(TokenRepositoryInterface):
 
     Attributes
     ----------
-    _tokens: dict[str, str]
-        Dictionary with pairs of [user_id, refresh_token]
+    _tokens: dict[str, dict[str, str]]
+        Dictionary with pairs of [user_id, dict[session_id, refresh_token]]
 
     Methods
     -------
-    async get_refresh_token(user_id)
-        Returns refresh token for provided user_id
-    async store_refresh_token(refresh_token)
-        Stores refresh token in Redis database
-    async delete_refresh_token(user_id)
-        Deletes refresh token corresponding to provided user_id
+    async get_refresh_token(session_id)
+        Returns refresh token for provided session_id
+    async store_refresh_token(refresh_token, session_id, user_id)
+        Stores refresh token
+    async delete_refresh_token(session_id)
+        Deletes refresh token corresponding to provided session_id
+    async delete_all_refresh_tokens(user_id)
+        Deletes all user's refresh tokens
 
     """
 
@@ -93,14 +95,35 @@ class MockTokenRepositoryImpl(TokenRepositoryInterface):
         session_id : str
             Id of the current session
 
+        Raises
+        ------
+        ValueNotFoundError
+            Refresh token does not exist
+
         """
         for user_id, user_tokens in self._tokens.items():
             if session_id in user_tokens:
                 self._tokens[user_id].pop(session_id)
-                break
+                return
+
+        raise ValueNotFoundError("Token not found")
 
     async def delete_all_refresh_tokens(self, user_id: str) -> None:
+        """
+        Delete all user's refresh tokens
+
+        Parameters
+        ----------
+        user_id
+            Id of the current user
+
+        Raises
+        ------
+        ValueNotFoundError
+            User does not exist or does not have any refresh tokens
+
+        """
         try:
             self._tokens.pop(user_id)
         except KeyError:
-            raise ValueNotFoundError("Token not found")
+            raise ValueNotFoundError("User not found")

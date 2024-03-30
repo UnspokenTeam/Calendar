@@ -7,7 +7,7 @@ explicit_package_bases = true
 disallow_subclassing_any = false
 
 [[tool.mypy.overrides]]
-module = "redis.*"
+module = ["google.*"]
 ignore_missing_imports = true
 
 [tool.ruff]

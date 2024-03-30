@@ -33,6 +33,11 @@ class TokenRepositoryInterface(ABC):
         session_id : str
             Id of the current session
 
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
+
         """
         pass
 
@@ -55,6 +60,8 @@ class TokenRepositoryInterface(ABC):
         ------
         ValueNotFoundError
             No refresh token found for provided user_id
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
 
         """
         pass
@@ -69,6 +76,11 @@ class TokenRepositoryInterface(ABC):
         session_id : str
             Id of the current session
 
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
+
         """
         pass
 
@@ -81,6 +93,11 @@ class TokenRepositoryInterface(ABC):
         ----------
         user_id : str
             Id of the current user
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
 
         """
         pass

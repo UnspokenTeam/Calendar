@@ -25,26 +25,28 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
     Methods
     -------
     async get_user_by_email(email)
-        Returns user that has matching email from database or throws an exception
+        Returns user that has matching email from database
     async get_user_by_id(user_id)
-        Returns user that has matching id from database or throws an exception
+        Returns user that has matching id from database
     async get_users_by_ids(user_ids)
-        Returns users that has matching ids from database or throws an exception
+        Returns users that has matching ids from database
     async create_user(user)
         Creates new user inside db or throws an exception
     async update_user(user)
-        Updates user that has the same id as provided user object inside db or throws an exception
+        Updates user that has the same id as provided user object inside db
     async delete_user(user_id)
-        Deletes user that has matching id from database or throws an exception
+        Deletes user that has matching id from database
+    async get_all_users()
+        Returns all existing users
+    async get_user_by_session_id(session_id)
+        Get user with matching session id
 
     """
 
     _users: List[User]
-    _sessions: dict[str, List[str]]
 
     def __init__(self) -> None:
         self._users = []
-        self._sessions = {}
 
     async def get_user_by_email(self, email: str) -> User:
         """
@@ -62,7 +64,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
 
         Raises
         ------
-        ValueError
+        ValueNotFoundError
             User does not exist
 
         """
@@ -87,7 +89,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
 
         Raises
         ------
-        ValueError
+        ValueNotFoundError
             User does not exist
 
         """
@@ -109,6 +111,11 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         -------
         List[User]
             Users that has matching id
+
+        Raises
+        ------
+        ValueNotFoundError
+            Users does not exist
 
         """
         values = [user for user in self._users if user.id in user_ids]
@@ -190,11 +197,41 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         self._users.pop(values[0])
 
     async def get_all_users(self) -> List[User]:
+        """
+        Returns all existing users
+
+        Returns
+        -------
+        List[User]
+            All existing users
+
+        """
         if len(self._users) == 0:
             raise ValueNotFoundError("No users found")
         return self._users
 
     async def get_user_by_session_id(self, session_id: str) -> User:
+        """
+        Get user with matching session id
+
+        Parameters
+        ----------
+        session_id
+            Id of the session
+
+        Returns
+        -------
+        User
+            User that has provided session_id
+
+        Raises
+        ------
+        ValueNotFoundError
+            User or token does not exist
+        InvalidTokenError
+            Refresh token is invalid
+
+        """
         token = await MockTokenRepositoryImpl().get_refresh_token(session_id)
         user_id, _ = JwtController().decode(token, TokenType.REFRESH_TOKEN)
         return await self.get_user_by_id(user_id)
