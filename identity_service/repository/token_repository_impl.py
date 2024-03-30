@@ -1,7 +1,7 @@
 """Tokens repository"""
-import os
 from datetime import timedelta
 from typing import Optional
+import os
 
 from db.redis_client import RedisClient
 from errors.value_not_found_error import ValueNotFoundError
@@ -9,9 +9,9 @@ from utils.singleton import singleton
 
 
 @singleton
-class TokenRepository:
+class TokenRepositoryImpl:
     """
-    Data class that stores user information
+    Class for manipulating with token data
 
     Attributes
     ----------

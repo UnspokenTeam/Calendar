@@ -1,19 +1,19 @@
 """Event repository with data from database."""
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
 
 from prisma.models import Event as PrismaEvent
 
 from db.postgres_client import PostgresClient
+from errors.value_not_found_error import ValueNotFoundError
 from src.models.event import Event
 from utils.singleton import singleton
-from errors.value_not_found_error import ValueNotFoundError
 
 
 @singleton
-class EventRepository:
+class EventRepositoryImpl:
     """
-    Data class that stores event information.
+    Class for manipulating with event data
 
     Attributes
     ----------

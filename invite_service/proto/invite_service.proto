@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+service InviteService {
+  rpc get_invites_by_user_id(InvitesByUserIdRequest) returns (InvitesResponse){}
+  rpc get_invites_by_invitee_id(GetInviteeByInviteIdRequest) returns (InvitesResponse){}
+  rpc create_invite(Invite) returns (BaseResponse){}
+  rpc update_invite(Invite) returns (BaseResponse){}
+  rpc delete_invite(DeleteInviteRequest) returns (BaseResponse){}
+}
+
+message InvitesByUserIdRequest {
+  string user_id = 1;
+}
+
+message Invite {
+  string id = 1;
+  string event_id = 2;
+  string author_id = 3;
+  string invitee_id = 4;
+  InviteStatus status = 5;
+}
+
+message ListOfInvites {
+  repeated Invite invites = 1;
+}
+
+message InvitesResponse{
+  int64 code = 1;
+  optional ListOfInvites invites = 2;
+  optional string message = 3;
+}
+
+message BaseResponse {
+  int64 code = 1;
+  optional string message = 2;
+}
+
+message DeleteInviteRequest {
+  string invite_id = 1;
+}
+
+message GetInvitesByInviteeIdRequest {
+  string invitee_id = 1;
+}
+
+message GetInviteeByInviteIdRequest {
+  string invite_id = 1;
+}
+
+enum InviteStatus {
+  PENDING = 0;
+  ACCEPTED = 1;
+  REJECTED = 2;
+}

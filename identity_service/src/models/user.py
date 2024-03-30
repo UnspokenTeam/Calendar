@@ -1,6 +1,7 @@
 """User Model"""
 from dataclasses import dataclass
-from typing import Self, Optional, List, Any
+from typing import Any, List, Optional, Self
+
 from prisma.models import User as PrismaUser
 
 from generated.get_user_pb2 import User as GrpcUser
@@ -99,6 +100,11 @@ class User:
             for attr, value in attrs.items()
             if attr not in exclude_set
         }
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, User):
+            return NotImplemented
+        return self.id == other.id
 
     def __repr__(self) -> str:
         return f"{vars(self)}"
