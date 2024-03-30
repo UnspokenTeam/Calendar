@@ -31,6 +31,10 @@ class Event:
         Event color for the UI.
     repeating_delay : Optional[datetime]
         The delay between the same event.
+    created_at : datetime
+        Time when the event was created.
+    deleted_at : Optional[datetime]
+        Time when the event was deleted.
 
     Methods
     -------
@@ -40,6 +44,8 @@ class Event:
         Converts event to dictionary.
     from_prisma_event(prisma_event)
         Converts prisma event to event object.
+    from_grpc_event(prisma_event)
+        Converts grpc event to event object.
 
     """
 
@@ -138,7 +144,7 @@ class Event:
         Parameters
         ----------
         grpc_event : GrpcEvent
-            Prisma event.
+            Grpc event.
         Returns
         -------
         Event

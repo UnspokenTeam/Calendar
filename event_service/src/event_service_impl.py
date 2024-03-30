@@ -53,7 +53,7 @@ class EventServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : proto.EventsRequest
+        request : proto.EventsRequestByAuthorId
             Request data.
         context : grpc.ServicerContext
             Request context.
@@ -159,7 +159,7 @@ class EventServiceImpl(GrpcServicer):
         self, request: proto_empty, context: grpc.ServicerContext
     ) -> proto.EventsResponse:
         """
-        Get events by author id.
+        Get all events.
 
         Parameters
         ----------
