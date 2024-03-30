@@ -84,11 +84,17 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         Raises
         ------
-        ValueError
-            Can't update event with provided data
+        ValueNotFoundError
+            Can't update event with provided data.
 
         """
-        self._events[self._events.index(event)] = event
+        try:
+            index = next(
+                i for i in range(len(self._events)) if self._events[i].id == event.id
+            )
+            self._events[index] = event
+        except StopIteration:
+            raise ValueNotFoundError("Event not found")
 
     async def delete_event(self, event_id: str) -> None:
         """
@@ -101,9 +107,14 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         Raises
         ------
-        ValueError
-            Can't delete event with provided data
+        ValueNotFoundError
+            Can't delete event with provided data.
 
         """
-        index = [i for i in range(len(self._events)) if self._events[i].id == event_id]
-        self._events.pop(index[0])
+        try:
+            index = next(
+                i for i in range(len(self._events)) if self._events[i].id == event_id
+            )
+            self._events.pop(index)
+        except StopIteration:
+            raise ValueNotFoundError("Event not found")
