@@ -1,14 +1,14 @@
 """Jwt controller"""
+from enum import Enum
+from typing import Tuple
 import datetime
 import logging
 import os
-from enum import Enum
-from typing import Tuple
-
-from jwt import encode, decode
 
 from errors.InvalidTokenError import InvalidTokenError
 from utils.singleton import singleton
+
+from jwt import decode, encode
 
 
 class TokenType(Enum):

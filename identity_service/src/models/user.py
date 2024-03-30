@@ -2,14 +2,13 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
-from typing import Self, Optional, List, Any
+from typing import Any, List, Optional, Self
 
 from prisma.models import User as PrismaUser
 
 from generated.auth_pb2 import RegisterRequest
+from generated.get_user_pb2 import GrpcUser, GrpcUserType
 from generated.update_user_pb2 import UserToUpdate as GrpcUserToUpdate
-from generated.get_user_pb2 import GrpcUser
-from generated.get_user_pb2 import GrpcUserType
 
 
 class UserType(StrEnum):

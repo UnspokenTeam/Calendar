@@ -3,23 +3,26 @@ from typing import Tuple
 from uuid import uuid4
 
 import grpc
+
 import prisma.errors
 
+from errors.InvalidTokenError import InvalidTokenError
+from errors.unique_error import UniqueError
+from errors.value_not_found_error import ValueNotFoundError
+from src.models.user import User
+from utils.encoder import Encoder
+from utils.jwt_controller import JwtController, TokenType
+
+from generated.identity_service_pb2_grpc import IdentityServiceServicer as GrpcServicer
+from google.protobuf.empty_pb2 import Empty
+from repository.token_repository_interface import TokenRepositoryInterface
+from repository.user_repository_interface import UserRepositoryInterface
 import generated.auth_pb2 as auth_proto
 import generated.delete_user_pb2 as delete_user_proto
 import generated.get_access_token_pb2 as get_access_token_proto
 import generated.get_user_pb2 as get_user_proto
 import generated.identity_service_pb2 as requests_proto
 import generated.update_user_pb2 as update_user_proto
-from errors.InvalidTokenError import InvalidTokenError
-from errors.unique_error import UniqueError
-from errors.value_not_found_error import ValueNotFoundError
-from generated.identity_service_pb2_grpc import IdentityServiceServicer as GrpcServicer
-from repository.token_repository_interface import TokenRepositoryInterface
-from repository.user_repository_interface import UserRepositoryInterface
-from src.models.user import User
-from utils.encoder import Encoder
-from utils.jwt_controller import JwtController, TokenType
 
 
 class IdentityServiceImpl(GrpcServicer):
@@ -60,7 +63,7 @@ class IdentityServiceImpl(GrpcServicer):
         self,
         user_repository: UserRepositoryInterface,
         token_repository: TokenRepositoryInterface,
-    ):
+    ) -> None:
         self._user_repository = user_repository
         self._token_repository = token_repository
         self._jwt_controller = JwtController()
@@ -334,7 +337,7 @@ class IdentityServiceImpl(GrpcServicer):
                 status_code=500, message="Internal server error"
             )
 
-    async def get_all_users(self, request, context) -> get_user_proto.UsersResponse:
+    async def get_all_users(self, _: Empty, context: grpc.ServicerContext) -> get_user_proto.UsersResponse:
         try:
             users = await self._user_repository.get_all_users()
             context.set_code(grpc.StatusCode.OK)

@@ -4,11 +4,12 @@ from uuid import uuid4
 
 from errors.unique_error import UniqueError
 from errors.value_not_found_error import ValueNotFoundError
-from repository.mock_token_repository import MockTokenRepositoryImpl
-from repository.user_repository_interface import UserRepositoryInterface
 from src.models.user import User
 from utils.jwt_controller import JwtController, TokenType
 from utils.singleton import singleton
+
+from repository.mock_token_repository import MockTokenRepositoryImpl
+from repository.user_repository_interface import UserRepositoryInterface
 
 
 @singleton

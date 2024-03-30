@@ -4,12 +4,11 @@ import sys
 
 import grpc
 
-from db.postgres_client import PostgresClient
 from src.identity_service_impl import IdentityServiceImpl
 from utils.jwt_controller import JwtController
-from repository.mock_user_repository import MockUserRepositoryImpl
-from repository.mock_token_repository import MockTokenRepositoryImpl
 
+from repository.mock_token_repository import MockTokenRepositoryImpl
+from repository.mock_user_repository import MockUserRepositoryImpl
 import dotenv
 import generated.identity_service_pb2_grpc as identity_service_grpc
 

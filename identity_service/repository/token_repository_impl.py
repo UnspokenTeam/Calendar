@@ -2,8 +2,9 @@
 
 from db.postgres_client import PostgresClient
 from errors.value_not_found_error import ValueNotFoundError
-from repository.token_repository_interface import TokenRepositoryInterface
 from utils.singleton import singleton
+
+from repository.token_repository_interface import TokenRepositoryInterface
 
 
 @singleton
@@ -79,7 +80,7 @@ class TokenRepositoryImpl(TokenRepositoryInterface):
         if result is None:
             raise ValueNotFoundError("Token not found")
 
-        return result.token
+        return str(result.token)
 
     async def delete_refresh_token(self, session_id: str) -> None:
         """

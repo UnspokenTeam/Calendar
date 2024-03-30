@@ -53,6 +53,7 @@ default-section = "local-folder"
 from-first = true
 known-third-party = ["grpc"]
 
+
 [tool.ruff.lint.isort.sections]
 "prisma" = ["prisma"]
 "proto" = ["proto"]

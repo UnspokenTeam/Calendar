@@ -1,8 +1,3 @@
-## Pre-commit setup
-# See https://github.com/python-discord/code-jam-template/tree/main#pre-commit-run-linting-before-committing
-
-# Make sure to edit the `additional_dependencies` list if you want to add plugins
-
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
@@ -17,8 +12,12 @@ repos:
     rev: v1.9.0
     hooks:
     -   id: mypy
+        args:
+          - --namespace-packages
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.3.4
     hooks:
       - id: ruff
+        args:
+          - --fix
