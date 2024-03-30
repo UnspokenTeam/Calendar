@@ -190,7 +190,7 @@ class UserRepositoryInterface(ABC):
 
         Parameters
         ----------
-        session_id
+        session_id : str
             Id of the session
 
         Returns

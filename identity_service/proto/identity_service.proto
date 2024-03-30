@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-import"google/protobuf/empty.proto";
-
 import "auth.proto";
 import "get_access_token.proto";
 import "get_user.proto";
@@ -16,7 +14,7 @@ service IdentityService {
   rpc get_new_access_token(GetNewAccessTokenRequest) returns (GetNewAccessTokenResponse){}
   rpc get_user_by_id(UserByIdRequest) returns (UserResponse){}
   rpc get_users_by_id(UsersByIdRequest) returns (UsersResponse){}
-  rpc get_all_users(google.protobuf.Empty) returns (UsersResponse){}
+  rpc get_all_users(GetAllUsersRequest) returns (UsersResponse){}
   rpc update_user(UpdateUserRequest) returns (CredentialsResponse){}
   rpc delete_user(DeleteUserRequest) returns (BaseResponse){}
 }

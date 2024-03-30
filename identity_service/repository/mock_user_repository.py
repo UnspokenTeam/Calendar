@@ -19,7 +19,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
 
     Attributes
     ----------
-    _users: List[User]
+    _users : List[User]
         List of users
 
     Methods
@@ -216,7 +216,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
 
         Parameters
         ----------
-        session_id
+        session_id : str
             Id of the session
 
         Returns

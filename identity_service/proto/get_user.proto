@@ -39,3 +39,7 @@ message GrpcUser {
 message UsersByIdRequest {
   repeated string id = 1;
 }
+
+message GetAllUsersRequest {
+  GrpcUser requested_user = 1;
+}

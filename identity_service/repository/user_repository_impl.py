@@ -253,7 +253,7 @@ class UserRepositoryImpl(UserRepositoryInterface):
 
         Parameters
         ----------
-        session_id
+        session_id : str
             Id of the session
 
         Returns
@@ -270,12 +270,7 @@ class UserRepositoryImpl(UserRepositoryInterface):
 
         """
         prisma_user = await self._db_client.db.user.find_first(
-            where={
-                "suspended_at": None,
-                "tokens": {
-                    "id": session_id
-                }
-            }
+            where={"suspended_at": None, "tokens": {"id": session_id}}
         )
         if prisma_user is None:
             raise ValueNotFoundError("User not found")

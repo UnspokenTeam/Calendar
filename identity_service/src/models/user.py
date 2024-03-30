@@ -170,7 +170,7 @@ class User:
 
         Parameters
         ----------
-        request
+        request : RegisterRequest
             Registration request
 
 
@@ -197,7 +197,7 @@ class User:
 
         Parameters
         ----------
-        grpc_user
+        grpc_user : GrpcUserToUpdate
             Update user request data
 
         Returns
@@ -210,6 +210,36 @@ class User:
             id=grpc_user.id,
             username=grpc_user.username,
             password=grpc_user.password,
+            email=grpc_user.email,
+            type=UserType.from_grpc_user_type(grpc_user.type),
+            created_at=datetime.fromtimestamp(
+                grpc_user.created_at.seconds + grpc_user.created_at.nanos / 1e9
+            ),
+            suspended_at=datetime.fromtimestamp(
+                grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
+            ),
+        )
+
+    @classmethod
+    def from_grpc_user(cls, grpc_user: GrpcUser) -> Self:
+        """
+        Get user instance from grpc user data
+
+        Parameters
+        ----------
+        grpc_user : GrpcUser
+            Grpc user
+
+        Returns
+        -------
+        User
+            User class instance
+
+        """
+        return cls(
+            id=grpc_user.id,
+            username=grpc_user.username,
+            password="",
             email=grpc_user.email,
             type=UserType.from_grpc_user_type(grpc_user.type),
             created_at=datetime.fromtimestamp(

@@ -45,7 +45,7 @@ class MockTokenRepositoryImpl(TokenRepositoryInterface):
             User's refresh token
         session_id : str
             Id of the current session
-        user_id
+        user_id : str
             Id of the current user
 
         """
@@ -114,7 +114,7 @@ class MockTokenRepositoryImpl(TokenRepositoryInterface):
 
         Parameters
         ----------
-        user_id
+        user_id : str
             Id of the current user
 
         Raises
