@@ -59,7 +59,7 @@ known-third-party = ["grpc"]
 "local" = ["src", "db", "utils", "errors"]
 
 [tool.pydoclint]
-style = 'google'
+style = 'numpy'
 exclude = 'singleton.py'
 check-return-types = true
 require-return-section-when-returning-nothing = true
