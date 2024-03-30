@@ -3,23 +3,25 @@ from typing import Tuple
 from uuid import uuid4
 
 import grpc
+
 import prisma.errors
 
+from errors.InvalidTokenError import InvalidTokenError
+from errors.unique_error import UniqueError
+from errors.value_not_found_error import ValueNotFoundError
+from src.models.user import User, UserType
+from utils.encoder import Encoder
+from utils.jwt_controller import JwtController, TokenType
+
+from generated.identity_service_pb2_grpc import IdentityServiceServicer as GrpcServicer
+from repository.token_repository_interface import TokenRepositoryInterface
+from repository.user_repository_interface import UserRepositoryInterface
 import generated.auth_pb2 as auth_proto
 import generated.delete_user_pb2 as delete_user_proto
 import generated.get_access_token_pb2 as get_access_token_proto
 import generated.get_user_pb2 as get_user_proto
 import generated.identity_service_pb2 as requests_proto
 import generated.update_user_pb2 as update_user_proto
-from errors.InvalidTokenError import InvalidTokenError
-from errors.unique_error import UniqueError
-from errors.value_not_found_error import ValueNotFoundError
-from generated.identity_service_pb2_grpc import IdentityServiceServicer as GrpcServicer
-from repository.token_repository_interface import TokenRepositoryInterface
-from repository.user_repository_interface import UserRepositoryInterface
-from src.models.user import User, UserType
-from utils.encoder import Encoder
-from utils.jwt_controller import JwtController, TokenType
 
 
 class IdentityServiceImpl(GrpcServicer):
