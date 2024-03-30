@@ -8,7 +8,7 @@ message UserByIdRequest {
 
 message UserResponse {
   int64 status_code = 1;
-  optional User user = 2;
+  optional GrpcUser user = 2;
   optional string message = 3;
 }
 
@@ -19,7 +19,7 @@ message UsersResponse {
 }
 
 message ListOfUser {
-  repeated User users = 1;
+  repeated GrpcUser users = 1;
 }
 
 enum UserType {
@@ -27,7 +27,7 @@ enum UserType {
     ADMIN = 1;
 }
 
-message User {
+message GrpcUser {
   string id = 1;
   string username = 2;
   string email = 3;

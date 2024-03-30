@@ -8,7 +8,7 @@ from prisma.models import User as PrismaUser
 
 from generated.auth_pb2 import RegisterRequest
 from generated.update_user_pb2 import UserToUpdate as GrpcUserToUpdate
-from generated.get_user_pb2 import User as GrpcUser
+from generated.get_user_pb2 import GrpcUser
 from generated.get_user_pb2 import UserType as GrpcUserType
 
 
