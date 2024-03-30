@@ -1,14 +1,15 @@
 """Invite repository with data from database."""
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
 
 from prisma.models import Invite as PrismaInvite
 
 from db.postgres_client import PostgresClient
 from errors.value_not_found_error import ValueNotFoundError
-from repository.invite_repository_interface import InviteRepositoryInterface
 from src.models.invite import Invite
 from utils.singleton import singleton
+
+from repository.invite_repository_interface import InviteRepositoryInterface
 
 
 @singleton
@@ -61,7 +62,6 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             No invites was found for given author id.
 
         """
-
         db_invites: Optional[
             List[PrismaInvite]
         ] = await self._db_client.db.invite.find_many(where={"id": author_id})

@@ -1,9 +1,12 @@
 """Invite Model"""
 from dataclasses import dataclass
-from proto.invite_service_pb2 import Invite as GrpcInvite, InviteStatus
-from typing import Optional, Self, List, Any, Dict
+from typing import Any, Dict, List, Optional, Self
 
 from prisma.models import Invite as PrismaInvite
+
+from proto.invite_service_pb2 import Invite as GrpcInvite
+from proto.invite_service_pb2 import InviteStatus
+
 
 @dataclass
 class Invite:
@@ -93,7 +96,6 @@ class Invite:
             Invite class instance.
 
         """
-
         return cls(
             id=prisma_invite.id,
             event_id=prisma_invite.event_id,
