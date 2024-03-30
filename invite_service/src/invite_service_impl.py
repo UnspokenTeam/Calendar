@@ -4,6 +4,7 @@ import grpc
 
 from proto.invite_service_pb2_grpc import InviteServiceServicer as GrpcServicer
 import proto.invite_service_pb2 as proto
+
 from src.models.invite import Invite
 
 
@@ -60,10 +61,12 @@ class InviteServiceImpl(GrpcServicer):
             Invites object for invite response.
 
         """
+        context.set_code(grpc.StatusCode.OK)
+
         return proto.InvitesResponse(
             code=200,
             invites=proto.ListOfInvites(
-                invites=[invite.to_grpc_invite() for invite in self.invites]
+                invites=[invite.to_grpc_invite() for invite in self.invites if invite.author_id == request.author_id]
             ),
         )
 

@@ -1,6 +1,7 @@
 """User Model"""
 from dataclasses import dataclass
-from typing import Self, Optional, List, Any
+from typing import Any, List, Optional, Self
+
 from prisma.models import User as PrismaUser
 
 from generated.get_user_pb2 import User as GrpcUser

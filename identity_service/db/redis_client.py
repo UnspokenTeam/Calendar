@@ -2,9 +2,9 @@
 import logging
 import os
 
-from redis.asyncio import Redis, BlockingConnectionPool
-
 from utils.singleton import singleton
+
+from redis.asyncio import BlockingConnectionPool, Redis
 
 
 @singleton

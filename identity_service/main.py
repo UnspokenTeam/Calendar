@@ -2,14 +2,15 @@ import asyncio
 import logging
 import sys
 
-import dotenv
 import grpc
 
-import generated.identity_service_pb2_grpc as identity_service_grpc
 from db.postgres_client import PostgresClient
 from db.redis_client import RedisClient
 from src.identity_service_impl import IdentityServiceImpl
 from utils.jwt_controller import JwtController
+
+import dotenv
+import generated.identity_service_pb2_grpc as identity_service_grpc
 
 
 async def serve() -> None:

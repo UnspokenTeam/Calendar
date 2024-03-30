@@ -1,6 +1,6 @@
 """User repository interface"""
-from typing import List
 from abc import ABC, abstractmethod
+from typing import List
 
 from src.models.user import User
 
