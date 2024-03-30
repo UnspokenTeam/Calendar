@@ -18,12 +18,16 @@ class TokenRepositoryInterface(ABC):
     """
 
     @abstractmethod
-    async def store_refresh_token(self, refresh_token: str, session_id: str) -> None:
+    async def store_refresh_token(
+        self, refresh_token: str, session_id: str, user_id: str
+    ) -> None:
         """
         Create refresh token with provided data
 
         Parameters
         ----------
+        user_id
+            Id of the current user
         refresh_token : str
             User's refresh token
         session_id : str
@@ -58,12 +62,25 @@ class TokenRepositoryInterface(ABC):
     @abstractmethod
     async def delete_refresh_token(self, session_id: str) -> None:
         """
-        Delete user's refresh token
+        Delete user's refresh token with provided session_id
 
         Parameters
         ----------
         session_id : str
             Id of the current session
+
+        """
+        pass
+
+    @abstractmethod
+    async def delete_all_refresh_tokens(self, user_id: str) -> None:
+        """
+        Delete all user's refresh tokens
+
+        Parameters
+        ----------
+        user_id : str
+            Id of the current user
 
         """
         pass

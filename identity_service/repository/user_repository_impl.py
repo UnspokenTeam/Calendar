@@ -226,3 +226,14 @@ class UserRepositoryImpl(UserRepositoryInterface):
         if len(users) == 0:
             raise ValueNotFoundError("No users found")
         return [User.from_prisma_user(user) for user in users]
+
+    async def get_user_by_session_id(self, session_id: str) -> User:
+        prisma_user = await self._db_client.db.user.find_first(
+            where={
+                "suspended_at": None,
+                "tokens": {
+                    "id": session_id
+                }
+            }
+        )
+        return User.from_prisma_user(prisma_user=prisma_user)

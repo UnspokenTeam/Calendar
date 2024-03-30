@@ -1,9 +1,6 @@
 """Tokens repository"""
-from datetime import timedelta
-from typing import Optional
-import os
 
-from db.redis_client import RedisClient
+from db.postgres_client import PostgresClient
 from errors.value_not_found_error import ValueNotFoundError
 from repository.token_repository_interface import TokenRepositoryInterface
 from utils.singleton import singleton
@@ -16,8 +13,8 @@ class TokenRepositoryImpl(TokenRepositoryInterface):
 
     Attributes
     ----------
-    _redis_db : RedisClient
-        Redis client instance
+    _postgres_client : PostgresClient
+        Postgres client instance
 
     Methods
     -------
@@ -30,27 +27,29 @@ class TokenRepositoryImpl(TokenRepositoryInterface):
 
     """
 
-    _redis_db: RedisClient
+    _postgres_client: PostgresClient
 
     def __init__(self) -> None:
-        self._redis_db = RedisClient()
+        self._postgres_client = PostgresClient()
 
-    async def store_refresh_token(self, refresh_token: str, session_id: str) -> None:
+    async def store_refresh_token(
+        self, refresh_token: str, session_id: str, user_id: str
+    ) -> None:
         """
         Create refresh token with provided data
 
         Parameters
         ----------
+        user_id
+            Id of the current user
         refresh_token : str
             User's refresh token
         session_id : str
             Id of the current session
 
         """
-        await self._redis_db.db.set(
-            session_id,
-            refresh_token,
-            ex=timedelta(days=int(os.environ["REFRESH_TOKEN_EXPIRATION"])),
+        await self._postgres_client.db.token.create(
+            data={"id": session_id, "token": refresh_token, "user_id": user_id}
         )
 
     async def get_refresh_token(self, session_id: str) -> str:
@@ -73,12 +72,14 @@ class TokenRepositoryImpl(TokenRepositoryInterface):
             No refresh token found for provided user_id
 
         """
-        result: Optional[bytes] = await self._redis_db.db.get(session_id)
+        result = await self._postgres_client.db.token.find_first(
+            where={"id": session_id}
+        )
 
         if result is None:
             raise ValueNotFoundError("Token not found")
 
-        return result.decode()
+        return result.token
 
     async def delete_refresh_token(self, session_id: str) -> None:
         """
@@ -90,4 +91,7 @@ class TokenRepositoryImpl(TokenRepositoryInterface):
             Id of the current session
 
         """
-        await self._redis_db.db.delete(session_id)
+        await self._postgres_client.db.token.delete(where={"id": session_id})
+
+    async def delete_all_refresh_tokens(self, user_id: str) -> None:
+        await self._postgres_client.db.token.delete_many(where={"user_id": user_id})

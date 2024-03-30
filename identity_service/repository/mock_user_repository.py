@@ -4,10 +4,14 @@ from uuid import uuid4
 
 from errors.unique_error import UniqueError
 from errors.value_not_found_error import ValueNotFoundError
+from repository.mock_token_repository import MockTokenRepositoryImpl
 from repository.user_repository_interface import UserRepositoryInterface
 from src.models.user import User
+from utils.jwt_controller import JwtController, TokenType
+from utils.singleton import singleton
 
 
+@singleton
 class MockUserRepositoryImpl(UserRepositoryInterface):
     """
     Mock class for manipulating with user data
@@ -35,9 +39,11 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
     """
 
     _users: List[User]
+    _sessions: dict[str, List[str]]
 
     def __init__(self) -> None:
         self._users = []
+        self._sessions = {}
 
     async def get_user_by_email(self, email: str) -> User:
         """
@@ -186,3 +192,8 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         if len(self._users) == 0:
             raise ValueNotFoundError("No users found")
         return self._users
+
+    async def get_user_by_session_id(self, session_id: str) -> User:
+        token = await MockTokenRepositoryImpl().get_refresh_token(session_id)
+        user_id, _ = JwtController().decode(token, TokenType.REFRESH_TOKEN)
+        return await self.get_user_by_id(user_id)
