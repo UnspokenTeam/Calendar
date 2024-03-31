@@ -204,7 +204,9 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         """
         try:
             index = next(
-                i for i in range(len(self._users)) if self._users[i].id == user_id and self._users[i].suspended_at is None
+                i
+                for i in range(len(self._users))
+                if self._users[i].id == user_id and self._users[i].suspended_at is None
             )
             self._users.pop(index)
         except StopIteration:

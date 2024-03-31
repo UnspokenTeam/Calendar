@@ -203,7 +203,7 @@ class UserRepositoryImpl(UserRepositoryInterface):
             raise UniqueError("User with this email or username already exists")
         await self._db_client.db.user.update(
             where={"id": user.id},
-            data=user.to_dict(exclude=["type", "created_at", "suspended_at"]),
+            data=user.to_dict(exclude=["type"]),
         )
 
     async def delete_user(self, user_id: str) -> None:

@@ -80,14 +80,14 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : LoginRequest
+        request : auth_proto.LoginRequest
             Login data
         context : grpc.ServicerContext
             Request context
 
         Returns
         -------
-        CredentialsResponse
+        auth_proto.CredentialsResponse
             Response object with credentials
 
         """
@@ -133,14 +133,14 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : RegisterRequest
+        request : auth_proto.RegisterRequest
             Registration data
         context : grpc.ServicerContext
             Request context
 
         Returns
         -------
-        CredentialsResponse
+        auth_proto.CredentialsResponse
             Response object with credentials
 
         """
@@ -184,15 +184,15 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : AccessToken
+        request : auth_proto.AccessToken
             Access token
         context : grpc.ServicerContext
             Request context
 
         Returns
         -------
-        AuthResponse
-            Response object with ID of currently signed in user
+        get_user_proto.UserResponse
+            Response object with user object
 
         """
         try:
@@ -226,14 +226,14 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : GetNewAccessTokenRequest
+        request : get_access_token_proto.GetNewAccessTokenRequest
             Refresh token
         context : grpc.ServicerContext
             Request context
 
         Returns
         -------
-        GetNewAccessTokenResponse
+        get_access_token_proto.GetNewAccessTokenResponse
             Response object with new access token
 
         """
@@ -241,9 +241,7 @@ class IdentityServiceImpl(GrpcServicer):
             user_id, session_id = self._jwt_controller.decode(
                 request.refresh_token, TokenType.ACCESS_TOKEN
             )
-            _ = await self._user_repository.get_user_by_session_id(
-                session_id=session_id
-            )
+            await self._user_repository.get_user_by_session_id(session_id=session_id)
             access_token = self._jwt_controller.generate_access_token(
                 user_id=user_id, session_id=session_id
             )
@@ -275,14 +273,14 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : UserByIdRequest
+        request : get_user_proto.UserByIdRequest
             User ID
         context : grpc.ServicerContext
             Request context
 
         Returns
         -------
-        UserResponse
+        get_user_proto.UserResponse
             Response object with public user data
 
         """
@@ -311,14 +309,14 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : UsersByIdRequest
+        request : get_user_proto.UsersByIdRequest
             User ids
         context : grpc.ServicerContext
             Request context
 
         Returns
         -------
-        UsersResponse
+        get_user_proto.UsersResponse
             Response object with array of user data
 
         """
@@ -357,7 +355,7 @@ class IdentityServiceImpl(GrpcServicer):
 
         Returns
         -------
-        UsersResponse
+        get_user_proto.UsersResponse
             Response object with array of user data
 
         """
@@ -397,15 +395,15 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : UpdateUserRequest
+        request : update_user_proto.UpdateUserRequest
             User data to be updated and current user data
         context : grpc.ServicerContext
             Request context
 
         Returns
         -------
-        BaseResponse
-            Base response with status code and optional message
+        auth_proto.CredentialsResponse
+            Response with credentials for user
 
         """
         try:
@@ -471,14 +469,14 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : DeleteUserRequest
+        request : delete_user_proto.DeleteUserRequest
             ID of user to be deleted and current user data
         context : grpc.ServicerContext
             Request context
 
         Returns
         -------
-        BaseResponse
+        requests_proto.BaseResponse
             Base response with status code and optional message
 
         """
@@ -515,14 +513,14 @@ class IdentityServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : AccessToken
+        request : auth_proto.AccessToken
             ID of user to be deleted
         context : grpc.ServicerContext
             Request context
 
         Returns
         -------
-        BaseResponse
+        requests_proto.BaseResponse
             Base response with status code and optional message
 
         """
