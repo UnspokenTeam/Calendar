@@ -60,7 +60,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             No events was found for given author id.
 
         """
-        events = [event for event in self._events if event.author_id == author_id]
+        events = [
+            event
+            for event in self._events
+            if event.author_id == author_id and event.deleted_at is None
+        ]
         if events is None or len(events) == 0:
             raise ValueNotFoundError("Events not found")
         return events
@@ -86,7 +90,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         """
         try:
-            event = next(event for event in self._events if event.id == event_id)
+            event = next(
+                event
+                for event in self._events
+                if event.id == event_id and event.deleted_at is None
+            )
             return event
         except StopIteration:
             raise ValueNotFoundError("Events not found")
@@ -111,7 +119,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             No events was found for given author id.
 
         """
-        events = [event for event in self._events if event.id in events_ids]
+        events = [
+            event
+            for event in self._events
+            if event.id in events_ids and event.deleted_at is None
+        ]
         if events is None or len(events) == 0:
             raise ValueNotFoundError("Events not found")
         return events
@@ -131,10 +143,9 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             No events was found for given author id.
 
         """
-        if len(self._events) == 0:
-            raise ValueNotFoundError("Events not found")
-        else:
+        if len(self._events) != 0:
             return self._events
+        raise ValueNotFoundError("Events not found")
 
     async def create_event(self, event: Event) -> None:
         """
@@ -166,9 +177,14 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         """
         try:
             index = next(
-                i for i in range(len(self._events)) if self._events[i].id == event.id
+                i
+                for i in range(len(self._events))
+                if self._events[i].id == event.id and event.deleted_at is None
             )
-            self._events[index] = event
+            if self._events[index].author_id == event.author_id:
+                self._events[index] = event
+            else:
+                raise ValueNotFoundError("Events authors must be same")
         except StopIteration:
             raise ValueNotFoundError("Event not found")
 
@@ -189,7 +205,9 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         """
         try:
             index = next(
-                i for i in range(len(self._events)) if self._events[i].id == event_id
+                i
+                for i in range(len(self._events))
+                if self._events[i].id == event_id and self._events[i].deleted_at is None
             )
             self._events.pop(index)
         except StopIteration:

@@ -44,7 +44,7 @@ class Event:
         Converts event to dictionary.
     from_prisma_event(prisma_event)
         Converts prisma event to event object.
-    from_grpc_event(prisma_event)
+    from_grpc_event(grpc_event)
         Converts grpc event to event object.
 
     """
@@ -166,13 +166,17 @@ class Event:
             repeating_delay=datetime.fromtimestamp(
                 grpc_event.repeating_delay.seconds
                 + grpc_event.repeating_delay.nanos / 1e9
-            ),
+            )
+            if grpc_event.repeating_delay is not None
+            else None,
             created_at=datetime.fromtimestamp(
                 grpc_event.created_at.seconds + grpc_event.created_at.nanos / 1e9
             ),
             deleted_at=datetime.fromtimestamp(
                 grpc_event.deleted_at.seconds + grpc_event.deleted_at.nanos / 1e9
-            ),
+            )
+            if grpc_event.deleted_at is not None
+            else None,
         )
 
     def __repr__(self) -> str:

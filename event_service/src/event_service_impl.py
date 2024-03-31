@@ -3,7 +3,6 @@ import grpc
 import prisma.errors
 
 from errors.value_not_found_error import ValueNotFoundError
-import google.protobuf.empty_pb2 as proto_empty
 from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
 import proto.event_service_pb2 as proto
 from repository.event_repository_interface import EventRepositoryInterface
@@ -65,6 +64,14 @@ class EventServiceImpl(GrpcServicer):
 
         """
         try:
+            if (
+                request.user.type != proto.GrpcUserType.ADMIN
+                and request.user.id != request.author_id
+            ):
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                return proto.EventsResponse(
+                    status_code=403, message="Permission denied"
+                )
             events = await self._event_repository.get_events_by_author_id(
                 author_id=request.author_id
             )
@@ -107,6 +114,12 @@ class EventServiceImpl(GrpcServicer):
             event = await self._event_repository.get_event_by_event_id(
                 event_id=request.event_id
             )
+            if (
+                request.user.type != proto.GrpcUserType.ADMIN
+                and request.user.id != event.author_id
+            ):
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                return proto.EventResponse(status_code=403, message="Permission denied")
             context.set_code(grpc.StatusCode.OK)
             return proto.EventResponse(status_code=200, event=event.to_grpc_event())
         except ValueNotFoundError:
@@ -137,13 +150,29 @@ class EventServiceImpl(GrpcServicer):
         """
         try:
             events = await self._event_repository.get_events_by_events_ids(
-                events_ids=[event_id for event_id in request.events_ids.ids]
+                events_ids=list(request.events_ids.ids)
             )
+            if request.user.type == proto.GrpcUserType.ADMIN:
+                context.set_code(grpc.StatusCode.OK)
+                return proto.EventsResponse(
+                    status_code=200,
+                    events=proto.ListOfEvents(
+                        events=[event.to_grpc_event() for event in events]
+                    ),
+                )
+            accessible_events = [
+                event for event in events if request.user.id == event.author_id
+            ]
+            if accessible_events is None or len(accessible_events) == 0:
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                return proto.EventsResponse(
+                    status_code=403, message="Permission denied"
+                )
             context.set_code(grpc.StatusCode.OK)
             return proto.EventsResponse(
                 status_code=200,
                 events=proto.ListOfEvents(
-                    events=[event.to_grpc_event() for event in events]
+                    events=[event.to_grpc_event() for event in accessible_events]
                 ),
             )
         except ValueNotFoundError:
@@ -156,14 +185,14 @@ class EventServiceImpl(GrpcServicer):
             )
 
     async def get_all_events(
-        self, request: proto_empty, context: grpc.ServicerContext
+        self, request: proto.RequestingUser, context: grpc.ServicerContext
     ) -> proto.EventsResponse:
         """
         Get all events.
 
         Parameters
         ----------
-        request : proto_empty
+        request : Empty
             Request data.
         context : grpc.ServicerContext
             Request context.
@@ -175,6 +204,11 @@ class EventServiceImpl(GrpcServicer):
 
         """
         try:
+            if request.user.type != proto.GrpcUserType.ADMIN:
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                return proto.EventsResponse(
+                    status_code=403, message="Permission denied"
+                )
             events = await self._event_repository.get_all_events()
             context.set_code(grpc.StatusCode.OK)
             return proto.EventsResponse(
@@ -224,7 +258,7 @@ class EventServiceImpl(GrpcServicer):
             return proto.BaseResponse(status_code=500, message="Internal server error")
 
     async def update_event(
-        self, request: proto.GrpcEvent, context: grpc.ServicerContext
+        self, request: proto.UpdateEventRequest, context: grpc.ServicerContext
     ) -> proto.BaseResponse:
         """
         Update event.
@@ -243,7 +277,13 @@ class EventServiceImpl(GrpcServicer):
 
         """
         try:
-            event = Event.from_grpc_event(request)
+            if (
+                request.user.type != proto.GrpcUserType.ADMIN
+                and request.user.id != request.event.author_id
+            ):
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                return proto.BaseResponse(status_code=403, message="Permission denied")
+            event = Event.from_grpc_event(request.event)
             await self._event_repository.update_event(event=event)
             context.set_code(grpc.StatusCode.OK)
             return proto.BaseResponse(status_code=200)
@@ -274,6 +314,13 @@ class EventServiceImpl(GrpcServicer):
 
         """
         try:
+            event = await self._event_repository.get_event_by_event_id(request.event_id)
+            if (
+                request.user.type != proto.GrpcUserType.ADMIN
+                and request.user.id != event.author_id
+            ):
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                return proto.BaseResponse(status_code=403, message="Permission denied")
             await self._event_repository.delete_event(event_id=request.event_id)
             context.set_code(grpc.StatusCode.OK)
             return proto.BaseResponse(status_code=200)

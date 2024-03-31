@@ -14,7 +14,7 @@ from utils.singleton import singleton
 @singleton
 class EventRepositoryImpl(EventRepositoryInterface):
     """
-    Class for manipulating with event data
+    Class for manipulating with event data.
 
     Attributes
     ----------
@@ -162,7 +162,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
         """
         db_events: Optional[
             List[PrismaEvent]
-        ] = await self._db_client.db.event.find_many(where={"deleted_at": None})
+        ] = await self._db_client.db.event.find_many()
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
         return [
