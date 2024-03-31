@@ -32,8 +32,10 @@ class JwtController:
 
     Methods
     -------
-    generate(user_id)
-        Generate access and refresh tokens for user with provided id
+    generate_access_token(user_id, session_id)
+        Generate access token for provided user id and session id
+    generate_refresh_token(user_id, session_id)
+        Generate refresh token for provided user id and session id
     decode(token, token_type)
         Decode token with provided type or throw an error
 
@@ -46,40 +48,63 @@ class JwtController:
         self._access_key = os.environ["ACCESS_SECRET"]
         self._refresh_key = os.environ["REFRESH_SECRET"]
 
-    def generate(self, user_id: str) -> Tuple[str, str]:
+    def generate_access_token(self, user_id: str, session_id: str) -> str:
         """
-        Generate access and refresh tokens for user with provided id
+        Generate access token for provided user id and session id
 
         Parameters
         ----------
         user_id: str
             User's id
+        session_id : str
+            Id of the current session
 
         Returns
         -------
-        Tuple[str, str]
-            Access and refresh tokens
+        str
+            Access token
 
         """
-        access_token = encode(
+        access_token: str = encode(
             {
                 "user_id": user_id,
+                "session_id": session_id,
                 "exp": datetime.datetime.now() + datetime.timedelta(days=3),
             },
             self._access_key,
             algorithm="HS256",
         )
-        refresh_token = encode(
+        return access_token
+
+    def generate_refresh_token(self, user_id: str, session_id: str) -> str:
+        """
+        Generate refresh token for provided user id and session id
+
+        Parameters
+        ----------
+        user_id: str
+            User's id
+        session_id : str
+            Id of the current session
+
+        Returns
+        -------
+        str
+            Refresh token
+
+        """
+        refresh_token: str = encode(
             {
                 "user_id": user_id,
+                "session_id": session_id,
                 "exp": datetime.datetime.now() + datetime.timedelta(days=3),
             },
             self._refresh_key,
             algorithm="HS256",
         )
-        return access_token, refresh_token
+        return refresh_token
 
-    def decode(self, token: str, token_type: TokenType) -> dict[str, str]:
+    def decode(self, token: str, token_type: TokenType) -> Tuple[str, str]:
         """
         Decode token with provided type or throw an error
 
@@ -92,8 +117,8 @@ class JwtController:
 
         Returns
         -------
-        dict[str, str]
-            Decoded data inside token
+        Tuple[str, str]
+            User's id and session id
 
         Raises
         ------
@@ -107,7 +132,7 @@ class JwtController:
             else self._refresh_key
         )
         try:
-            return dict(
+            data = dict(
                 decode(
                     jwt=token,
                     key=key,
@@ -116,6 +141,7 @@ class JwtController:
                     ],
                 )
             )
+            return str(data["user_id"]), str(data["session_id"])
         except Exception as e:
             logging.info(e)
             raise InvalidTokenError("Invalid token")
