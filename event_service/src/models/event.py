@@ -54,11 +54,14 @@ class Event:
     start: datetime
     end: datetime
     author_id: str
+    created_at: datetime
     description: Optional[str] = None
     color: Optional[str] = None
     repeating_delay: Optional[datetime] = None
-    created_at: datetime = datetime.now()
     deleted_at: Optional[datetime] = None
+
+    def __post_init__(self) -> None:
+        self.created_at = datetime.now()
 
     def to_grpc_event(self) -> GrpcEvent:
         """

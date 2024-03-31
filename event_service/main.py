@@ -4,10 +4,12 @@ import sys
 
 import grpc
 
-from db.postgres_client import PostgresClient
 import proto.event_service_pb2_grpc as event_service_grpc
-from repository.mock_event_repository import MockEventRepositoryImpl
+
+from db.postgres_client import PostgresClient
 from src.event_service_impl import EventServiceImpl
+
+from repository.mock_event_repository import MockEventRepositoryImpl
 
 
 async def serve() -> None:

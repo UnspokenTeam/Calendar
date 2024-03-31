@@ -6,9 +6,10 @@ from prisma.models import Event as PrismaEvent
 
 from db.postgres_client import PostgresClient
 from errors.value_not_found_error import ValueNotFoundError
-from repository.event_repository_interface import EventRepositoryInterface
 from src.models.event import Event
 from utils.singleton import singleton
+
+from repository.event_repository_interface import EventRepositoryInterface
 
 
 @singleton

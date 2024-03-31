@@ -3,8 +3,9 @@ from typing import List
 from uuid import uuid4
 
 from errors.value_not_found_error import ValueNotFoundError
-from repository.event_repository_interface import EventRepositoryInterface
 from src.models.event import Event
+
+from repository.event_repository_interface import EventRepositoryInterface
 
 
 class MockEventRepositoryImpl(EventRepositoryInterface):
@@ -90,12 +91,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         """
         try:
-            event = next(
+            return next(
                 event
                 for event in self._events
                 if event.id == event_id and event.deleted_at is None
             )
-            return event
         except StopIteration:
             raise ValueNotFoundError("Events not found")
 

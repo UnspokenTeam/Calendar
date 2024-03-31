@@ -1,6 +1,8 @@
 """Invite Model"""
 from dataclasses import dataclass
-from proto.invite_service_pb2 import Invite as GrpcInvite, InviteStatus
+
+from proto.invite_service_pb2 import Invite as GrpcInvite
+from proto.invite_service_pb2 import InviteStatus
 
 
 @dataclass

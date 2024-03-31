@@ -1,12 +1,15 @@
 """Event Service Controller."""
 import grpc
+
 import prisma.errors
 
-from errors.value_not_found_error import ValueNotFoundError
 from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
 import proto.event_service_pb2 as proto
-from repository.event_repository_interface import EventRepositoryInterface
+
+from errors.value_not_found_error import ValueNotFoundError
 from src.models.event import Event
+
+from repository.event_repository_interface import EventRepositoryInterface
 
 
 class EventServiceImpl(GrpcServicer):
@@ -41,7 +44,7 @@ class EventServiceImpl(GrpcServicer):
     def __init__(
         self,
         event_repository: EventRepositoryInterface,
-    ):
+    ) -> None:
         self._event_repository = event_repository
 
     async def get_events_by_author_id(
