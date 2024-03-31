@@ -26,7 +26,7 @@ class TokenRepositoryInterface(ABC):
 
         Parameters
         ----------
-        user_id
+        user_id : str
             Id of the current user
         refresh_token : str
             User's refresh token
