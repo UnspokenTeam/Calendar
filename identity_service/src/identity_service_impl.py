@@ -364,10 +364,10 @@ class IdentityServiceImpl(GrpcServicer):
         try:
             requesting_user = User.from_grpc_user(request.requested_user)
             if requesting_user.type != UserType.ADMIN:
-                context.set_code(grpc.StatusCode.UNAUTHENTICATED)
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
                 return get_user_proto.UsersResponse(
                     status_code=403,
-                    message="Unauthorized",
+                    message="Permission denied",
                 )
             users = await self._user_repository.get_all_users()
             context.set_code(grpc.StatusCode.OK)
@@ -416,10 +416,10 @@ class IdentityServiceImpl(GrpcServicer):
             )
 
             if requesting_user.type != UserType.ADMIN and user.id != requesting_user.id:
-                context.set_code(grpc.StatusCode.UNAUTHENTICATED)
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
                 return auth_proto.CredentialsResponse(
                     status_code=403,
-                    message="Unauthorized",
+                    message="Permission denied",
                 )
 
             if self._encoder.compare(user.password, db_user.password):
@@ -486,9 +486,9 @@ class IdentityServiceImpl(GrpcServicer):
             requesting_user = User.from_grpc_user(request.requesting_user)
             user = await self._user_repository.get_user_by_id(request.user_id)
             if requesting_user.type != UserType.ADMIN and requesting_user.id != user.id:
-                context.set_code(grpc.StatusCode.UNAUTHENTICATED)
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
                 return requests_proto.BaseResponse(
-                    status_code=403, message="Unauthorized"
+                    status_code=403, message="Permission denied"
                 )
             await self._token_repository.delete_all_refresh_tokens(
                 user_id=request.user_id
