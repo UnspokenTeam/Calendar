@@ -69,7 +69,11 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
 
         """
         try:
-            return next(user for user in self._users if user.email == email)
+            return next(
+                user
+                for user in self._users
+                if user.email == email and user.suspended_at is None
+            )
         except StopIteration:
             raise ValueNotFoundError("No user found for this id")
 
@@ -94,7 +98,11 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
 
         """
         try:
-            return next(user for user in self._users if user.id == user_id)
+            return next(
+                user
+                for user in self._users
+                if user.id == user_id and user.suspended_at is None
+            )
         except StopIteration:
             raise ValueNotFoundError("No user found for this id")
 
@@ -118,7 +126,11 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             Users does not exist
 
         """
-        values = [user for user in self._users if user.id in user_ids]
+        values = [
+            user
+            for user in self._users
+            if user.id in user_ids and user.suspended_at is None
+        ]
         if len(values) == 0:
             raise ValueNotFoundError("Users with these ids not exist")
         return values
@@ -143,7 +155,8 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
                 [
                     True
                     for userdb in self._users
-                    if userdb.username == user.username or user.email == userdb.email
+                    if (userdb.username == user.username or user.email == userdb.email)
+                    and user.suspended_at is None
                 ]
             )
             != 0
@@ -191,7 +204,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         """
         try:
             index = next(
-                i for i in range(len(self._users)) if self._users[i].id == user_id
+                i for i in range(len(self._users)) if self._users[i].id == user_id and self._users[i].suspended_at is None
             )
             self._users.pop(index)
         except StopIteration:

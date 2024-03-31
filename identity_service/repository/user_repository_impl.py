@@ -221,8 +221,9 @@ class UserRepositoryImpl(UserRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python
 
         """
-        await self._db_client.db.user.update(
-            where={"id": user_id}, data={"suspended_at": datetime.now()}
+        await self._db_client.db.user.update_many(
+            where={"id": user_id, "suspended_at": None},
+            data={"suspended_at": datetime.now()},
         )
 
     async def get_all_users(self) -> List[User]:
