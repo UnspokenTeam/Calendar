@@ -67,14 +67,6 @@ class EventServiceImpl(GrpcServicer):
 
         """
         try:
-            if (
-                request.user.type != proto.GrpcUserType.ADMIN
-                and request.user.id != request.author_id
-            ):
-                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-                return proto.EventsResponse(
-                    status_code=403, message="Permission denied"
-                )
             events = await self._event_repository.get_events_by_author_id(
                 author_id=request.author_id
             )
@@ -117,12 +109,6 @@ class EventServiceImpl(GrpcServicer):
             event = await self._event_repository.get_event_by_event_id(
                 event_id=request.event_id
             )
-            if (
-                request.user.type != proto.GrpcUserType.ADMIN
-                and request.user.id != event.author_id
-            ):
-                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-                return proto.EventResponse(status_code=403, message="Permission denied")
             context.set_code(grpc.StatusCode.OK)
             return proto.EventResponse(status_code=200, event=event.to_grpc_event())
         except ValueNotFoundError:
@@ -155,27 +141,11 @@ class EventServiceImpl(GrpcServicer):
             events = await self._event_repository.get_events_by_events_ids(
                 events_ids=list(request.events_ids.ids)
             )
-            if request.user.type == proto.GrpcUserType.ADMIN:
-                context.set_code(grpc.StatusCode.OK)
-                return proto.EventsResponse(
-                    status_code=200,
-                    events=proto.ListOfEvents(
-                        events=[event.to_grpc_event() for event in events]
-                    ),
-                )
-            accessible_events = [
-                event for event in events if request.user.id == event.author_id
-            ]
-            if accessible_events is None or len(accessible_events) == 0:
-                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-                return proto.EventsResponse(
-                    status_code=403, message="Permission denied"
-                )
             context.set_code(grpc.StatusCode.OK)
             return proto.EventsResponse(
                 status_code=200,
                 events=proto.ListOfEvents(
-                    events=[event.to_grpc_event() for event in accessible_events]
+                    events=[event.to_grpc_event() for event in events]
                 ),
             )
         except ValueNotFoundError:
