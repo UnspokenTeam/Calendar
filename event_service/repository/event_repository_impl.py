@@ -203,7 +203,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
 
         """
         await self._db_client.db.event.update_many(
-            where={"id": event.id, "deleted_at": None}, data=event.to_dict()
+            where={"id": event.id}, data=event.to_dict()
         )
 
     async def delete_event(self, event_id: str) -> None:
