@@ -179,7 +179,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             index = next(
                 i
                 for i in range(len(self._events))
-                if self._events[i].id == event.id and event.deleted_at is None
+                if self._events[i].id == event.id
             )
             if self._events[index].author_id == event.author_id:
                 self._events[index] = event
