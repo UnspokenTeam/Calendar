@@ -10,17 +10,23 @@ from repository.event_repository_interface import EventRepositoryInterface
 
 class MockEventRepositoryImpl(EventRepositoryInterface):
     """
-    Mock class for manipulating with event data
+    Mock class for manipulating with event data.
 
     Attributes
     ----------
     _events: List[Event]
-        List of events
+        List of events.
 
     Methods
     -------
-    async get_events(author_id)
+    async get_events_by_author_id(author_id)
         Returns events that has matches with given author id.
+    async get_event_by_event_id(event_id)
+        Returns event that has matches with given event id.
+    async get_events_by_events_ids(events_ids)
+        Returns events that has matches with given list of event ids.
+    async get_all_events()
+        Returns all events.
     async create_event(event)
         Creates new event inside db or throws an exception.
     async update_event(event)
@@ -35,7 +41,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
     def __init__(self) -> None:
         self._events = []
 
-    async def get_events(self, author_id: str) -> List[Event]:
+    async def get_events_by_author_id(self, author_id: str) -> List[Event]:
         """
         Get events by author id.
 
@@ -55,55 +61,154 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             No events was found for given author id.
 
         """
-        events = [event for event in self._events if event.author_id == author_id]
+        events = [
+            event
+            for event in self._events
+            if event.author_id == author_id and event.deleted_at is None
+        ]
         if events is None or len(events) == 0:
             raise ValueNotFoundError("Events not found")
         return events
 
-    async def create_event(self, event: Event) -> None:
+    async def get_event_by_event_id(self, event_id: str) -> Event:
         """
-        Creates event with matching data or throws an exception
-
-        Parameters
-        ----------
-        event : Event
-            Event data
-
-        """
-        event.id = uuid4()
-        self._events.append(event)
-
-    async def update_event(self, event: Event) -> None:
-        """
-        Updates event with matching id or throws an exception
-
-        Parameters
-        ----------
-        event : Event
-            Event data
-
-        Raises
-        ------
-        ValueError
-            Can't update event with provided data
-
-        """
-        self._events[self._events.index(event)] = event
-
-    async def delete_event(self, event_id: str) -> None:
-        """
-        Deletes event with matching id or throws an exception
+        Get event by event id.
 
         Parameters
         ----------
         event_id : str
-            Event's id
+            Event's id.
+
+        Returns
+        -------
+        List[Event]
+            List of events that matches by event id.
 
         Raises
         ------
-        ValueError
-            Can't delete event with provided data
+        ValueNotFoundError
+            No events was found for given event id.
 
         """
-        index = [i for i in range(len(self._events)) if self._events[i].id == event_id]
-        self._events.pop(index[0])
+        try:
+            return next(
+                event
+                for event in self._events
+                if event.id == event_id and event.deleted_at is None
+            )
+        except StopIteration:
+            raise ValueNotFoundError("Events not found")
+
+    async def get_events_by_events_ids(self, events_ids: List[str]) -> List[Event]:
+        """
+        Get events by events ids.
+
+        Parameters
+        ----------
+        events_ids : List[str]
+            List of events ids.
+
+        Returns
+        -------
+        List[Event]
+            List of events that matches by event id.
+
+        Raises
+        ------
+        ValueNotFoundError
+            No events was found for given author id.
+
+        """
+        events = [
+            event
+            for event in self._events
+            if event.id in events_ids and event.deleted_at is None
+        ]
+        if events is None or len(events) == 0:
+            raise ValueNotFoundError("Events not found")
+        return events
+
+    async def get_all_events(self) -> List[Event]:
+        """
+        Get all events.
+
+        Returns
+        -------
+        List[Event]
+            List of events that matches by event id.
+
+        Raises
+        ------
+        ValueNotFoundError
+            No events was found for given author id.
+
+        """
+        if len(self._events) != 0:
+            return self._events
+        raise ValueNotFoundError("Events not found")
+
+    async def create_event(self, event: Event) -> None:
+        """
+        Creates event with matching data or throws an exception.
+
+        Parameters
+        ----------
+        event : Event
+            Event data.
+
+        """
+        event.id = str(uuid4())
+        self._events.append(event)
+
+    async def update_event(self, event: Event) -> None:
+        """
+        Updates event with matching id or throws an exception.
+
+        Parameters
+        ----------
+        event : Event
+            Event data.
+
+        Raises
+        ------
+        ValueNotFoundError
+            Can't update event with provided data.
+
+        """
+        try:
+            index = next(
+                i
+                for i in range(len(self._events))
+                if self._events[i].id == event.id
+            )
+            if self._events[index].author_id == event.author_id:
+                self._events[index] = event
+            else:
+                raise ValueNotFoundError("Events authors must be same")
+        except StopIteration:
+            raise ValueNotFoundError("Event not found")
+
+    async def delete_event(self, event_id: str) -> None:
+        """
+        Deletes event with matching id or throws an exception.
+
+        Parameters
+        ----------
+        event_id : str
+            Event's id.
+
+        Raises
+        ------
+        ValueNotFoundError
+            Can't delete event with provided data.
+
+        """
+        try:
+            index = next(
+                i
+                for i in range(len(self._events))
+                if self._events[i].id == event_id and self._events[i].deleted_at is None
+            )
+            self._events.pop(index)
+        except StopIteration:
+            raise ValueNotFoundError("Event not found")
