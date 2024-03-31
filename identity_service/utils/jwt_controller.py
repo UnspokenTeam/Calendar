@@ -32,8 +32,10 @@ class JwtController:
 
     Methods
     -------
-    generate(user_id)
-        Generate access and refresh tokens for user with provided id
+    generate_access_token(user_id, session_id)
+        Generate access token for provided user id and session id
+    generate_refresh_token(user_id, session_id)
+        Generate refresh token for provided user id and session id
     decode(token, token_type)
         Decode token with provided type or throw an error
 
@@ -47,6 +49,22 @@ class JwtController:
         self._refresh_key = os.environ["REFRESH_SECRET"]
 
     def generate_access_token(self, user_id: str, session_id: str) -> str:
+        """
+        Generate access token for provided user id and session id
+
+        Parameters
+        ----------
+        user_id: str
+            User's id
+        session_id : str
+            Id of the current session
+
+        Returns
+        -------
+        str
+            Access token
+
+        """
         access_token: str = encode(
             {
                 "user_id": user_id,
@@ -60,7 +78,7 @@ class JwtController:
 
     def generate_refresh_token(self, user_id: str, session_id: str) -> str:
         """
-        Generate access and refresh tokens for user with provided id
+        Generate refresh token for provided user id and session id
 
         Parameters
         ----------

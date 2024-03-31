@@ -74,17 +74,12 @@ class MockTokenRepositoryImpl(TokenRepositoryInterface):
             No refresh token found for provided user_id
 
         """
-        result = None
-
-        for user in self._tokens.values():
-            if session_id in user:
-                result = user[session_id]
-                break
-
-        if result is None:
+        try:
+            return next(
+                user[session_id] for user in self._tokens.values() if session_id in user
+            )
+        except StopIteration:
             raise ValueNotFoundError("Token not found")
-
-        return result
 
     async def delete_refresh_token(self, session_id: str) -> None:
         """

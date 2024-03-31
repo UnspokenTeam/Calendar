@@ -26,6 +26,7 @@ class TokenRepositoryImpl(TokenRepositoryInterface):
         Deletes refresh token corresponding to provided user_id
     async delete_all_refresh_tokens(user_id)
         Delete all user's refresh tokens
+
     """
 
     _postgres_client: PostgresClient

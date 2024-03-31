@@ -68,10 +68,10 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             User does not exist
 
         """
-        values = [user for user in self._users if user.email == email]
-        if len(values) == 0:
+        try:
+            return next(user for user in self._users if user.email == email)
+        except StopIteration:
             raise ValueNotFoundError("No user found for this id")
-        return values[0]
 
     async def get_user_by_id(self, user_id: str) -> User:
         """
@@ -93,10 +93,10 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             User does not exist
 
         """
-        values = [user for user in self._users if user.id == user_id]
-        if len(values) == 0:
+        try:
+            return next(user for user in self._users if user.id == user_id)
+        except StopIteration:
             raise ValueNotFoundError("No user found for this id")
-        return values[0]
 
     async def get_users_by_ids(self, user_ids: List[str]) -> List[User]:
         """
@@ -189,12 +189,13 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             Can't delete user with provided data
 
         """
-        values: List[int] = [
-            i for i in range(len(self._users)) if self._users[i].id == user_id
-        ]
-        if len(values) == 0:
+        try:
+            index = next(
+                i for i in range(len(self._users)) if self._users[i].id == user_id
+            )
+            self._users.pop(index)
+        except StopIteration:
             raise ValueNotFoundError("No user found")
-        self._users.pop(values[0])
 
     async def get_all_users(self) -> List[User]:
         """

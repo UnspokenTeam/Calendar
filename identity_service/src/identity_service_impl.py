@@ -411,9 +411,11 @@ class IdentityServiceImpl(GrpcServicer):
         try:
             user = User.from_update_grpc_user(grpc_user=request.new_user)
             requesting_user = User.from_grpc_user(request.requesting_user)
-            db_user = await self._user_repository.get_user_by_id(user_id=user.id)
+            db_user = await self._user_repository.get_user_by_id(
+                user_id=requesting_user.id
+            )
 
-            if requesting_user.type != UserType.ADMIN and requesting_user.id != user.id:
+            if requesting_user.type != UserType.ADMIN and user.id != requesting_user.id:
                 context.set_code(grpc.StatusCode.UNAUTHENTICATED)
                 return auth_proto.CredentialsResponse(
                     status_code=403,
