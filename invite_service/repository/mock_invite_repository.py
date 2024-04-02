@@ -22,8 +22,8 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
     async get_invites(author_id)
         Returns invites that has matches with given author id.
     async create_invite(invite)
-        Creates new invite inside db or throws an exception.
-    async update_invite(incite)
+        Creates new invite inside db.
+    async update_invite(invite)
         Updates invite that has the same id as provided invite object inside db or throws an exception.
     async delete_invite(invite_id)
         Deletes invite that has matching id from database or throws an exception.
@@ -72,7 +72,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             Invite data
 
         """
-        invite.id = uuid4()
+        invite.id = str(uuid4())
         self._invites.append(invite)
 
     async def update_invite(self, invite: Invite) -> None:
@@ -86,11 +86,19 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
         Raises
         ------
-        ValueError
+        Value Not Found Error
             Can't update invite with provided data
 
         """
-        self._invites[self._invites.index(invite)] = invite
+        index = next(
+            i
+            for i in range(len(self._invites))
+            if self._invites[i].id == invite.id
+        )
+        if self._invites[index].author_id == invite.author_id:
+            self._invites[index] = invite
+        else:
+            raise ValueNotFoundError("Invites authors must be same")
 
     async def delete_invite(self, invite_id: str) -> None:
         """
@@ -103,9 +111,13 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
         Raises
         ------
-        ValueError
+        Value Not Found Error
             Can't delete invite with provided data
 
         """
-        index = [i for i in range(len(self._invites)) if self._invites[i].id == invite_id]
-        self._invites.pop(index[0])
+        index = next(
+            i
+            for i in range(len(self._invites))
+            if self._invites[i].id == invite_id
+        )
+        self._invites.pop(index)

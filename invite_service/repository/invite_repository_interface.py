@@ -7,7 +7,7 @@ from src.models.invite import Invite
 
 class InviteRepositoryInterface(ABC):
     """
-    Interface for class for manipulating with event data
+    Interface for class for manipulating with invite data
 
     Methods
     -------
@@ -19,6 +19,10 @@ class InviteRepositoryInterface(ABC):
         Updates invite that has the same id as provided invite object inside db or throws an exception.
     async delete_invite(invite_id)
         Deletes invite that has matching id from database or throws an exception.
+    async get_all_invites(invite)
+        Returns all invites.
+    async get_invites_by_invitee_id(invitee_id)
+        Returns invites that has matches with given invitee id.
 
     """
 
@@ -42,7 +46,57 @@ class InviteRepositoryInterface(ABC):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No events was found for given author id.
+            No invites was found for given author id.
+
+        """
+        pass
+
+    @abstractmethod
+    async def get_all_invites(self, invite: Invite) -> List[Invite]:
+        """
+        Get all invites.
+
+        Parameters
+        ----------
+        invite : Invite
+            invite object.
+
+        Returns
+        -------
+        List[Invite]
+            List of all invites.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+        ValueNotFoundError
+            No invites was found.
+
+        """
+        pass
+
+    @abstractmethod
+    async def get_invites_by_invitee_id(self, invitee_id: str) -> List[Invite]:
+        """
+        Get invites by invitee id.
+
+        Parameters
+        ----------
+        invitee_id : str
+            invitee_id object.
+
+        Returns
+        -------
+        List[Invite]
+            List of invites that matches by invitee id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+        ValueNotFoundError
+            No invites was found for given invitee id.
 
         """
         pass
