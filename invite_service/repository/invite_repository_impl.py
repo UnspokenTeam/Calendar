@@ -72,7 +72,8 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return [
-            Invite.from_prisma_invite(prisma_invite=db_invite) for db_invite in db_invites
+            Invite.from_prisma_invite(prisma_invite=db_invite)
+            for db_invite in db_invites
         ]
 
     async def get_all_invites(self, invite: Invite) -> List[Invite]:
@@ -97,10 +98,15 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             No invites was found.
 
         """
-        db_invites: Optional[List[PrismaInvite]] = await self._db_client.db.invite.find_many()
+        db_invites: Optional[
+            List[PrismaInvite]
+        ] = await self._db_client.db.invite.find_many()
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
-        return [Invite.from_prisma_invite(prisma_invite=db_invite) for db_invite in db_invites]
+        return [
+            Invite.from_prisma_invite(prisma_invite=db_invite)
+            for db_invite in db_invites
+        ]
 
     async def get_invites_by_invitee_id(self, invitee_id: str) -> List[Invite]:
         """
@@ -124,7 +130,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             No invites was found for given invitee id.
 
         """
-        db_invites: Optional[List[PrismaInvite]] = await self._db_client.db.invite.find_many(
+        db_invites: Optional[
+            List[PrismaInvite]
+        ] = await self._db_client.db.invite.find_many(
             where={
                 "id": {"in": [invite_id for invite_id in invitee_id]},
                 "deleted_at": None,
@@ -133,7 +141,8 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Events not found")
         return [
-            Invite.from_prisma_invite(prisma_invite=db_invite) for db_invite in db_invites
+            Invite.from_prisma_invite(prisma_invite=db_invite)
+            for db_invite in db_invites
         ]
 
     async def create_invite(self, invite: Invite) -> None:
@@ -188,5 +197,6 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
 
         """
         await self._db_client.db.invite.update_many(
-            where={"id": invite_id, "deleted_at": None}, data={"deleted_at": datetime.now()}
+            where={"id": invite_id, "deleted_at": None},
+            data={"deleted_at": datetime.now()},
         )

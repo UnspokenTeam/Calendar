@@ -91,9 +91,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
         """
         index = next(
-            i
-            for i in range(len(self._invites))
-            if self._invites[i].id == invite.id
+            i for i in range(len(self._invites)) if self._invites[i].id == invite.id
         )
         if self._invites[index].author_id == invite.author_id:
             self._invites[index] = invite
@@ -116,8 +114,6 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
         """
         index = next(
-            i
-            for i in range(len(self._invites))
-            if self._invites[i].id == invite_id
+            i for i in range(len(self._invites)) if self._invites[i].id == invite_id
         )
         self._invites.pop(index)
