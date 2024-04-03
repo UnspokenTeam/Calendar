@@ -21,12 +21,16 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
     -------
     async get_invites(author_id)
         Returns invites that has matches with given author id.
+    async get_all_invites()
+        Returns all invites.
+    async get_invites_by_invitee_id(invitee_id)
+        Returns invites that has matches with given list of invitee id.
     async create_invite(invite)
         Creates new invite inside db.
     async update_invite(invite)
-        Updates invite that has the same id as provided invite object inside db or throws an exception.
+        Updates invite that has the same id as provided invite object inside db.
     async delete_invite(invite_id)
-        Deletes invite that has matching id from database or throws an exception.
+        Deletes invite that has matching id from database.
 
     """
 
@@ -51,13 +55,63 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
         Raises
         ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
             No invites was found for given author id.
 
         """
-        invites = [invite for invite in self._invites if invite.author_id == author_id]
+        invites = [
+            invite
+            for invite in self._invites
+            if invite.author_id == author_id and invite.deleted_at is None
+        ]
+        if invites is None or len(invites) == 0:
+            raise ValueNotFoundError("Invites not found")
+        return invites
+
+    async def get_all_invites(self) -> List[Invite]:
+        """
+        Get all invites.
+
+        Returns
+        -------
+        List[Invite]
+            List of invites that matches by invite id.
+
+        Raises
+        ------
+        ValueNotFoundError
+            No invites was found for given author id.
+
+        """
+        if len(self._invites) != 0:
+            return self._invites
+        raise ValueNotFoundError("Invites not found")
+
+    async def get_invites_by_invitee_id(self, invitee_id: List[str]) -> List[Invite]:
+        """
+        Get invites by invitee id.
+
+        Parameters
+        ----------
+        invitee_id : List[str]
+            List of invitee id.
+
+        Returns
+        -------
+        List[Invite]
+            List of invitee that matches by invite id.
+
+        Raises
+        ------
+        ValueNotFoundError
+            No invites was found for given author id.
+
+        """
+        invites = [
+            invite
+            for invite in self._invites
+            if invite.id in invitee_id and invite.deleted_at is None
+        ]
         if invites is None or len(invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return invites
@@ -86,7 +140,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
         Raises
         ------
-        Value Not Found Error
+        ValueNotFoundError
             Can't update invite with provided data
 
         """
@@ -109,7 +163,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
         Raises
         ------
-        Value Not Found Error
+        ValueNotFoundError
             Can't delete invite with provided data
 
         """

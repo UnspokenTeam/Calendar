@@ -1,5 +1,6 @@
 """Invite Model"""
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Self
 
 from prisma.models import Invite as PrismaInvite
@@ -25,6 +26,10 @@ class Invite:
         ID of the invitee
     status: InviteStatus:
         Invite status
+    created_at : datetime
+        Time when the invite was created.
+    deleted_at: Optional[datetime]
+        Time when the invite was deleted.
 
 
     Methods
@@ -39,6 +44,8 @@ class Invite:
     author_id: str
     invitee_id: str
     status: InviteStatus
+    created_at: datetime
+    deleted_at: Optional[datetime] = None
 
     def to_grpc_invite(self) -> GrpcInvite:
         """
@@ -50,13 +57,17 @@ class Invite:
             Invite data in GrpcInvite instance
 
         """
-        return GrpcInvite(
+        invite = GrpcInvite(
             id=self.id,
             event_id=self.event_id,
             author_id=self.author_id,
             invitee_id=self.invitee_id,
             status=self.status,
         )
+        invite.created_at.FromDatetime(self.created_at)
+        invite.deleted_at.FromDateTime(self.created_at)
+
+        return invite
 
     def to_dict(self, exclude: Optional[List[str]] = None) -> Dict[str, Any]:
         """

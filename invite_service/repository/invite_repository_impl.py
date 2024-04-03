@@ -32,7 +32,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         Updates invite that has the same id as provided invite object inside db or throws an exception.
     async delete_invite(invite_id)
         Deletes invite that has matching id from database or throws an exception.
-    async get_all_invites(invite)
+    async get_all_invites()
         Returns all invites.
     async get_invites_by_invitee_id(invitee_id)
         Returns invites that has matches with given invitee id.
@@ -68,7 +68,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         """
         db_invites: Optional[
             List[PrismaInvite]
-        ] = await self._db_client.db.invite.find_many(where={"id": author_id})
+        ] = await self._db_client.db.invite.find_many(
+            where={"id": author_id, "deleted_at": None}
+        )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return [
@@ -76,7 +78,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             for db_invite in db_invites
         ]
 
-    async def get_all_invites(self, invite: Invite) -> List[Invite]:
+    async def get_all_invites(self) -> List[Invite]:
         """
         Get all invites.
 

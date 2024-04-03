@@ -1,4 +1,5 @@
 syntax = "proto3";
+import "google/protobuf/timestamp.proto";
 
 service InviteService {
   rpc get_invites_by_user_id(InvitesByUserIdRequest) returns (InvitesResponse){}
@@ -18,6 +19,8 @@ message Invite {
   string author_id = 3;
   string invitee_id = 4;
   InviteStatus status = 5;
+  google.protobuf.Timestamp created_at = 6;
+  optional google.protobuf.Timestamp deleted_at = 7;
 }
 
 message ListOfInvites {

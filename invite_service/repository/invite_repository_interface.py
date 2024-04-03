@@ -19,7 +19,7 @@ class InviteRepositoryInterface(ABC):
         Updates invite that has the same id as provided invite object inside db or throws an exception.
     async delete_invite(invite_id)
         Deletes invite that has matching id from database or throws an exception.
-    async get_all_invites(invite)
+    async get_all_invites()
         Returns all invites.
     async get_invites_by_invitee_id(invitee_id)
         Returns invites that has matches with given invitee id.
@@ -52,7 +52,7 @@ class InviteRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_all_invites(self, invite: Invite) -> List[Invite]:
+    async def get_all_invites(self) -> List[Invite]:
         """
         Get all invites.
 
