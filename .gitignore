@@ -382,3 +382,5 @@ invite_service/proto/*.py
 invite_service/proto/*.pyi
 identity_service/generated
 identity_service/__init__.py
+/init.sql
+/postgres-secret.yaml
