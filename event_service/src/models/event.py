@@ -103,7 +103,7 @@ class Event:
             Event data dictionary.
 
         """
-        exclude_set = set(exclude if exclude is not None else []) | {"id"}
+        exclude_set = set(exclude) if exclude is not None else set()
         attrs = vars(self)
         return {
             attr.lstrip("_"): value

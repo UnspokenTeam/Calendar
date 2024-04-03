@@ -15,6 +15,8 @@ service EventService {
 message EventsRequestByAuthorId {
   string author_id = 1;
   GrpcUser user = 2;
+  int32 page_number = 3;
+  int32 items_per_page = 4;
 }
 
 message EventRequestByEventId {
@@ -25,6 +27,8 @@ message EventRequestByEventId {
 message EventsRequestByEventsIds {
   ListOfEventsIds events_ids = 1;
   GrpcUser user = 2;
+  int32 page_number = 3;
+  int32 items_per_page = 4;
 }
 
 message EventResponse {
@@ -68,6 +72,8 @@ message GrpcUser {
 
 message RequestingUser {
   GrpcUser user = 1;
+  int32 page_number = 3;
+  int32 items_per_page = 4;
 }
 
 message UpdateEventRequest {
