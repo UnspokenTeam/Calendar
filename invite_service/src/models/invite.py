@@ -113,4 +113,6 @@ class Invite:
             author_id=prisma_invite.author_id,
             status=prisma_invite.status,
             invitee_id=prisma_invite.invitee_id,
+            created_at=prisma_invite.create_at,
+            deleted_at=prisma_invite.deleted_at,
         )
