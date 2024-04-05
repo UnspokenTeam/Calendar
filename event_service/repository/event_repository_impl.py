@@ -213,7 +213,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.event.create(data=event.to_dict())
+        await self._db_client.db.event.create(data=event.to_dict(exclude=["created_at", "deleted_at"]))
 
     async def update_event(self, event: Event) -> None:
         """

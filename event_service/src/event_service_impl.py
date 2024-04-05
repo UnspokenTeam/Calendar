@@ -206,14 +206,14 @@ class EventServiceImpl(GrpcServicer):
             )
 
     async def create_event(
-        self, request: proto.GrpcEvent, context: grpc.ServicerContext
+        self, request: proto.EventRequest, context: grpc.ServicerContext
     ) -> proto.BaseResponse:
         """
         Create event.
 
         Parameters
         ----------
-        request : proto.GrpcEvent
+        request : proto.EventRequest
             Request data containing GrpcEvent.
         context : grpc.ServicerContext
             Request context.
@@ -225,7 +225,13 @@ class EventServiceImpl(GrpcServicer):
 
         """
         try:
-            event = Event.from_grpc_event(request)
+            event = Event.from_grpc_event(request.event)
+            if (
+                    request.user.type != proto.GrpcUserType.ADMIN
+                    and request.user.id != event.author_id
+            ):
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                return proto.BaseResponse(status_code=403, message="Permission denied")
             await self._event_repository.create_event(event=event)
             context.set_code(grpc.StatusCode.OK)
             return proto.BaseResponse(status_code=200)
@@ -237,14 +243,14 @@ class EventServiceImpl(GrpcServicer):
             return proto.BaseResponse(status_code=500, message="Internal server error")
 
     async def update_event(
-        self, request: proto.UpdateEventRequest, context: grpc.ServicerContext
+        self, request: proto.EventRequest, context: grpc.ServicerContext
     ) -> proto.BaseResponse:
         """
         Update event.
 
         Parameters
         ----------
-        request : proto.UpdateEventRequest
+        request : proto.EventRequest
             Request data containing GrpcEvent.
         context : grpc.ServicerContext
             Request context.
