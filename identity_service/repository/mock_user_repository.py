@@ -117,9 +117,9 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         user_ids : List[str]
             User's ids
         page : int
-            Page index
+            Non-Negative page index
         items_per_page : int
-            Number of items per page
+            Non-Negative number of items per page
 
         Returns
         -------
@@ -225,9 +225,9 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         Parameters
         ----------
         page : int
-            Page index
+            Non-Negative page index
         items_per_page : int
-            Number of items per page
+            Non-Negative number of items per page
 
         Returns
         -------
