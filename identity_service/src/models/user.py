@@ -88,7 +88,7 @@ class User:
     password: str
     type: UserType
     created_at: datetime
-    suspended_at: datetime | None
+    suspended_at: Optional[datetime] = None
 
     def to_grpc_user(self) -> GrpcUser:
         """

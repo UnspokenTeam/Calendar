@@ -321,7 +321,11 @@ class IdentityServiceImpl(GrpcServicer):
 
         """
         try:
-            users = await self._user_repository.get_users_by_ids(list(request.id))
+            users = await self._user_repository.get_users_by_ids(
+                user_ids=list(request.id),
+                page=request.page,
+                items_per_page=request.items_per_page,
+            )
             context.set_code(grpc.StatusCode.OK)
             return get_user_proto.UsersResponse(
                 status_code=200,
@@ -367,7 +371,9 @@ class IdentityServiceImpl(GrpcServicer):
                     status_code=403,
                     message="Permission denied",
                 )
-            users = await self._user_repository.get_all_users()
+            users = await self._user_repository.get_all_users(
+                page=request.page, items_per_page=request.items_per_page
+            )
             context.set_code(grpc.StatusCode.OK)
             return get_user_proto.UsersResponse(
                 users=get_user_proto.ListOfUser(

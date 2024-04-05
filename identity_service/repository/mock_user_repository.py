@@ -106,7 +106,9 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         except StopIteration:
             raise ValueNotFoundError("No user found for this id")
 
-    async def get_users_by_ids(self, user_ids: List[str]) -> List[User]:
+    async def get_users_by_ids(
+        self, user_ids: List[str], page: int, items_per_page: int
+    ) -> List[User]:
         """
         Returns users that has matching ids from database or throws an exception
 
@@ -114,6 +116,10 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         ----------
         user_ids : List[str]
             User's ids
+        page : int
+            Page index
+        items_per_page : int
+            Number of items per page
 
         Returns
         -------
@@ -130,7 +136,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             user
             for user in self._users
             if user.id in user_ids and user.suspended_at is None
-        ]
+        ][(page - 1) * items_per_page : page * items_per_page]
         if len(values) == 0:
             raise ValueNotFoundError("Users with these ids not exist")
         return values
@@ -212,9 +218,16 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         except StopIteration:
             raise ValueNotFoundError("No user found")
 
-    async def get_all_users(self) -> List[User]:
+    async def get_all_users(self, page: int, items_per_page: int) -> List[User]:
         """
         Returns all existing users
+
+        Parameters
+        ----------
+        page : int
+            Page index
+        items_per_page : int
+            Number of items per page
 
         Returns
         -------
@@ -222,9 +235,10 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             All existing users
 
         """
-        if len(self._users) == 0:
+        result = self._users[(page - 1) * items_per_page : page * items_per_page]
+        if len(result) == 0:
             raise ValueNotFoundError("No users found")
-        return self._users
+        return result
 
     async def get_user_by_session_id(self, session_id: str) -> User:
         """
