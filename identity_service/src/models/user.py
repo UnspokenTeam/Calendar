@@ -155,13 +155,15 @@ class User:
             User data represented in dictionary
 
         """
-        exclude_set = set(exclude if exclude is not None else [])
+        exclude_set = set(exclude if exclude is not None else []) | {"id"}
         attrs = vars(self)
-        return {
+        obj = {
             attr.lstrip("_"): value
             for attr, value in attrs.items()
             if attr not in exclude_set
         }
+        obj["type"] = str(self.type)
+        return obj
 
     @classmethod
     def from_register_request(cls, request: RegisterRequest) -> Self:

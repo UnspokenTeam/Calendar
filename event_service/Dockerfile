@@ -1,4 +1,4 @@
-FROM python:3.11 as python-base
+FROM python:3.11-slim as python-base
 
 ENV POETRY_VERSION=1.6.1
 ENV POETRY_HOME=/opt/poetry
@@ -14,6 +14,9 @@ RUN python3 -m venv $POETRY_VENV \
 
 FROM python-base as example-app
 
+ARG DATABSE_URL
+ENV DATABSE_URL=$DATABSE_URL
+
 COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
 
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
@@ -27,9 +30,7 @@ RUN poetry install --no-interaction --no-cache --without dev
 COPY . /app
 RUN poetry run python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. --pyi_out=. ./proto/event_service.proto
 
-RUN poetry run prisma db push
 RUN poetry run prisma generate
 
 EXPOSE 8081
-
-CMD [ "poetry", "run", "python", "main.py" ]
+CMD poetry run prisma db push && poetry run python main.py

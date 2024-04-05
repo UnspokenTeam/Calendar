@@ -383,4 +383,8 @@ invite_service/proto/*.pyi
 identity_service/generated
 identity_service/__init__.py
 /init.sql
-/postgres-secret.yaml
+/deployments/postgres/postgres-secret.yaml
+/deployments/identity_service/identity_service_secret.yaml
+/deployments/invite_service/invite_service_secret.yaml
+/deployments/event_service/event_service_secret.yaml
+/deployments/notification_service/notification_service_secret.yaml

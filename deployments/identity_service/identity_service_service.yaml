@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-service-service
+spec:
+  selector:
+    app: identity-service-deployment
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: ids-port
+  type: NodePort

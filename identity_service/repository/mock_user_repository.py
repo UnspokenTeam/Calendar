@@ -135,7 +135,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             raise ValueNotFoundError("Users with these ids not exist")
         return values
 
-    async def create_user(self, user: User) -> None:
+    async def create_user(self, user: User) -> User:
         """
         Creates user with matching data or throws an exception
 
@@ -165,6 +165,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
 
         user.id = str(uuid4())
         self._users.append(user)
+        return user
 
     async def update_user(self, user: User) -> None:
         """

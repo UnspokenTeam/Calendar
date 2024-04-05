@@ -1,4 +1,4 @@
-FROM python:3.11 as python-base
+FROM python:3.11-slim as python-base
 
 ENV POETRY_VERSION=1.6.1
 ENV POETRY_HOME=/opt/poetry
@@ -13,6 +13,9 @@ RUN python3 -m venv $POETRY_VENV \
     && $POETRY_VENV/bin/pip install poetry==${POETRY_VERSION}
 
 FROM python-base as example-app
+
+ARG DATABSE_URL
+ENV DATABSE_URL=$DATABSE_URL
 
 COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
 

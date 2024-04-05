@@ -1,4 +1,4 @@
-FROM python:3.11 as python-base
+FROM python:3.11-slim as python-base
 
 ENV POETRY_VERSION=1.6.1
 ENV POETRY_HOME=/opt/poetry
@@ -13,6 +13,14 @@ RUN python3 -m venv $POETRY_VENV \
     && $POETRY_VENV/bin/pip install poetry==${POETRY_VERSION}
 
 FROM python-base as example-app
+
+ARG DATABSE_URL
+ARG ACCESS_SECRET
+ARG REFRESH_SECRET
+
+ENV DATABSE_URL=$DATABSE_URL
+ENV ACCESS_SECRET=$ACCESS_SECRET
+ENV REFRESH_SECRET=$REFRESH_SECRET
 
 COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
 
@@ -29,8 +37,7 @@ RUN mkdir generated
 RUN echo "from . import *" | cat >> ./generated/__init__.py
 RUN poetry run python -m grpc_tools.protoc -I proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ./proto/identity_service.proto ./proto/auth.proto ./proto/delete_user.proto ./proto/get_access_token.proto ./proto/get_user.proto ./proto/update_user.proto
 RUN poetry run 2to3 ./generated  -w -n
-RUN poetry run prisma db push
 RUN poetry run prisma generate
 
 EXPOSE 8080
-CMD [ "poetry", "run", "python", "main.py" ]
+CMD poetry run prisma db push && poetry run python main.py

@@ -1,6 +1,7 @@
 """Identity Service Controller"""
 from typing import Tuple
 from uuid import uuid4
+import logging
 
 import grpc
 
@@ -148,7 +149,7 @@ class IdentityServiceImpl(GrpcServicer):
             user = User.from_register_request(request)
             user.password = self._encoder.encode(user.password)
 
-            await self._user_repository.create_user(user=user)
+            user = await self._user_repository.create_user(user=user)
 
             session_id = str(uuid4())
             access_token, refresh_token = self._generate_tokens(
@@ -170,7 +171,8 @@ class IdentityServiceImpl(GrpcServicer):
             return auth_proto.CredentialsResponse(
                 status_code=400, message="User with this data already exists"
             )
-        except prisma.errors.PrismaError:
+        except prisma.errors.PrismaError as e:
+            logging.info(e)
             context.set_code(grpc.StatusCode.INTERNAL)
             return auth_proto.CredentialsResponse(
                 status_code=500, message="Internal server error"

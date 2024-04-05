@@ -8,8 +8,8 @@ from db.postgres_client import PostgresClient
 from src.identity_service_impl import IdentityServiceImpl
 from utils.jwt_controller import JwtController
 
-from repository.mock_token_repository import MockTokenRepositoryImpl
-from repository.mock_user_repository import MockUserRepositoryImpl
+from repository.token_repository_impl import TokenRepositoryImpl
+from repository.user_repository_impl import UserRepositoryImpl
 import dotenv
 import generated.identity_service_pb2_grpc as identity_service_grpc
 
@@ -21,8 +21,8 @@ async def serve() -> None:
     await PostgresClient().connect()
     identity_service_grpc.add_IdentityServiceServicer_to_server(
         IdentityServiceImpl(
-            user_repository=MockUserRepositoryImpl(),
-            token_repository=MockTokenRepositoryImpl(),
+            user_repository=UserRepositoryImpl(),
+            token_repository=TokenRepositoryImpl(),
         ),
         server,
     )
