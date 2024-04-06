@@ -19,14 +19,14 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
     Methods
     -------
-    async get_events_by_author_id(author_id)
-        Returns events that has matches with given author id.
+    async get_events_by_author_id(author_id, page_number, items_per_page)
+        Returns page with events that has matches with given author id.
     async get_event_by_event_id(event_id)
         Returns event that has matches with given event id.
-    async get_events_by_events_ids(events_ids)
-        Returns events that has matches with given list of event ids.
-    async get_all_events()
-        Returns all events.
+    async get_events_by_events_ids(events_ids, page_number, items_per_page)
+        Returns page of events that has matches with given list of event ids.
+    async get_all_events(page_number, items_per_page)
+        Returns page that contains part of all events.
     async create_event(event)
         Creates new event inside db or throws an exception.
     async update_event(event)
@@ -41,7 +41,9 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
     def __init__(self) -> None:
         self._events = []
 
-    async def get_events_by_author_id(self, author_id: str) -> List[Event]:
+    async def get_events_by_author_id(
+        self, author_id: str, page_number: int, items_per_page: int
+    ) -> List[Event]:
         """
         Get events by author id.
 
@@ -49,6 +51,10 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         ----------
         author_id : str
             Author's id.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
 
         Returns
         -------
@@ -68,7 +74,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         ]
         if events is None or len(events) == 0:
             raise ValueNotFoundError("Events not found")
-        return events
+        return events[items_per_page * (page_number - 1) : items_per_page * page_number]
 
     async def get_event_by_event_id(self, event_id: str) -> Event:
         """
@@ -99,7 +105,9 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         except StopIteration:
             raise ValueNotFoundError("Events not found")
 
-    async def get_events_by_events_ids(self, events_ids: List[str]) -> List[Event]:
+    async def get_events_by_events_ids(
+        self, events_ids: List[str], page_number: int, items_per_page: int
+    ) -> List[Event]:
         """
         Get events by events ids.
 
@@ -107,6 +115,10 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         ----------
         events_ids : List[str]
             List of events ids.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
 
         Returns
         -------
@@ -126,11 +138,20 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         ]
         if events is None or len(events) == 0:
             raise ValueNotFoundError("Events not found")
-        return events
+        return events[items_per_page * (page_number - 1) : items_per_page * page_number]
 
-    async def get_all_events(self) -> List[Event]:
+    async def get_all_events(
+        self, page_number: int, items_per_page: int
+    ) -> List[Event]:
         """
         Get all events.
+
+        Parameters
+        ----------
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
 
         Returns
         -------
@@ -144,7 +165,9 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         """
         if len(self._events) != 0:
-            return self._events
+            return self._events[
+                items_per_page * (page_number - 1) : items_per_page * page_number
+            ]
         raise ValueNotFoundError("Events not found")
 
     async def create_event(self, event: Event) -> None:
@@ -177,9 +200,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         """
         try:
             index = next(
-                i
-                for i in range(len(self._events))
-                if self._events[i].id == event.id
+                i for i in range(len(self._events)) if self._events[i].id == event.id
             )
             if self._events[index].author_id == event.author_id:
                 self._events[index] = event

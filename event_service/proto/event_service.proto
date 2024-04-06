@@ -7,14 +7,16 @@ service EventService {
   rpc get_events_by_events_ids(EventsRequestByEventsIds) returns (EventsResponse){}
   rpc get_events_by_author_id(EventsRequestByAuthorId) returns (EventsResponse){}
   rpc get_all_events(RequestingUser) returns (EventsResponse){}
-  rpc create_event(GrpcEvent) returns (BaseResponse){}
-  rpc update_event(UpdateEventRequest) returns (BaseResponse){}
+  rpc create_event(EventRequest) returns (BaseResponse){}
+  rpc update_event(EventRequest) returns (BaseResponse){}
   rpc delete_event(DeleteEventRequest) returns (BaseResponse){}
 }
 
 message EventsRequestByAuthorId {
   string author_id = 1;
   GrpcUser user = 2;
+  int64 page_number = 3;
+  int64 items_per_page = 4;
 }
 
 message EventRequestByEventId {
@@ -25,6 +27,8 @@ message EventRequestByEventId {
 message EventsRequestByEventsIds {
   ListOfEventsIds events_ids = 1;
   GrpcUser user = 2;
+  int64 page_number = 3;
+  int64 items_per_page = 4;
 }
 
 message EventResponse {
@@ -68,9 +72,11 @@ message GrpcUser {
 
 message RequestingUser {
   GrpcUser user = 1;
+  int64 page_number = 3;
+  int64 items_per_page = 4;
 }
 
-message UpdateEventRequest {
+message EventRequest {
   GrpcEvent event = 1;
   GrpcUser user = 2;
 }
@@ -84,7 +90,7 @@ message ListOfEventsIds {
 }
 
 message BaseResponse {
-  int64 status_code = 1;
+  int32 status_code = 1;
   optional string message = 2;
 }
 

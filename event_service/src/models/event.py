@@ -60,9 +60,6 @@ class Event:
     repeating_delay: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
 
-    def __post_init__(self) -> None:
-        self.created_at = datetime.now()
-
     def to_grpc_event(self) -> GrpcEvent:
         """
         Generate grpc event instance.
@@ -103,7 +100,7 @@ class Event:
             Event data dictionary.
 
         """
-        exclude_set = set(exclude if exclude is not None else []) | {"id"}
+        exclude_set = (set(exclude) if exclude is not None else set()) | {"id"}
         attrs = vars(self)
         return {
             attr.lstrip("_"): value
