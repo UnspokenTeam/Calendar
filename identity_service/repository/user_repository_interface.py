@@ -81,7 +81,9 @@ class UserRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_users_by_ids(self, user_ids: List[str]) -> List[User]:
+    async def get_users_by_ids(
+        self, user_ids: List[str], page: int, items_per_page: int
+    ) -> List[User]:
         """
         Returns users that has matching ids from database or throws an exception
 
@@ -89,6 +91,10 @@ class UserRepositoryInterface(ABC):
         ----------
         user_ids : List[str]
             User's ids
+        page : int
+            Non-Negative page index
+        items_per_page : int
+            Number of items per page
 
         Returns
         -------
@@ -164,9 +170,16 @@ class UserRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_all_users(self) -> List[User]:
+    async def get_all_users(self, page: int, items_per_page: int) -> List[User]:
         """
         Get all existing users
+
+        Parameters
+        ----------
+        page : int
+            Non-Negative page index
+        items_per_page : int
+            Number of items per page
 
         Returns
         -------

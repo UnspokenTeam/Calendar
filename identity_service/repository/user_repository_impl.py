@@ -107,7 +107,9 @@ class UserRepositoryImpl(UserRepositoryInterface):
             raise ValueNotFoundError("User not found")
         return User.from_prisma_user(db_user)
 
-    async def get_users_by_ids(self, user_ids: List[str]) -> List[User]:
+    async def get_users_by_ids(
+        self, user_ids: List[str], page: int, items_per_page: int
+    ) -> List[User]:
         """
         Returns users that has matching ids from database or throws an exception
 
@@ -115,6 +117,10 @@ class UserRepositoryImpl(UserRepositoryInterface):
         ----------
         user_ids : List[str]
             User's ids
+        page : int
+            Non-Negative page index
+        items_per_page : int
+            Number of items per page
 
         Returns
         -------
@@ -130,7 +136,9 @@ class UserRepositoryImpl(UserRepositoryInterface):
 
         """
         db_users: Optional[List[PrismaUser]] = await self._db_client.db.user.find_many(
-            where={"id": {"in": user_ids}, "suspended_at": None}
+            where={"id": {"in": user_ids}, "suspended_at": None},
+            skip=(page - 1) * items_per_page,
+            take=items_per_page,
         )
 
         if db_users is None:
@@ -226,9 +234,16 @@ class UserRepositoryImpl(UserRepositoryInterface):
             data={"suspended_at": datetime.now()},
         )
 
-    async def get_all_users(self) -> List[User]:
+    async def get_all_users(self, page: int, items_per_page: int) -> List[User]:
         """
         Get all existing users
+
+        Parameters
+        ----------
+        page : int
+            Non-Negative page index
+        items_per_page : int
+            Number of items per page
 
         Returns
         -------
@@ -243,10 +258,14 @@ class UserRepositoryImpl(UserRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python
 
         """
-        users = await self._db_client.db.user.find_many()
+        users = await self._db_client.db.user.find_many(
+            skip=(page - 1) * items_per_page, take=items_per_page
+        )
         if len(users) == 0:
             raise ValueNotFoundError("No users found")
-        return [User.from_prisma_user(user) for user in users]
+        return [User.from_prisma_user(user) for user in users][
+            (page - 1) * items_per_page : page * items_per_page
+        ]
 
     async def get_user_by_session_id(self, session_id: str) -> User:
         """

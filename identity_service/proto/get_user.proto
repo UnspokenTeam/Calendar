@@ -37,9 +37,13 @@ message GrpcUser {
 }
 
 message UsersByIdRequest {
-  repeated string id = 1;
+  uint64 page = 1;
+  int64 items_per_page = 2;
+  repeated string id = 3;
 }
 
 message GetAllUsersRequest {
-  GrpcUser requested_user = 1;
+  uint64 page = 1;
+  int64 items_per_page = 2;
+  GrpcUser requested_user = 3;
 }
