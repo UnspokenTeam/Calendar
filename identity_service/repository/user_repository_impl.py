@@ -120,7 +120,8 @@ class UserRepositoryImpl(UserRepositoryInterface):
         page : int
             Non-Negative page index
         items_per_page : int
-            Non-Negative number of items per page
+            Number of items per page
+
         Returns
         -------
         List[User]
@@ -242,7 +243,7 @@ class UserRepositoryImpl(UserRepositoryInterface):
         page : int
             Non-Negative page index
         items_per_page : int
-            Non-Negative number of items per page
+            Number of items per page
 
         Returns
         -------

@@ -119,7 +119,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         page : int
             Non-Negative page index
         items_per_page : int
-            Non-Negative number of items per page
+            Number of items per page
 
         Returns
         -------
@@ -227,7 +227,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         page : int
             Non-Negative page index
         items_per_page : int
-            Non-Negative number of items per page
+            Number of items per page
 
         Returns
         -------
