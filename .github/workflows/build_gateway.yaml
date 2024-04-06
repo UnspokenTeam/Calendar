@@ -1,11 +1,11 @@
-name: Build invite service
+name: Build gateway
 
 on:
   push:
     branches:
       - main
     paths:
-      - "invite_service/**"
+      - "gateway/**"
 
 jobs:
   push_to_registry:
@@ -33,6 +33,6 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: invite_service/
+          context: gateway/
           push: true
-          tags: ghcr.io/unspokenteam/invite_service:latest
+          tags: ghcr.io/unspokenteam/gateway:latest
