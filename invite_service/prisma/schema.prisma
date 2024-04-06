@@ -13,7 +13,7 @@ model Invite {
   author_id String
   invitee_id String
   status InviteStatus
-  create_at DateTime
+  create_at DateTime @default(now())
   deleted_at DateTime?
 }
 

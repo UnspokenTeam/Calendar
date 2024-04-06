@@ -47,9 +47,6 @@ class Invite:
     created_at: datetime
     deleted_at: Optional[datetime] = None
 
-    def __post_init__(self) -> None:
-        self.created_at = datetime.now()
-
     def to_grpc_invite(self) -> GrpcInvite:
         """
         Converts invite information to GrpcInvite
@@ -87,7 +84,7 @@ class Invite:
             Invent data dictionary.
 
         """
-        exclude_set = set(exclude if exclude is not None else [])
+        exclude_set = set(exclude if exclude is not None else ["id"])
         attrs = vars(self)
         return {
             attr.lstrip("_"): value

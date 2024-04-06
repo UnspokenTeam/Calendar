@@ -157,7 +157,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.invite.create(data=invite.to_dict())
+        await self._db_client.db.invite.create(data=invite.to_dict(exclude=["created_at", "deleted_at"]))
 
     async def update_invite(self, invite: Invite) -> None:
         """
