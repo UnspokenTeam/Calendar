@@ -66,7 +66,11 @@ class InviteServiceImpl(GrpcServicer):
         return proto.InvitesResponse(
             code=200,
             invites=proto.ListOfInvites(
-                invites=[invite.to_grpc_invite() for invite in self.invites if invite.author_id == request.author_id]
+                invites=[
+                    invite.to_grpc_invite()
+                    for invite in self.invites
+                    if invite.author_id == request.author_id
+                ]
             ),
         )
 

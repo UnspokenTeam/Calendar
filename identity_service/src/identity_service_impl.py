@@ -148,7 +148,7 @@ class IdentityServiceImpl(GrpcServicer):
             user = User.from_register_request(request)
             user.password = self._encoder.encode(user.password)
 
-            await self._user_repository.create_user(user=user)
+            user = await self._user_repository.create_user(user=user)
 
             session_id = str(uuid4())
             access_token, refresh_token = self._generate_tokens(
