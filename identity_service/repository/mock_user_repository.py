@@ -144,6 +144,11 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         user : User
             User data
 
+        Returns
+        -------
+        User
+            Created user
+
         Raises
         ------
         UniqueError

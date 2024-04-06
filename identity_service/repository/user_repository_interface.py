@@ -115,6 +115,11 @@ class UserRepositoryInterface(ABC):
         user : User
             User data
 
+        Returns
+        -------
+        User
+            Created user
+
         Raises
         ------
         prisma.errors.PrismaError
