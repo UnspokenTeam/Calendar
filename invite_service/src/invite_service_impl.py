@@ -1,10 +1,10 @@
 """Invite Service Controller"""
 import grpc
-from google.protobuf.empty_pb2 import Empty
 
 from proto.invite_service_pb2_grpc import InviteServiceServicer as GrpcServicer
 import proto.invite_service_pb2 as proto
 
+from google.protobuf.empty_pb2 import Empty
 from repository.invite_repository_interface import InviteRepositoryInterface
 
 
