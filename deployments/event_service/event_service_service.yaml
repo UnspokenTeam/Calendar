@@ -9,4 +9,4 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: evs-port
-  type: NodePort
+  clusterIP: None

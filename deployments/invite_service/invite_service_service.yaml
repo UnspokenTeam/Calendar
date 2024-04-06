@@ -9,4 +9,4 @@ spec:
     - protocol: TCP
       port: 8082
       targetPort: ins-port
-  type: NodePort
+  clusterIP: None
