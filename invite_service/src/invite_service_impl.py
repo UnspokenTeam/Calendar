@@ -1,5 +1,6 @@
 """Invite Service Controller"""
 import grpc
+from google.protobuf.empty_pb2 import Empty
 
 from proto.invite_service_pb2_grpc import InviteServiceServicer as GrpcServicer
 import proto.invite_service_pb2 as proto
@@ -71,7 +72,7 @@ class InviteServiceImpl(GrpcServicer):
         )
 
     def get_all_invites(
-        self, request: None, context: grpc.ServicerContext
+        self, request: Empty, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
         Get all invites.

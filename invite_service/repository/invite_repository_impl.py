@@ -82,11 +82,6 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         """
         Get all invites.
 
-        Parameters
-        ----------
-        invite : Invite
-            invite object.
-
         Returns
         -------
         List[Invite]

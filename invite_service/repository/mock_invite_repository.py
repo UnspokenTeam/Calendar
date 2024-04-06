@@ -24,7 +24,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
     async get_all_invites()
         Returns all invites.
     async get_invites_by_invitee_id(invitee_id)
-        Returns invites that has matches with given list of invitee id.
+        Returns invites that has matches with given of invitee id.
     async create_invite(invite)
         Creates new invite inside db.
     async update_invite(invite)
@@ -87,14 +87,14 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             return self._invites
         raise ValueNotFoundError("Invites not found")
 
-    async def get_invites_by_invitee_id(self, invitee_id: List[str]) -> List[Invite]:
+    async def get_invites_by_invitee_id(self, invitee_id: str) -> List[Invite]:
         """
         Get invites by invitee id.
 
         Parameters
         ----------
-        invitee_id : List[str]
-            List of invitee id.
+        invitee_id : str
+            Invitee id.
 
         Returns
         -------

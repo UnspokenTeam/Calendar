@@ -56,11 +56,6 @@ class InviteRepositoryInterface(ABC):
         """
         Get all invites.
 
-        Parameters
-        ----------
-        invite : Invite
-            invite object.
-
         Returns
         -------
         List[Invite]
