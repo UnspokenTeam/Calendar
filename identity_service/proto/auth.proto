@@ -10,9 +10,7 @@ message LoginRequest {
 }
 
 message CredentialsResponse {
-  int64 status_code = 1;
-  optional LoginData data = 2;
-  optional string message = 3;
+  LoginData data = 1;
 }
 
 message RegisterRequest {

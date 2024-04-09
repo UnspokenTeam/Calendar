@@ -135,7 +135,7 @@ class User:
             username=prisma_user.username,
             email=prisma_user.email,
             password=prisma_user.password,
-            type=UserType(prisma_user.role),
+            type=UserType(prisma_user.type),
             created_at=prisma_user.created_at,
             suspended_at=prisma_user.suspended_at,
         )
@@ -219,7 +219,7 @@ class User:
             ),
             suspended_at=datetime.fromtimestamp(
                 grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
-            ),
+            ) if grpc_user.suspended_at is not None else None,
         )
 
     @classmethod
@@ -249,7 +249,7 @@ class User:
             ),
             suspended_at=datetime.fromtimestamp(
                 grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
-            ),
+            ) if grpc_user.suspended_at is not None else None,
         )
 
     def __eq__(self, other: object) -> bool:

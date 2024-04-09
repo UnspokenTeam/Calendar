@@ -7,15 +7,11 @@ message UserByIdRequest {
 }
 
 message UserResponse {
-  int64 status_code = 1;
-  optional GrpcUser user = 2;
-  optional string message = 3;
+  GrpcUser user = 1;
 }
 
 message UsersResponse {
-  int64 status_code = 1;
-  optional ListOfUser users = 2;
-  optional string message = 3;
+  ListOfUser users = 1;
 }
 
 message ListOfUser {

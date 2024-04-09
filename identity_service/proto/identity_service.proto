@@ -5,9 +5,10 @@ import "get_access_token.proto";
 import "get_user.proto";
 import "update_user.proto";
 import "delete_user.proto";
+import "google/protobuf/empty.proto";
 
 service IdentityService {
-  rpc logout(AccessToken) returns (BaseResponse){}
+  rpc logout(AccessToken) returns (google.protobuf.Empty){}
   rpc auth(AccessToken) returns (UserResponse){}
   rpc login(LoginRequest) returns (CredentialsResponse){}
   rpc register(RegisterRequest) returns (CredentialsResponse){}
@@ -16,10 +17,5 @@ service IdentityService {
   rpc get_users_by_id(UsersByIdRequest) returns (UsersResponse){}
   rpc get_all_users(GetAllUsersRequest) returns (UsersResponse){}
   rpc update_user(UpdateUserRequest) returns (CredentialsResponse){}
-  rpc delete_user(DeleteUserRequest) returns (BaseResponse){}
-}
-
-message BaseResponse {
-  int64 status_code = 1;
-  optional string message = 2;
+  rpc delete_user(DeleteUserRequest) returns (google.protobuf.Empty){}
 }
