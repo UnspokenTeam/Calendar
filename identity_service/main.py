@@ -1,3 +1,4 @@
+from asyncio.exceptions import CancelledError
 import asyncio
 import logging
 import sys
@@ -34,8 +35,18 @@ async def serve() -> None:
     await server.wait_for_termination()
 
 
+async def handle_serve_error() -> None:
+    """Handle server stop"""
+    try:
+        await serve()
+    except CancelledError:
+        logging.info("Server stopped")
+    finally:
+        await PostgresClient().disconnect()
+
+
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO, handlers=[logging.StreamHandler(sys.stdout)]
     )
-    asyncio.run(serve())
+    asyncio.run(handle_serve_error())
