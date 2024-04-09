@@ -109,7 +109,7 @@ class UserRepositoryImpl(UserRepositoryInterface):
         return User.from_prisma_user(db_user)
 
     async def get_users_by_ids(
-        self, user_ids: List[str], page: int, items_per_page: int
+            self, user_ids: List[str], page: int, items_per_page: int
     ) -> List[User]:
         """
         Returns users that has matching ids from database or throws an exception
@@ -273,8 +273,8 @@ class UserRepositoryImpl(UserRepositoryInterface):
         if len(users) == 0:
             raise ValueNotFoundError("No users found")
         return [User.from_prisma_user(user) for user in users][
-            (page - 1) * items_per_page : page * items_per_page
-        ]
+               (page - 1) * items_per_page: page * items_per_page
+               ]
 
     async def get_user_by_session_id(self, session_id: str) -> User:
         """
@@ -298,9 +298,14 @@ class UserRepositoryImpl(UserRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python
 
         """
-        prisma_user = await self._db_client.db.user.find_first(
-            where={"suspended_at": None, "tokens": {"id": session_id}}
+        token = await self._db_client.db.token.find_unique(
+            where={
+                "id": session_id,
+            },
+            include={
+                "user": True
+            }
         )
-        if prisma_user is None:
-            raise ValueNotFoundError("User not found")
-        return User.from_prisma_user(prisma_user=prisma_user)
+        if token is None or token.user is None:
+            raise ValueNotFoundError("Session not found")
+        return User.from_prisma_user(prisma_user=token.user)

@@ -135,7 +135,7 @@ class User:
             username=prisma_user.username,
             email=prisma_user.email,
             password=prisma_user.password,
-            type=UserType(prisma_user.role),
+            type=UserType(prisma_user.type),
             created_at=prisma_user.created_at,
             suspended_at=prisma_user.suspended_at,
         )

@@ -2,13 +2,13 @@
 from enum import Enum
 from typing import Tuple
 import datetime
-import logging
 import os
 
-from errors.InvalidTokenError import InvalidTokenError
+from errors.invalid_token_error import InvalidTokenError
 from utils.singleton import singleton
 
 from jwt import decode, encode
+from jwt.exceptions import DecodeError
 
 
 class TokenType(Enum):
@@ -142,6 +142,5 @@ class JwtController:
                 )
             )
             return str(data["user_id"]), str(data["session_id"])
-        except Exception as e:
-            logging.info(e)
+        except DecodeError:
             raise InvalidTokenError("Invalid token")
