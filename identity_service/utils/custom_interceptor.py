@@ -23,6 +23,23 @@ class CustomInterceptor(AsyncServerInterceptor):
         context: grpc.ServicerContext,
         _: str,
     ) -> Any:
+        """
+        Custom interceptor
+
+        Parameters
+        ----------
+        method: Either the RPC method implementation, or the next interceptor in
+                the chain.
+        request_or_iterator: The RPC request, as a protobuf message if it is a
+            unary request, or an iterator of protobuf messages if it is a streaming
+            request.
+        context: The ServicerContext pass by gRPC to the service.
+        _: A string of the form "/protobuf.package.Service/Method"
+
+        Returns
+        -------
+        Returns the result of method(request_or_iterator)
+        """
         try:
             return await method(request_or_iterator, context)
         except PrismaError as p_error:
