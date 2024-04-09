@@ -1,4 +1,3 @@
-from asyncio.exceptions import CancelledError
 import asyncio
 import logging
 import sys
@@ -39,7 +38,7 @@ async def handle_serve_error() -> None:
     """Handle server stop"""
     try:
         await serve()
-    except CancelledError:
+    except asyncio.CancelledError:
         logging.info("Server stopped")
     finally:
         await PostgresClient().disconnect()
