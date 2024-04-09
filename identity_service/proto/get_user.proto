@@ -1,12 +1,14 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 message UserByIdRequest {
   string user_id = 1;
 }
 
-message UserByIdResponse {
+message UserResponse {
   int64 status_code = 1;
-  optional User user = 2;
+  optional GrpcUser user = 2;
   optional string message = 3;
 }
 
@@ -17,21 +19,31 @@ message UsersResponse {
 }
 
 message ListOfUser {
-  repeated User users = 1;
+  repeated GrpcUser users = 1;
 }
 
-message User {
+enum GrpcUserType {
+    USER = 0;
+    ADMIN = 1;
+}
+
+message GrpcUser {
   string id = 1;
   string username = 2;
   string email = 3;
+  google.protobuf.Timestamp created_at = 4;
+  optional google.protobuf.Timestamp suspended_at = 5;
+  GrpcUserType type = 6;
 }
 
 message UsersByIdRequest {
-  repeated string id = 1;
+  uint64 page = 1;
+  int64 items_per_page = 2;
+  repeated string id = 3;
 }
 
-message UsersByIdResponse {
-  int64 status_code = 1;
-  optional ListOfUser user = 2;
-  optional string message = 3;
+message GetAllUsersRequest {
+  uint64 page = 1;
+  int64 items_per_page = 2;
+  GrpcUser requested_user = 3;
 }

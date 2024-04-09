@@ -7,7 +7,7 @@ explicit_package_bases = true
 disallow_subclassing_any = false
 
 [[tool.mypy.overrides]]
-module = "redis.*"
+module = ["google.*"]
 ignore_missing_imports = true
 
 [tool.ruff]
@@ -52,6 +52,7 @@ section-order = ["future", "standard-library", "third-party", "first-party", "pr
 default-section = "local-folder"
 from-first = true
 known-third-party = ["grpc"]
+
 
 [tool.ruff.lint.isort.sections]
 "prisma" = ["prisma"]

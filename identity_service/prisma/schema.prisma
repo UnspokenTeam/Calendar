@@ -12,12 +12,20 @@ model User {
   username String
   password String
   email String
-  role UserRole @default(User)
+  type UserRole @default(USER)
   created_at DateTime @default(now())
   suspended_at DateTime?
+  tokens Token[]
+}
+
+model Token {
+  id String @id @default(uuid())
+  user_id String
+  user User @relation(fields: [user_id], references: [id])
+  token String
 }
 
 enum UserRole {
-  Admin
-  User
+  ADMIN
+  USER
 }

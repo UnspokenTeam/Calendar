@@ -18,29 +18,38 @@ class TokenRepositoryInterface(ABC):
     """
 
     @abstractmethod
-    async def store_refresh_token(self, refresh_token: str, user_id: str) -> None:
+    async def store_refresh_token(
+        self, refresh_token: str, session_id: str, user_id: str
+    ) -> None:
         """
         Create refresh token with provided data
 
         Parameters
         ----------
+        user_id : str
+            Id of the current user
         refresh_token : str
             User's refresh token
-        user_id : str
-            User's id
+        session_id : str
+            Id of the current session
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
 
         """
         pass
 
     @abstractmethod
-    async def get_refresh_token(self, user_id: str) -> str:
+    async def get_refresh_token(self, session_id: str) -> str:
         """
         Get user's refresh token
 
         Parameters
         ----------
-        user_id : str
-            User's id
+        session_id : str
+            Id of the current session
 
         Returns
         -------
@@ -51,19 +60,44 @@ class TokenRepositoryInterface(ABC):
         ------
         ValueNotFoundError
             No refresh token found for provided user_id
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
 
         """
         pass
 
     @abstractmethod
-    async def delete_refresh_token(self, user_id: str) -> None:
+    async def delete_refresh_token(self, session_id: str) -> None:
         """
-        Delete user's refresh token
+        Delete user's refresh token with provided session_id
+
+        Parameters
+        ----------
+        session_id : str
+            Id of the current session
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
+
+        """
+        pass
+
+    @abstractmethod
+    async def delete_all_refresh_tokens(self, user_id: str) -> None:
+        """
+        Delete all user's refresh tokens
 
         Parameters
         ----------
         user_id : str
-            User's id
+            Id of the current user
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
 
         """
         pass

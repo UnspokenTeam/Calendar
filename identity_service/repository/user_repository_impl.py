@@ -1,6 +1,7 @@
 """User repository with data from database"""
 from datetime import datetime
 from typing import List, Optional
+import logging
 
 from prisma.models import User as PrismaUser
 
@@ -26,17 +27,21 @@ class UserRepositoryImpl(UserRepositoryInterface):
     Methods
     -------
     async get_user_by_email(email)
-        Returns user that has matching email from database or throws an exception
+        Returns user that has matching email from database
     async get_user_by_id(user_id)
-        Returns user that has matching id from database or throws an exception
+        Returns user that has matching id from database
     async get_users_by_ids(user_ids)
-        Returns users that has matching ids from database or throws an exception
+        Returns users that has matching ids from database
     async create_user(user)
-        Creates new user inside db or throws an exception
+        Creates new user inside database
     async update_user(user)
-        Updates user that has the same id as provided user object inside db or throws an exception
+        Updates user that has the same id as provided user object inside db
     async delete_user(user_id)
-        Deletes user that has matching id from database or throws an exception
+        Deletes user that has matching id from database
+    async get_all_users()
+        Get all existing users from database
+    async get_user_by_session_id(session_id)
+        Get user by session id
 
     """
 
@@ -103,7 +108,9 @@ class UserRepositoryImpl(UserRepositoryInterface):
             raise ValueNotFoundError("User not found")
         return User.from_prisma_user(db_user)
 
-    async def get_users_by_ids(self, user_ids: List[str]) -> List[User]:
+    async def get_users_by_ids(
+        self, user_ids: List[str], page: int, items_per_page: int
+    ) -> List[User]:
         """
         Returns users that has matching ids from database or throws an exception
 
@@ -111,6 +118,10 @@ class UserRepositoryImpl(UserRepositoryInterface):
         ----------
         user_ids : List[str]
             User's ids
+        page : int
+            Non-Negative page index
+        items_per_page : int
+            Number of items per page
 
         Returns
         -------
@@ -126,7 +137,9 @@ class UserRepositoryImpl(UserRepositoryInterface):
 
         """
         db_users: Optional[List[PrismaUser]] = await self._db_client.db.user.find_many(
-            where={"id": {"in": user_ids}, "suspended_at": None}
+            where={"id": {"in": user_ids}, "suspended_at": None},
+            skip=(page - 1) * items_per_page,
+            take=items_per_page,
         )
 
         if db_users is None:
@@ -137,7 +150,7 @@ class UserRepositoryImpl(UserRepositoryInterface):
 
         return [User.from_prisma_user(db_user) for db_user in db_users]
 
-    async def create_user(self, user: User) -> None:
+    async def create_user(self, user: User) -> User:
         """
         Creates user with matching data or throws an exception
 
@@ -145,6 +158,11 @@ class UserRepositoryImpl(UserRepositoryInterface):
         ----------
         user : User
             User data
+
+        Returns
+        -------
+        User
+            Created user
 
         Raises
         ------
@@ -166,7 +184,10 @@ class UserRepositoryImpl(UserRepositoryInterface):
         )
         if db_user_counter != 0:
             raise UniqueError("User with this email or username already exists")
-        await self._db_client.db.user.create(data=user.to_dict())
+        logging.info(user.to_dict())
+        prisma_user_data = await self._db_client.db.user.create(data=user.to_dict())
+        user.id = prisma_user_data.id
+        return user
 
     async def update_user(self, user: User) -> None:
         """
@@ -197,7 +218,10 @@ class UserRepositoryImpl(UserRepositoryInterface):
         )
         if db_user_counter != 0:
             raise UniqueError("User with this email or username already exists")
-        await self._db_client.db.user.update(where={"id": user.id}, data=user.to_dict())
+        await self._db_client.db.user.update(
+            where={"id": user.id},
+            data=user.to_dict(exclude=["type"]),
+        )
 
     async def delete_user(self, user_id: str) -> None:
         """
@@ -214,6 +238,69 @@ class UserRepositoryImpl(UserRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python
 
         """
-        await self._db_client.db.user.update(
-            where={"id": user_id}, data={"suspended_at": datetime.now()}
+        await self._db_client.db.user.update_many(
+            where={"id": user_id, "suspended_at": None},
+            data={"suspended_at": datetime.now()},
         )
+
+    async def get_all_users(self, page: int, items_per_page: int) -> List[User]:
+        """
+        Get all existing users
+
+        Parameters
+        ----------
+        page : int
+            Non-Negative page index
+        items_per_page : int
+            Number of items per page
+
+        Returns
+        -------
+        List[User]
+            All existing users
+
+        Raises
+        ------
+        ValueNotFoundError
+            No users found
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
+
+        """
+        users = await self._db_client.db.user.find_many(
+            skip=(page - 1) * items_per_page, take=items_per_page
+        )
+        if len(users) == 0:
+            raise ValueNotFoundError("No users found")
+        return [User.from_prisma_user(user) for user in users][
+            (page - 1) * items_per_page : page * items_per_page
+        ]
+
+    async def get_user_by_session_id(self, session_id: str) -> User:
+        """
+        Get user by session id
+
+        Parameters
+        ----------
+        session_id : str
+            Id of the session
+
+        Returns
+        -------
+        User
+            User with corresponding session
+
+        Raises
+        ------
+        ValueNotFoundError
+            User not found
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python
+
+        """
+        prisma_user = await self._db_client.db.user.find_first(
+            where={"suspended_at": None, "tokens": {"id": session_id}}
+        )
+        if prisma_user is None:
+            raise ValueNotFoundError("User not found")
+        return User.from_prisma_user(prisma_user=prisma_user)

@@ -1,8 +1,13 @@
 """Event Service Controller."""
 import grpc
 
+import prisma.errors
+
 from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
 import proto.event_service_pb2 as proto
+
+from errors.value_not_found_error import ValueNotFoundError
+from src.models.event import Event
 
 from repository.event_repository_interface import EventRepositoryInterface
 
@@ -17,13 +22,19 @@ class EventServiceImpl(GrpcServicer):
 
     Methods
     -------
-    get_events(request, context)
+    async get_events_by_author_id(request, context)
         Function that need to be bind to the server that returns events list.
-    create_event(request, context)
+    async get_event_by_event_id(request, context)
+        Function that need to be bind to the server that returns event.
+    async get_events_by_events_ids(request, context)
+        Function that need to be bind to the server that returns events list.
+    async get_all_events(request, context)
+        Function that need to be bind to the server that returns all events in list.
+    async create_event(request, context)
         Function that need to be bind to the server that creates the event.
-    update_event(request, context)
+    async update_event(request, context)
         Function that need to be bind to the server that updates the event.
-    delete_event(request, context)
+    async delete_event(request, context)
         Function that need to be bind to the server that deletes the event.
 
     """
@@ -36,70 +47,239 @@ class EventServiceImpl(GrpcServicer):
     ) -> None:
         self._event_repository = event_repository
 
-    def get_events(
-        self, request: proto.EventsRequest, context: grpc.ServicerContext
+    async def get_events_by_author_id(
+        self, request: proto.EventsRequestByAuthorId, context: grpc.ServicerContext
     ) -> proto.EventsResponse:
         """
-        Get all events.
+        Get events by author id.
 
         Parameters
         ----------
-        request : EventsRequest
+        request : proto.EventsRequestByAuthorId
             Request data.
         context : grpc.ServicerContext
             Request context.
 
         Returns
         -------
-        EventsResponse
+        proto.EventsResponse
             Response object for event response.
 
         """
-        pass
+        try:
+            events = await self._event_repository.get_events_by_author_id(
+                author_id=request.author_id,
+                page_number=request.page_number,
+                items_per_page=request.items_per_page,
+            )
+            context.set_code(grpc.StatusCode.OK)
+            return proto.EventsResponse(
+                status_code=200,
+                events=proto.ListOfEvents(
+                    events=[event.to_grpc_event() for event in events]
+                ),
+            )
+        except ValueNotFoundError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return proto.EventsResponse(status_code=404, message="Events not found")
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return proto.EventsResponse(
+                status_code=500, message="Internal server error"
+            )
 
-    def create_event(
-        self, request: proto.Event, context: grpc.ServicerContext
+    async def get_event_by_event_id(
+        self, request: proto.EventRequestByEventId, context: grpc.ServicerContext
+    ) -> proto.EventResponse:
+        """
+        Get event by event id.
+
+        Parameters
+        ----------
+        request : proto.EventRequestByEventId
+            Request data.
+        context : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        proto.EventResponse
+            Response object for event response.
+
+        """
+        try:
+            event = await self._event_repository.get_event_by_event_id(
+                event_id=request.event_id
+            )
+            context.set_code(grpc.StatusCode.OK)
+            return proto.EventResponse(status_code=200, event=event.to_grpc_event())
+        except ValueNotFoundError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return proto.EventResponse(status_code=404, message="Events not found")
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return proto.EventResponse(status_code=500, message="Internal server error")
+
+    async def get_events_by_events_ids(
+        self, request: proto.EventsRequestByEventsIds, context: grpc.ServicerContext
+    ) -> proto.EventsResponse:
+        """
+        Get events by events ids.
+
+        Parameters
+        ----------
+        request : proto.EventsRequestByEventsIds
+            Request data.
+        context : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        proto.EventsResponse
+            Response object for event response.
+
+        """
+        try:
+            events = await self._event_repository.get_events_by_events_ids(
+                events_ids=list(request.events_ids.ids),
+                page_number=request.page_number,
+                items_per_page=request.items_per_page,
+            )
+            context.set_code(grpc.StatusCode.OK)
+            return proto.EventsResponse(
+                status_code=200,
+                events=proto.ListOfEvents(
+                    events=[event.to_grpc_event() for event in events]
+                ),
+            )
+        except ValueNotFoundError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return proto.EventsResponse(status_code=404, message="Events not found")
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return proto.EventsResponse(
+                status_code=500, message="Internal server error"
+            )
+
+    async def get_all_events(
+        self, request: proto.RequestingUser, context: grpc.ServicerContext
+    ) -> proto.EventsResponse:
+        """
+        Get all events.
+
+        Parameters
+        ----------
+        request : proto.RequestingUser
+            Request data.
+        context : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        proto.EventsResponse
+            Response object for event response.
+
+        """
+        try:
+            if request.user.type != proto.GrpcUserType.ADMIN:
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                return proto.EventsResponse(
+                    status_code=403, message="Permission denied"
+                )
+            events = await self._event_repository.get_all_events(
+                page_number=request.page_number, items_per_page=request.items_per_page
+            )
+            context.set_code(grpc.StatusCode.OK)
+            return proto.EventsResponse(
+                status_code=200,
+                events=proto.ListOfEvents(
+                    events=[event.to_grpc_event() for event in events]
+                ),
+            )
+        except ValueNotFoundError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return proto.EventsResponse(status_code=404, message="Events not found")
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return proto.EventsResponse(
+                status_code=500, message="Internal server error"
+            )
+
+    async def create_event(
+        self, request: proto.EventRequest, context: grpc.ServicerContext
     ) -> proto.BaseResponse:
         """
         Create event.
 
         Parameters
         ----------
-        request : GrpcEvent
+        request : proto.EventRequest
             Request data containing GrpcEvent.
         context : grpc.ServicerContext
             Request context.
 
         Returns
         -------
-        BaseResponse
+        proto.BaseResponse
             Object containing status code and message if the response status is not 200.
 
         """
-        pass
+        try:
+            event = Event.from_grpc_event(request.event)
+            if (
+                    request.user.type != proto.GrpcUserType.ADMIN
+                    and request.user.id != event.author_id
+            ):
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                return proto.BaseResponse(status_code=403, message="Permission denied")
+            await self._event_repository.create_event(event=event)
+            context.set_code(grpc.StatusCode.OK)
+            return proto.BaseResponse(status_code=200)
+        except ValueNotFoundError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return proto.BaseResponse(status_code=404, message="Event not found")
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return proto.BaseResponse(status_code=500, message="Internal server error")
 
-    def update_event(
-        self, request: proto.Event, context: grpc.ServicerContext
+    async def update_event(
+        self, request: proto.EventRequest, context: grpc.ServicerContext
     ) -> proto.BaseResponse:
         """
         Update event.
 
         Parameters
         ----------
-        request : GrpcEvent
+        request : proto.EventRequest
             Request data containing GrpcEvent.
         context : grpc.ServicerContext
             Request context.
 
         Returns
         -------
-        BaseResponse
+        proto.BaseResponse
             Object containing status code and message if the response status is not 200.
 
         """
-        pass
+        try:
+            if (
+                request.user.type != proto.GrpcUserType.ADMIN
+                and request.user.id != request.event.author_id
+            ):
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                return proto.BaseResponse(status_code=403, message="Permission denied")
+            event = Event.from_grpc_event(request.event)
+            await self._event_repository.update_event(event=event)
+            context.set_code(grpc.StatusCode.OK)
+            return proto.BaseResponse(status_code=200)
+        except ValueNotFoundError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return proto.BaseResponse(status_code=404, message="Event not found")
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return proto.BaseResponse(status_code=500, message="Internal server error")
 
-    def delete_event(
+    async def delete_event(
         self, request: proto.DeleteEventRequest, context: grpc.ServicerContext
     ) -> proto.BaseResponse:
         """
@@ -107,15 +287,31 @@ class EventServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : DeleteEventRequest
+        request : proto.DeleteEventRequest
             Request data containing event ID.
         context : grpc.ServicerContext
             Request context.
 
         Returns
         -------
-        BaseResponse
+        proto.BaseResponse
             Object containing status code and message if the response status is not 200.
 
         """
-        pass
+        try:
+            event = await self._event_repository.get_event_by_event_id(request.event_id)
+            if (
+                request.user.type != proto.GrpcUserType.ADMIN
+                and request.user.id != event.author_id
+            ):
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                return proto.BaseResponse(status_code=403, message="Permission denied")
+            await self._event_repository.delete_event(event_id=request.event_id)
+            context.set_code(grpc.StatusCode.OK)
+            return proto.BaseResponse(status_code=200)
+        except ValueNotFoundError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return proto.BaseResponse(status_code=404, message="Event not found")
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return proto.BaseResponse(status_code=500, message="Internal server error")

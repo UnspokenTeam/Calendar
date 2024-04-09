@@ -10,12 +10,12 @@ generator client {
 model Event {
   id String @id @default(uuid())
   title String
-  description String?
-  color String?
+  description String? @default(None)
+  color String? @default(None)
   start DateTime
   end DateTime
-  repeating_delay DateTime
+  repeating_delay DateTime? @default(None)
   author_id String
-  created_at DateTime
-  deleted_at DateTime?
+  created_at DateTime @default(now())
+  deleted_at DateTime? @default(None)
 }
