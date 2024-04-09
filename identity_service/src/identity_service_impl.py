@@ -4,19 +4,20 @@ from uuid import uuid4
 
 import grpc
 
+from errors.permission_denied import PermissionDeniedError
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.user import User, UserType
 from utils.encoder import Encoder
 from utils.jwt_controller import JwtController, TokenType
 
 from generated.identity_service_pb2_grpc import IdentityServiceServicer as GrpcServicer
+from google.protobuf.empty_pb2 import Empty
 from repository.token_repository_interface import TokenRepositoryInterface
 from repository.user_repository_interface import UserRepositoryInterface
 import generated.auth_pb2 as auth_proto
 import generated.delete_user_pb2 as delete_user_proto
 import generated.get_access_token_pb2 as get_access_token_proto
 import generated.get_user_pb2 as get_user_proto
-import generated.identity_service_pb2 as requests_proto
 import generated.update_user_pb2 as update_user_proto
 
 
@@ -104,7 +105,6 @@ class IdentityServiceImpl(GrpcServicer):
 
         context.set_code(grpc.StatusCode.OK)
         return auth_proto.CredentialsResponse(
-            status_code=200,
             data=auth_proto.LoginData(
                 access_token=access_token, refresh_token=refresh_token
             ),
@@ -144,7 +144,6 @@ class IdentityServiceImpl(GrpcServicer):
 
         context.set_code(grpc.StatusCode.OK)
         return auth_proto.CredentialsResponse(
-            status_code=200,
             data=auth_proto.LoginData(
                 access_token=access_token, refresh_token=refresh_token
             ),
@@ -175,7 +174,7 @@ class IdentityServiceImpl(GrpcServicer):
         user = await self._user_repository.get_user_by_session_id(session_id)
         context.set_code(grpc.StatusCode.OK)
         return get_user_proto.UserResponse(
-            status_code=200, user=user.to_grpc_user()
+            user=user.to_grpc_user()
         )
 
     async def get_new_access_token(
@@ -208,7 +207,7 @@ class IdentityServiceImpl(GrpcServicer):
         )
         context.set_code(grpc.StatusCode.OK)
         return get_access_token_proto.GetNewAccessTokenResponse(
-            status_code=200, access_token=access_token
+            access_token=access_token
         )
 
     async def get_user_by_id(
@@ -233,7 +232,7 @@ class IdentityServiceImpl(GrpcServicer):
         user = await self._user_repository.get_user_by_id(request.user_id)
         context.set_code(grpc.StatusCode.OK)
         return get_user_proto.UserResponse(
-            status_code=200, user=user.to_dict(exclude=["password"])
+            user=user.to_dict(exclude=["password"])
         )
 
     async def get_users_by_id(
@@ -262,7 +261,6 @@ class IdentityServiceImpl(GrpcServicer):
         )
         context.set_code(grpc.StatusCode.OK)
         return get_user_proto.UsersResponse(
-            status_code=200,
             users=get_user_proto.ListOfUser(
                 users=[user.to_grpc_user() for user in users]
             ),
@@ -289,11 +287,7 @@ class IdentityServiceImpl(GrpcServicer):
         """
         requesting_user = User.from_grpc_user(request.requested_user)
         if requesting_user.type != UserType.ADMIN:
-            context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return get_user_proto.UsersResponse(
-                status_code=403,
-                message="Permission denied",
-            )
+            raise PermissionDeniedError("Permission denied")
         users = await self._user_repository.get_all_users(
             page=request.page, items_per_page=request.items_per_page
         )
@@ -332,11 +326,7 @@ class IdentityServiceImpl(GrpcServicer):
         )
 
         if requesting_user.type != UserType.ADMIN and user.id != requesting_user.id:
-            context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return auth_proto.CredentialsResponse(
-                status_code=403,
-                message="Permission denied",
-            )
+            raise PermissionDeniedError("Permission denied")
 
         if self._encoder.compare(user.password, db_user.password):
             user.password = db_user.password
@@ -356,7 +346,6 @@ class IdentityServiceImpl(GrpcServicer):
 
         context.set_code(grpc.StatusCode.OK)
         return auth_proto.CredentialsResponse(
-            status_code=200,
             data=auth_proto.LoginData(
                 access_token=access_token, refresh_token=refresh_token
             ),
@@ -366,7 +355,7 @@ class IdentityServiceImpl(GrpcServicer):
         self,
         request: delete_user_proto.DeleteUserRequest,
         context: grpc.ServicerContext,
-    ) -> requests_proto.BaseResponse:
+    ) -> Empty:
         """
         Deletes user with matching ID
 
@@ -379,27 +368,24 @@ class IdentityServiceImpl(GrpcServicer):
 
         Returns
         -------
-        requests_proto.BaseResponse
-            Base response with status code and optional message
+        Empty
+            Empty response
 
         """
         requesting_user = User.from_grpc_user(request.requesting_user)
         user = await self._user_repository.get_user_by_id(request.user_id)
         if requesting_user.type != UserType.ADMIN and requesting_user.id != user.id:
-            context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return requests_proto.BaseResponse(
-                status_code=403, message="Permission denied"
-            )
+            raise PermissionDeniedError("Permission denied")
         await self._token_repository.delete_all_refresh_tokens(
             user_id=request.user_id
         )
         await self._user_repository.delete_user(user_id=request.user_id)
         context.set_code(grpc.StatusCode.OK)
-        return requests_proto.BaseResponse(status_code=200)
+        return Empty()
 
     async def logout(
         self, request: auth_proto.AccessToken, context: grpc.ServicerContext
-    ) -> requests_proto.BaseResponse:
+    ) -> Empty:
         """
         Logs out and deletes user's access token from database
 
@@ -412,8 +398,8 @@ class IdentityServiceImpl(GrpcServicer):
 
         Returns
         -------
-        requests_proto.BaseResponse
-            Base response with status code and optional message
+        Empty
+            Empty response
 
         """
         _, session_id = self._jwt_controller.decode(
@@ -421,7 +407,7 @@ class IdentityServiceImpl(GrpcServicer):
         )
         await self._token_repository.delete_refresh_token(session_id=session_id)
         context.set_code(grpc.StatusCode.OK)
-        return requests_proto.BaseResponse(status_code=200)
+        return Empty()
 
     def _generate_tokens(self, session_id: str, user_id: str) -> Tuple[str, str]:
         """
