@@ -1,0 +1,24 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-py"
+}
+
+model Invite {
+  id String @id @default(uuid())
+  event_id String
+  author_id String
+  invitee_id String
+  status InviteStatus
+  create_at DateTime @default(now())
+  deleted_at DateTime?
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
