@@ -39,11 +39,11 @@ class InviteServiceImpl(GrpcServicer):
     def __init__(self, invite_repository: InviteRepositoryInterface) -> None:
         self._invite_repository = invite_repository
 
-    def get_invites_by_user_id(
+    def get_invites_by_author_id(
         self, request: proto.InvitesByUserIdRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
-        Get all invites by user id.
+        Get all invites by author id.
 
         Parameters
         ----------
@@ -58,18 +58,7 @@ class InviteServiceImpl(GrpcServicer):
             Invites object for invite response.
 
         """
-        context.set_code(grpc.StatusCode.OK)
-
-        return proto.InvitesResponse(
-            code=200,
-            invites=proto.ListOfInvites(
-                invites=[
-                    invite.to_grpc_invite()
-                    for invite in self.invites
-                    if invite.author_id == request.author_id
-                ]
-            ),
-        )
+        pass
 
     def get_all_invites(
         self, request: Empty, context: grpc.ServicerContext

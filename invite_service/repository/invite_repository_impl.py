@@ -24,7 +24,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
 
     Methods
     -------
-    async get_invites(author_id)
+    async get_invites_by_author_id(author_id)
         Returns invites that has matches with given author id.
     async create_invite(invite)
         Creates new invite inside db or throws an exception.
@@ -44,7 +44,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
     def __init__(self) -> None:
         self._db_client = PostgresClient()
 
-    async def get_invites(self, author_id: str) -> List[Invite]:
+    async def get_invites_by_author_id(self, author_id: str) -> List[Invite]:
         """
         Get invites by author id.
 
@@ -112,7 +112,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         Parameters
         ----------
         invitee_id : str
-            invitee_id object.
+            invitee id object.
 
         Returns
         -------
@@ -131,7 +131,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             List[PrismaInvite]
         ] = await self._db_client.db.invite.find_many(
             where={
-                "id": {"in": [invite_id for invite_id in invitee_id]},
+                "id": invitee_id,
                 "deleted_at": None,
             }
         )

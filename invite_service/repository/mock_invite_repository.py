@@ -19,7 +19,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
     Methods
     -------
-    async get_invites(author_id)
+    async get_invites_by_author_id(author_id)
         Returns invites that has matches with given author id.
     async get_all_invites()
         Returns all invites.
@@ -39,7 +39,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
     def __init__(self) -> None:
         self._invites = []
 
-    async def get_invites(self, author_id: str) -> List[Invite]:
+    async def get_invites_by_author_id(self, author_id: str) -> List[Invite]:
         """
         Get invites by author id.
 
@@ -110,7 +110,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         invites = [
             invite
             for invite in self._invites
-            if invite.id in invitee_id and invite.deleted_at is None
+            if invite.id == invitee_id and invite.deleted_at is None
         ]
         if invites is None or len(invites) == 0:
             raise ValueNotFoundError("Invites not found")
@@ -144,13 +144,13 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             Can't update invite with provided data
 
         """
-        index = next(
-            i for i in range(len(self._invites)) if self._invites[i].id == invite.id
-        )
-        if self._invites[index].author_id == invite.author_id:
+        try:
+            index = next(
+                i for i in range(len(self._invites)) if self._invites[i].id == invite.id
+            )
             self._invites[index] = invite
-        else:
-            raise ValueNotFoundError("Invites authors must be same")
+        except StopIteration:
+            raise ValueNotFoundError("Invite not found")
 
     async def delete_invite(self, invite_id: str) -> None:
         """

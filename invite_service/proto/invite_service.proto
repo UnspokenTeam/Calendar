@@ -4,7 +4,7 @@ import "google/protobuf/empty.proto";
 
 service InviteService {
   rpc get_all_invites(google.protobuf.Empty) returns (InvitesResponse){}
-  rpc get_invites_by_user_id(InvitesByUserIdRequest) returns (InvitesResponse){}
+  rpc get_invites_by_author_id(InvitesByUserIdRequest) returns (InvitesResponse){}
   rpc get_invites_by_invitee_id(GetInviteeByInviteIdRequest) returns (InvitesResponse){}
   rpc create_invite(Invite) returns (BaseResponse){}
   rpc update_invite(Invite) returns (BaseResponse){}

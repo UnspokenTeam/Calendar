@@ -11,23 +11,23 @@ class InviteRepositoryInterface(ABC):
 
     Methods
     -------
-    async get_invites(author_id)
+    async get_invites_by_author_id(author_id)
         Returns invites that has matches with given author id.
+    async get_all_invites()
+        Returns all invites.
+    async get_invites_by_invitee_id(invitee_id)
+        Returns invites that has matches with given invitee id.
     async create_invite(invite)
         Creates new invite inside db or throws an exception.
     async update_invite(invite)
         Updates invite that has the same id as provided invite object inside db or throws an exception.
     async delete_invite(invite_id)
         Deletes invite that has matching id from database or throws an exception.
-    async get_all_invites()
-        Returns all invites.
-    async get_invites_by_invitee_id(invitee_id)
-        Returns invites that has matches with given invitee id.
 
     """
 
     @abstractmethod
-    async def get_invites(self, author_id: str) -> List[Invite]:
+    async def get_invites_by_author_id(self, author_id: str) -> List[Invite]:
         """
         Get invites by author id.
 
@@ -79,7 +79,7 @@ class InviteRepositoryInterface(ABC):
         Parameters
         ----------
         invitee_id : str
-            invitee_id object.
+            invitee id object.
 
         Returns
         -------
