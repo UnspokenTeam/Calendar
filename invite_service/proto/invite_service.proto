@@ -1,21 +1,37 @@
 syntax = "proto3";
+
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
 service InviteService {
+  rpc get_invite_by_invite_id(InviteRequestByInviteId) returns (InviteResponse){}
   rpc get_all_invites(google.protobuf.Empty) returns (InvitesResponse){}
-  rpc get_invites_by_author_id(InvitesByUserIdRequest) returns (InvitesResponse){}
+  rpc get_invites_by_author_id(InvitesByAuthorIdRequest) returns (InvitesResponse){}
   rpc get_invites_by_invitee_id(GetInviteeByInviteIdRequest) returns (InvitesResponse){}
-  rpc create_invite(Invite) returns (BaseResponse){}
-  rpc update_invite(Invite) returns (BaseResponse){}
+  rpc create_invite(GrpcInvite) returns (BaseResponse){}
+  rpc update_invite(GrpcInvite) returns (BaseResponse){}
   rpc delete_invite(DeleteInviteRequest) returns (BaseResponse){}
 }
 
-message InvitesByUserIdRequest {
-  string user_id = 1;
+message InvitesByAuthorIdRequest {
+  string author_id = 1;
 }
 
-message Invite {
+message InviteRequestByInviteId {
+  string invite_id = 1;
+}
+
+message InviteResponse {
+  int32 status_code = 1;
+  GrpcInvite invite = 2;
+  optional string message = 3;
+}
+
+message InviteRequest {
+  GrpcInvite invite = 1;
+}
+
+message GrpcInvite {
   string id = 1;
   string event_id = 2;
   string author_id = 3;
@@ -26,17 +42,17 @@ message Invite {
 }
 
 message ListOfInvites {
-  repeated Invite invites = 1;
+  repeated GrpcInvite invites = 1;
 }
 
 message InvitesResponse{
-  int64 code = 1;
+  int32 status_code = 1;
   optional ListOfInvites invites = 2;
   optional string message = 3;
 }
 
 message BaseResponse {
-  int64 code = 1;
+  int32 status_code = 1;
   optional string message = 2;
 }
 
@@ -50,6 +66,11 @@ message GetInvitesByInviteeIdRequest {
 
 message GetInviteeByInviteIdRequest {
   string invite_id = 1;
+}
+
+enum GrpcUserType {
+    USER = 0;
+    ADMIN = 1;
 }
 
 enum InviteStatus {

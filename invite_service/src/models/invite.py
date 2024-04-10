@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Self
 
 from prisma.models import Invite as PrismaInvite
 
-from proto.invite_service_pb2 import Invite as GrpcInvite
+from proto.invite_service_pb2 import GrpcInvite
 from proto.invite_service_pb2 import InviteStatus
 
 
@@ -36,6 +36,12 @@ class Invite:
     -------
     to_grpc_invite()
         Returns invite's information as a GrpcInvite class instance
+    to_dict(exclude)
+        Converts invite to dictionary.
+    from_prisma_invite(prisma_invite)
+        Converts prisma invite to invite object.
+    from_grpc_invite(grpc_invite)
+        Converts grpc invite to invite object.
 
     """
 
@@ -116,3 +122,42 @@ class Invite:
             created_at=prisma_invite.create_at,
             deleted_at=prisma_invite.deleted_at,
         )
+
+    @classmethod
+    def from_grpc_invite(cls, grpc_invite: GrpcInvite) -> Self:
+        """
+        Converts grpc invite.
+
+        Parameters
+        ----------
+        grpc_invite : GrpcInvite
+            Grpc invite.
+        Returns
+        -------
+        Invite
+            Invite class instance.
+
+        """
+        return cls(
+            id=grpc_invite.id,
+            event_id=grpc_invite.event_id,
+            author_id=grpc_invite.author_id,
+            invitee_id=grpc_invite.invitee_id,
+            status=grpc_invite.status,
+            created_at=datetime.fromtimestamp(
+                grpc_invite.created_at.seconds + grpc_invite.created_at.nanos / 1e9
+            ),
+            deleted_at=datetime.fromtimestamp(
+                grpc_invite.deleted_at.seconds + grpc_invite.deleted_at.nanos / 1e9
+            )
+            if grpc_invite.deleted_at is not None
+            else None,
+        )
+
+    def __repr__(self) -> str:
+        return f"{vars(self)}"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Invite):
+            return NotImplemented
+        return self.id == other.id
