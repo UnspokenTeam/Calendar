@@ -6,9 +6,10 @@ import prisma.errors
 from proto.invite_service_pb2_grpc import InviteServiceServicer as GrpcServicer
 import proto.invite_service_pb2 as proto
 
-from google.protobuf.empty_pb2 import Empty
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.invite import Invite
+
+from google.protobuf.empty_pb2 import Empty
 from repository.invite_repository_interface import InviteRepositoryInterface
 
 

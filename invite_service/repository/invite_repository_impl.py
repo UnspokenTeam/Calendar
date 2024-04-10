@@ -78,6 +78,35 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             for db_invite in db_invites
         ]
 
+    async def get_invite_by_invite_id(self, invite_id: str) -> Invite:
+        """
+        Get invite by invite id.
+
+        Parameters
+        ----------
+        invite_id : str
+            Invite's id.
+
+        Returns
+        -------
+        Invite
+            Invite that matches by invite id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+        ValueNotFoundError
+            No invite was found for given invite id.
+
+        """
+        db_invite: Optional[PrismaInvite] = await self._db_client.db.invite.find_first(
+            where={"id": invite_id, "deleted_at": None}
+        )
+        if db_invite is None:
+            raise ValueNotFoundError("Invite not found")
+        return Invite.from_prisma_invite(prisma_invite=db_invite)
+
     async def get_all_invites(self) -> List[Invite]:
         """
         Get all invites.
@@ -136,7 +165,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             }
         )
         if db_invites is None or len(db_invites) == 0:
-            raise ValueNotFoundError("Events not found")
+            raise ValueNotFoundError("Invites not found")
         return [
             Invite.from_prisma_invite(prisma_invite=db_invite)
             for db_invite in db_invites
