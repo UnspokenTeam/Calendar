@@ -19,6 +19,8 @@ message InvitesByAuthorIdRequest {
 
 message InviteRequestByInviteId {
   string invite_id = 1;
+  GrpcInvite invite = 2;
+  GrpcUser user = 3;
 }
 
 message InviteResponse {
@@ -29,6 +31,7 @@ message InviteResponse {
 
 message InviteRequest {
   GrpcInvite invite = 1;
+  GrpcUser user = 2;
 }
 
 message GrpcInvite {
@@ -39,6 +42,15 @@ message GrpcInvite {
   InviteStatus status = 5;
   google.protobuf.Timestamp created_at = 6;
   optional google.protobuf.Timestamp deleted_at = 7;
+}
+
+message GrpcUser {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  google.protobuf.Timestamp created_at = 4;
+  optional google.protobuf.Timestamp suspended_at = 5;
+  GrpcUserType type = 6;
 }
 
 message ListOfInvites {
@@ -58,6 +70,8 @@ message BaseResponse {
 
 message DeleteInviteRequest {
   string invite_id = 1;
+  GrpcInvite invite = 2;
+  GrpcUser user = 3;
 }
 
 message GetInvitesByInviteeIdRequest {
@@ -65,7 +79,7 @@ message GetInvitesByInviteeIdRequest {
 }
 
 message GetInviteeByInviteIdRequest {
-  string invite_id = 1;
+  string invitee_id = 1;
 }
 
 enum GrpcUserType {

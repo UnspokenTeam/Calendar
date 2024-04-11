@@ -151,6 +151,12 @@ class InviteServiceImpl(GrpcServicer):
 
         """
         try:
+            invite = Invite.from_grpc_invite(request.invite)
+            if request.user.id != invite.author_id:
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                return proto.InviteResponse(
+                    status_code=403, message="Permission denied"
+                )
             invite = await self._invite_repository.get_invite_by_invite_id(
                 invite_id=request.invite_id
             )
@@ -186,7 +192,7 @@ class InviteServiceImpl(GrpcServicer):
         """
         try:
             invites = await self._invite_repository.get_invites_by_invitee_id(
-                invitee_id=request.invite_id,
+                invitee_id=request.invitee_id,
             )
             context.set_code(grpc.StatusCode.OK)
             return proto.InvitesResponse(
@@ -256,6 +262,9 @@ class InviteServiceImpl(GrpcServicer):
         """
         try:
             invite = Invite.from_grpc_invite(request.invite)
+            if request.user.id != invite.author_id:
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                return proto.BaseResponse(status_code=403, message="Permission denied")
             await self._invite_repository.update_invite(invite=invite)
             context.set_code(grpc.StatusCode.OK)
             return proto.BaseResponse(status_code=200)
@@ -286,6 +295,10 @@ class InviteServiceImpl(GrpcServicer):
 
         """
         try:
+            invite = Invite.from_grpc_invite(request.invite)
+            if request.user.id != invite.author_id:
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                return proto.BaseResponse(status_code=403, message="Permission denied")
             await self._invite_repository.delete_invite(invite_id=request.invite_id)
             context.set_code(grpc.StatusCode.OK)
             return proto.BaseResponse(status_code=200)
