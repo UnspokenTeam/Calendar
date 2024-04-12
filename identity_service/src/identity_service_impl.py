@@ -282,7 +282,12 @@ class IdentityServiceImpl(GrpcServicer):
         Returns
         -------
         get_user_proto.UsersResponse
-            Response object with array of user data
+            Response object with array of user data4
+
+        Raises
+        ------
+        PermissionDeniedError
+            Permission denied
 
         """
         requesting_user = User.from_grpc_user(request.requested_user)
@@ -317,6 +322,11 @@ class IdentityServiceImpl(GrpcServicer):
         -------
         auth_proto.CredentialsResponse
             Response with credentials for user
+
+        Raises
+        ------
+        PermissionDeniedError
+            Permission denied
 
         """
         user = User.from_update_grpc_user(grpc_user=request.new_user)
@@ -370,6 +380,11 @@ class IdentityServiceImpl(GrpcServicer):
         -------
         Empty
             Empty response
+
+        Raises
+        ------
+        PermissionDeniedError
+            Permission denied
 
         """
         requesting_user = User.from_grpc_user(request.requesting_user)
