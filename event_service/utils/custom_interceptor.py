@@ -47,6 +47,7 @@ class CustomInterceptor(AsyncServerInterceptor):
         Returns
         -------
         Returns the result of method(request_or_iterator)
+
         """
         try:
             return await method(request_or_iterator, context)

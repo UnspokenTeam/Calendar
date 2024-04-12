@@ -74,16 +74,12 @@ class EventRepositoryImpl(EventRepositoryInterface):
             No events were found for given author id.
 
         """
-        db_events: Optional[List[PrismaEvent]] = (
-            await self._db_client.db.event.find_many(
-                where={"id": author_id, "deleted_at": None},
-                skip=items_per_page * (page_number - 1),
-                take=items_per_page,
-            )
-            if items_per_page != -1
-            else await self._db_client.db.event.find_many(
-                where={"id": author_id, "deleted_at": None},
-            )
+        db_events: Optional[
+            List[PrismaEvent]
+        ] = await self._db_client.db.event.find_many(
+            where={"id": author_id, "deleted_at": None},
+            skip=items_per_page * (page_number - 1) if items_per_page != -1 else None,
+            take=items_per_page if items_per_page != -1 else None,
         )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
@@ -148,22 +144,15 @@ class EventRepositoryImpl(EventRepositoryInterface):
             No events were found for given events ids.
 
         """
-        db_events: Optional[List[PrismaEvent]] = (
-            await self._db_client.db.event.find_many(
-                where={
-                    "id": {"in": [event_id for event_id in events_ids]},
-                    "deleted_at": None,
-                },
-                skip=items_per_page * (page_number - 1),
-                take=items_per_page,
-            )
-            if items_per_page != -1
-            else await self._db_client.db.event.find_many(
-                where={
-                    "id": {"in": [event_id for event_id in events_ids]},
-                    "deleted_at": None,
-                },
-            )
+        db_events: Optional[
+            List[PrismaEvent]
+        ] = await self._db_client.db.event.find_many(
+            where={
+                "id": {"in": [event_id for event_id in events_ids]},
+                "deleted_at": None,
+            },
+            skip=items_per_page * (page_number - 1) if items_per_page != -1 else None,
+            take=items_per_page if items_per_page != -1 else None,
         )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
@@ -199,8 +188,10 @@ class EventRepositoryImpl(EventRepositoryInterface):
         """
         db_events: Optional[List[PrismaEvent]] = (
             await self._db_client.db.event.find_many(
-                skip=items_per_page * (page_number - 1),
-                take=items_per_page,
+                skip=items_per_page * (page_number - 1)
+                if items_per_page != -1
+                else None,
+                take=items_per_page if items_per_page != -1 else None,
             )
             if items_per_page != -1
             else await self._db_client.db.event.find_many()

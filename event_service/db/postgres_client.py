@@ -17,11 +17,14 @@ class PostgresClient:
         Prisma db client.
 
     _connected : bool
+        Flag to indicate if connection is established
 
     Methods
     -------
     async connect()
         Connects prisma client to database.
+    async disconnect()
+        Disconnects prisma client from database.
 
     """
 
