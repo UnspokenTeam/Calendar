@@ -16,6 +16,8 @@ class PostgresClient:
     db : prisma.Client
         Prisma db client.
 
+    _connected : bool
+
     Methods
     -------
     async connect()
@@ -24,6 +26,7 @@ class PostgresClient:
     """
 
     db: Client
+    _connected: bool
 
     def __init__(self) -> None:
         self.db = Prisma(auto_register=True)
@@ -32,3 +35,14 @@ class PostgresClient:
         """Connect to database."""
         await self.db.connect()
         logging.info("Connected to Postgres")
+        self._connected = True
+
+    async def disconnect(self) -> None:
+        """Disconnect from database."""
+        if not self._connected:
+            logging.info("Disconnected from Postgres. Skipping disconnect...")
+            return
+
+        await self.db.disconnect()
+        logging.info("Disconnected from Postgres.")
+        self._connected = False

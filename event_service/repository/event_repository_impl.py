@@ -71,15 +71,19 @@ class EventRepositoryImpl(EventRepositoryInterface):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No events was found for given author id.
+            No events were found for given author id.
 
         """
-        db_events: Optional[
-            List[PrismaEvent]
-        ] = await self._db_client.db.event.find_many(
-            where={"id": author_id, "deleted_at": None},
-            skip=items_per_page * (page_number - 1),
-            take=items_per_page,
+        db_events: Optional[List[PrismaEvent]] = (
+            await self._db_client.db.event.find_many(
+                where={"id": author_id, "deleted_at": None},
+                skip=items_per_page * (page_number - 1),
+                take=items_per_page,
+            )
+            if items_per_page != -1
+            else await self._db_client.db.event.find_many(
+                where={"id": author_id, "deleted_at": None},
+            )
         )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
@@ -106,7 +110,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No events was found for given event id.
+            No events were found for given event id.
 
         """
         db_event: Optional[PrismaEvent] = await self._db_client.db.event.find_first(
@@ -141,18 +145,25 @@ class EventRepositoryImpl(EventRepositoryInterface):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No events was found for given events ids.
+            No events were found for given events ids.
 
         """
-        db_events: Optional[
-            List[PrismaEvent]
-        ] = await self._db_client.db.event.find_many(
-            where={
-                "id": {"in": [event_id for event_id in events_ids]},
-                "deleted_at": None,
-            },
-            skip=items_per_page * (page_number - 1),
-            take=items_per_page,
+        db_events: Optional[List[PrismaEvent]] = (
+            await self._db_client.db.event.find_many(
+                where={
+                    "id": {"in": [event_id for event_id in events_ids]},
+                    "deleted_at": None,
+                },
+                skip=items_per_page * (page_number - 1),
+                take=items_per_page,
+            )
+            if items_per_page != -1
+            else await self._db_client.db.event.find_many(
+                where={
+                    "id": {"in": [event_id for event_id in events_ids]},
+                    "deleted_at": None,
+                },
+            )
         )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
@@ -176,21 +187,23 @@ class EventRepositoryImpl(EventRepositoryInterface):
         Returns
         -------
         List[Event]
-            List of events that matches by author id.
+            List of events.
 
         Raises
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No events was found for given author id.
+            No events were found.
 
         """
-        db_events: Optional[
-            List[PrismaEvent]
-        ] = await self._db_client.db.event.find_many(
-            skip=items_per_page * (page_number - 1),
-            take=items_per_page,
+        db_events: Optional[List[PrismaEvent]] = (
+            await self._db_client.db.event.find_many(
+                skip=items_per_page * (page_number - 1),
+                take=items_per_page,
+            )
+            if items_per_page != -1
+            else await self._db_client.db.event.find_many()
         )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
@@ -213,7 +226,9 @@ class EventRepositoryImpl(EventRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.event.create(data=event.to_dict(exclude=["created_at", "deleted_at"]))
+        await self._db_client.db.event.create(
+            data=event.to_dict(exclude=["created_at", "deleted_at"])
+        )
 
     async def update_event(self, event: Event) -> None:
         """
