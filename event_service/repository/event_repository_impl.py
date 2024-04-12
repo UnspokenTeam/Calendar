@@ -186,15 +186,11 @@ class EventRepositoryImpl(EventRepositoryInterface):
             No events were found.
 
         """
-        db_events: Optional[List[PrismaEvent]] = (
-            await self._db_client.db.event.find_many(
-                skip=items_per_page * (page_number - 1)
-                if items_per_page != -1
-                else None,
-                take=items_per_page if items_per_page != -1 else None,
-            )
-            if items_per_page != -1
-            else await self._db_client.db.event.find_many()
+        db_events: Optional[
+            List[PrismaEvent]
+        ] = await self._db_client.db.event.find_many(
+            skip=items_per_page * (page_number - 1) if items_per_page != -1 else None,
+            take=items_per_page if items_per_page != -1 else None,
         )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
