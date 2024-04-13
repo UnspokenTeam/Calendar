@@ -219,7 +219,9 @@ class User:
             ),
             suspended_at=datetime.fromtimestamp(
                 grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
-            ) if grpc_user.suspended_at is not None else None,
+            )
+            if grpc_user.suspended_at is not None
+            else None,
         )
 
     @classmethod
@@ -249,7 +251,9 @@ class User:
             ),
             suspended_at=datetime.fromtimestamp(
                 grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
-            ) if grpc_user.suspended_at is not None else None,
+            )
+            if grpc_user.suspended_at is not None
+            else None,
         )
 
     def __eq__(self, other: object) -> bool:
