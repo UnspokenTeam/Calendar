@@ -14,6 +14,8 @@ RUN python3 -m venv $POETRY_VENV \
 
 FROM python-base as example-app
 
+RUN apt-get update && apt-get install -y protobuf-compiler
+
 COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
 
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
@@ -28,7 +30,7 @@ COPY . /app
 RUN mkdir generated
 RUN echo "from . import *" | cat >> ./generated/__init__.py
 RUN poetry run python -m grpc_tools.protoc -I proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ./proto/identity_service.proto ./proto/auth.proto ./proto/delete_user.proto ./proto/get_access_token.proto ./proto/get_user.proto ./proto/update_user.proto
-RUN poetry run 2to3 ./generated  -w -n
+RUN poetry run protol --create-package --in-place --python-out generated protoc --proto-path=proto ./proto/identity_service.proto ./proto/auth.proto ./proto/delete_user.proto ./proto/get_access_token.proto ./proto/get_user.proto ./proto/update_user.proto
 RUN poetry run prisma generate
 
 EXPOSE 8080

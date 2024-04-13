@@ -44,16 +44,22 @@ class CustomInterceptor(AsyncServerInterceptor):
             return await method(request_or_iterator, context)
         except PrismaError as p_error:
             logging.error(f"Prisma error: {p_error}")
-            await context.abort(grpc.StatusCode.UNKNOWN, "Prisma error: Unknown error happened")
+            await context.abort(
+                grpc.StatusCode.UNKNOWN, "Prisma error: Unknown error happened"
+            )
         except ValueNotFoundError as value_not_found_error:
             logging.error(value_not_found_error)
             await context.abort(grpc.StatusCode.NOT_FOUND, str(value_not_found_error))
         except InvalidTokenError as invalid_token_error:
             logging.error(invalid_token_error)
-            await context.abort(grpc.StatusCode.UNAUTHENTICATED, str(invalid_token_error))
+            await context.abort(
+                grpc.StatusCode.UNAUTHENTICATED, str(invalid_token_error)
+            )
         except UniqueError as unique_error:
             logging.error(unique_error)
             await context.abort(grpc.StatusCode.ALREADY_EXISTS, str(unique_error))
         except PermissionDeniedError as permission_denied_error:
             logging.error(permission_denied_error)
-            await context.abort(grpc.StatusCode.PERMISSION_DENIED, str(permission_denied_error))
+            await context.abort(
+                grpc.StatusCode.PERMISSION_DENIED, str(permission_denied_error)
+            )

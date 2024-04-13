@@ -173,9 +173,7 @@ class IdentityServiceImpl(GrpcServicer):
         )
         user = await self._user_repository.get_user_by_session_id(session_id)
         context.set_code(grpc.StatusCode.OK)
-        return get_user_proto.UserResponse(
-            user=user.to_grpc_user()
-        )
+        return get_user_proto.UserResponse(user=user.to_grpc_user())
 
     async def get_new_access_token(
         self,
@@ -231,9 +229,7 @@ class IdentityServiceImpl(GrpcServicer):
         """
         user = await self._user_repository.get_user_by_id(request.user_id)
         context.set_code(grpc.StatusCode.OK)
-        return get_user_proto.UserResponse(
-            user=user.to_dict(exclude=["password"])
-        )
+        return get_user_proto.UserResponse(user=user.to_dict(exclude=["password"]))
 
     async def get_users_by_id(
         self, request: get_user_proto.UsersByIdRequest, context: grpc.ServicerContext
@@ -331,9 +327,7 @@ class IdentityServiceImpl(GrpcServicer):
         """
         user = User.from_update_grpc_user(grpc_user=request.new_user)
         requesting_user = User.from_grpc_user(request.requesting_user)
-        db_user = await self._user_repository.get_user_by_id(
-            user_id=requesting_user.id
-        )
+        db_user = await self._user_repository.get_user_by_id(user_id=requesting_user.id)
 
         if requesting_user.type != UserType.ADMIN and user.id != requesting_user.id:
             raise PermissionDeniedError("Permission denied")
@@ -391,9 +385,7 @@ class IdentityServiceImpl(GrpcServicer):
         user = await self._user_repository.get_user_by_id(request.user_id)
         if requesting_user.type != UserType.ADMIN and requesting_user.id != user.id:
             raise PermissionDeniedError("Permission denied")
-        await self._token_repository.delete_all_refresh_tokens(
-            user_id=request.user_id
-        )
+        await self._token_repository.delete_all_refresh_tokens(user_id=request.user_id)
         await self._user_repository.delete_user(user_id=request.user_id)
         context.set_code(grpc.StatusCode.OK)
         return Empty()
