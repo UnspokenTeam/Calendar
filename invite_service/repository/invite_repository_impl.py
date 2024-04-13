@@ -26,16 +26,18 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
     -------
     async get_invites_by_author_id(author_id)
         Returns invites that has matches with given author id.
+    async get_invite_by_invite_id(invite_id)
+        Returns invite that has matches with given invite id.
+    async get_all_invites()
+        Returns all invites.
+    async get_invites_by_invitee_id(invitee_id)
+        Returns invites that has matches with given invitee id.
     async create_invite(invite)
         Creates new invite inside db or throws an exception.
     async update_invite(incite)
         Updates invite that has the same id as provided invite object inside db or throws an exception.
     async delete_invite(invite_id)
         Deletes invite that has matching id from database or throws an exception.
-    async get_all_invites()
-        Returns all invites.
-    async get_invites_by_invitee_id(invitee_id)
-        Returns invites that has matches with given invitee id.
 
     """
 
@@ -63,7 +65,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No invites was found for given author id.
+            No invites were found for given author id.
 
         """
         db_invites: Optional[
@@ -121,7 +123,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No invites was found.
+            No invites were found.
 
         """
         db_invites: Optional[
@@ -153,7 +155,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No invites was found for given invitee id.
+            No invites were found for given invitee id.
 
         """
         db_invites: Optional[
