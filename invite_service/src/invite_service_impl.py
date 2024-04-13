@@ -6,8 +6,8 @@ import prisma.errors
 from proto.invite_service_pb2_grpc import InviteServiceServicer as GrpcServicer
 import proto.invite_service_pb2 as proto
 
-from errors.value_not_found_error import ValueNotFoundError
 from errors.permission_denied import PermissionDeniedError
+from errors.value_not_found_error import ValueNotFoundError
 from src.models.invite import Invite
 
 from repository.invite_repository_interface import InviteRepositoryInterface
@@ -226,8 +226,8 @@ class InviteServiceImpl(GrpcServicer):
         try:
             invite = Invite.from_grpc_invite(request.invite)
             if (
-                    request.user.type != proto.GrpcUserType.ADMIN
-                    and request.user.id != invite.author_id
+                request.user.type != proto.GrpcUserType.ADMIN
+                and request.user.id != invite.author_id
             ):
                 raise PermissionDeniedError("Permission denied")
             await self._invite_repository.create_invite(invite=invite)
