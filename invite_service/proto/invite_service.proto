@@ -1,13 +1,12 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/empty.proto";
 
 service InviteService {
   rpc get_invite_by_invite_id(InviteRequestByInviteId) returns (InviteResponse){}
-  rpc get_all_invites(google.protobuf.Empty) returns (InvitesResponse){}
+  rpc get_all_invites(RequestingUser) returns (InvitesResponse){}
   rpc get_invites_by_author_id(InvitesByAuthorIdRequest) returns (InvitesResponse){}
-  rpc get_invites_by_invitee_id(GetInviteeByInviteIdRequest) returns (InvitesResponse){}
+  rpc get_invites_by_invitee_id(GetInvitesByInviteeIdRequest) returns (InvitesResponse){}
   rpc create_invite(GrpcInvite) returns (BaseResponse){}
   rpc update_invite(GrpcInvite) returns (BaseResponse){}
   rpc delete_invite(DeleteInviteRequest) returns (BaseResponse){}
@@ -25,7 +24,7 @@ message InviteRequestByInviteId {
 
 message InviteResponse {
   int32 status_code = 1;
-  GrpcInvite invite = 2;
+  optional GrpcInvite invite = 2;
   optional string message = 3;
 }
 
@@ -51,6 +50,10 @@ message GrpcUser {
   google.protobuf.Timestamp created_at = 4;
   optional google.protobuf.Timestamp suspended_at = 5;
   GrpcUserType type = 6;
+}
+
+message RequestingUser {
+  GrpcUser user = 1;
 }
 
 message ListOfInvites {
