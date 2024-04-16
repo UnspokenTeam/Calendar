@@ -14,12 +14,12 @@ service InviteService {
 
 message InvitesByAuthorIdRequest {
   string author_id = 1;
-  GrpcUser user = 2;
+  GrpcUser requesting_user = 2;
 }
 
 message InviteRequestByInviteId {
   string invite_id = 1;
-  GrpcUser user = 2;
+  GrpcUser requesting_user = 2;
 }
 
 message InviteResponse {
@@ -30,7 +30,7 @@ message InviteResponse {
 
 message InviteRequest {
   GrpcInvite invite = 1;
-  GrpcUser user = 2;
+  GrpcUser requesting_user = 2;
 }
 
 message GrpcInvite {
@@ -53,7 +53,7 @@ message GrpcUser {
 }
 
 message RequestingUser {
-  GrpcUser user = 1;
+  GrpcUser requesting_user = 1;
 }
 
 message ListOfInvites {
@@ -78,7 +78,7 @@ message DeleteInviteRequest {
 
 message GetInvitesByInviteeIdRequest {
   string invitee_id = 1;
-  GrpcUser user = 2;
+  GrpcUser requesting_user = 2;
 }
 
 enum GrpcUserType {
