@@ -24,6 +24,10 @@ COPY ./poetry.lock ./pyproject.toml ./
 
 RUN poetry install --no-interaction --no-cache --without dev
 
+RUN poetry run python -m grpc_tools.protoc -I ./identity_service/proto --python_out=app/identity_service_proto --grpc_python_out=app/identity_service_proto --pyi_out=app/identity_service_proto ./identity_service/proto/identity_service.proto ./identity_service/proto/auth.proto ./identity_service/proto/delete_user.proto ./identity_service/proto/get_access_token.proto ./identity_service/proto/get_user.proto ./identity_service/proto/update_user.proto && poetry run protol --create-package --in-place --python-out app/identity_service_proto protoc --proto-path=./identity_service/proto ./identity_service/proto/identity_service.proto ./identity_service/proto/auth.proto ./identity_service/proto/delete_user.proto ./identity_service/proto/get_access_token.proto ./identity_service/proto/get_user.proto ./identity_service/proto/update_user.proto
+RUN poetry run python -m grpc_tools.protoc -I ./event_service/proto --python_out=app/event_service_proto --grpc_python_out=app/event_service_proto --pyi_out=app/event_service_proto ./event_service/proto/event_service.proto && poetry run protol --create-package --in-place --python-out app/event_service_proto protoc --proto-path=./event_service/proto ./event_service/proto/event_service.proto
+RUN poetry run python -m grpc_tools.protoc -I ./invite_service/proto --python_out=app/invite_service_proto --grpc_python_out=app/invite_service_proto --pyi_out=app/invite_service_proto ./invite_service/proto/invite_service.proto && poetry run protol --create-package --in-place --python-out app/invite_service_proto protoc --proto-path=./invite_service/proto ./invite_service/proto/invite_service.proto
+
 COPY . /app
 
 EXPOSE 8084
