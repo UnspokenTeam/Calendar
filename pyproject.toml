@@ -17,7 +17,8 @@ exclude = [
     "event_service/proto/*.py",
     "event_service/proto/*.pyi",
     "identity_service/generated",
-    "singleton.py"
+    "singleton.py",
+    "event_service/constants.py"
 ]
 
 line-length = 119

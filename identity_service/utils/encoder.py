@@ -1,4 +1,5 @@
 """Encoder class"""
+
 from bcrypt import checkpw, gensalt, hashpw
 
 

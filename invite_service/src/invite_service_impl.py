@@ -1,4 +1,5 @@
 """Invite Service Controller"""
+
 import grpc
 
 from proto.invite_service_pb2_grpc import InviteServiceServicer as GrpcServicer

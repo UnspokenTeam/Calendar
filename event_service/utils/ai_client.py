@@ -1,5 +1,8 @@
 """AI Client Class"""
+
 from os import environ
+
+from errors.ai_response_error import AiResponseError
 
 from constants import AI_ROLE_FOR_PROMPT
 from dotenv import load_dotenv
@@ -51,5 +54,9 @@ class AIClient:
                     ],
                 },
             )
-
-        return str(response.json()["choices"][0]["message"]["content"])
+        try:
+            return str(response.json()["choices"][0]["message"]["content"])
+        except KeyError:
+            raise AiResponseError(
+                ". ".join(str(response.json()["error"]["message"]).split(". ")[:2])
+            )

@@ -1,4 +1,5 @@
 """Postgres client"""
+
 import logging
 
 from prisma import Client, Prisma

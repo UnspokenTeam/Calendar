@@ -1,4 +1,5 @@
 """Jwt controller"""
+
 from enum import Enum
 from typing import Tuple
 import datetime

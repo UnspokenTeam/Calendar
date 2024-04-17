@@ -1,10 +1,11 @@
 """Event Service Controller."""
+
 import grpc
 
 from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
 import proto.event_service_pb2 as proto
 
-from errors.permission_denied import PermissionDeniedError
+from errors.permission_denied_error import PermissionDeniedError
 from src.models.event import Event
 from utils.ai_client import AIClient
 
