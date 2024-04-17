@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "google/protobuf/timestamp.proto";
+import "user/user.proto";
 
 message UserByIdRequest {
   string user_id = 1;
@@ -16,20 +16,6 @@ message UsersResponse {
 
 message ListOfUser {
   repeated GrpcUser users = 1;
-}
-
-enum GrpcUserType {
-    USER = 0;
-    ADMIN = 1;
-}
-
-message GrpcUser {
-  string id = 1;
-  string username = 2;
-  string email = 3;
-  google.protobuf.Timestamp created_at = 4;
-  optional google.protobuf.Timestamp suspended_at = 5;
-  GrpcUserType type = 6;
 }
 
 message UsersByIdRequest {

@@ -6,9 +6,9 @@ from typing import Any, List, Optional, Self
 
 from prisma.models import User as PrismaUser
 
-from generated.auth_pb2 import RegisterRequest
-from generated.get_user_pb2 import GrpcUser, GrpcUserType
-from generated.update_user_pb2 import UserToUpdate as GrpcUserToUpdate
+from generated.identity_service.auth_pb2 import RegisterRequest
+from generated.identity_service.update_user_pb2 import UserToUpdate as GrpcUserToUpdate
+from generated.user.user_pb2 import GrpcUser, GrpcUserType
 
 
 class UserType(StrEnum):

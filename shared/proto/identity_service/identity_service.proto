@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-import "auth.proto";
-import "get_access_token.proto";
-import "get_user.proto";
-import "update_user.proto";
-import "delete_user.proto";
+import "identity_service/auth.proto";
+import "identity_service/get_access_token.proto";
+import "identity_service/get_user.proto";
+import "identity_service/update_user.proto";
+import "identity_service/delete_user.proto";
 import "google/protobuf/empty.proto";
 
 service IdentityService {

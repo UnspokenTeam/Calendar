@@ -7,6 +7,8 @@ on:
       - master
     paths:
       - 'invite_service/**'
+      - 'shared/**'
+      - 'invite_service.Dockerfile'
 
 jobs:
   push_to_registry:

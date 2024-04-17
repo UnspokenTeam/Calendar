@@ -1,8 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
-
-import "get_user.proto";
+import "user/user.proto";
 
 message UpdateUserRequest {
   UserToUpdate new_user = 1;
