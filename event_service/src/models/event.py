@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Self
 
 from prisma.models import Event as PrismaEvent
 
-from proto.event_service_pb2 import GrpcEvent
+from generated.event_service.event_service_pb2 import GrpcEvent
 
 
 @dataclass

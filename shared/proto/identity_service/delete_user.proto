@@ -1,6 +1,5 @@
 syntax = "proto3";
-
-import "get_user.proto";
+import "user/user.proto";
 
 message DeleteUserRequest {
   string user_id = 1;

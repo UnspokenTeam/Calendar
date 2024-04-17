@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "user/user.proto";
 
 service EventService {
   rpc get_event_by_event_id(EventRequestByEventId) returns (EventResponse){}
@@ -52,20 +53,6 @@ message GrpcEvent {
   string author_id = 8;
   google.protobuf.Timestamp created_at = 9;
   optional google.protobuf.Timestamp deleted_at = 10;
-}
-
-enum GrpcUserType {
-    USER = 0;
-    ADMIN = 1;
-}
-
-message GrpcUser {
-  string id = 1;
-  string username = 2;
-  string email = 3;
-  google.protobuf.Timestamp created_at = 4;
-  optional google.protobuf.Timestamp suspended_at = 5;
-  GrpcUserType type = 6;
 }
 
 message RequestingUser {

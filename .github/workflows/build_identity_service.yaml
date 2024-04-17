@@ -7,6 +7,8 @@ on:
       - master
     paths:
       - 'identity_service/**'
+      - 'shared/**'
+      - 'identity_service.Dockerfile'
 
 jobs:
   push_to_registry:
@@ -28,6 +30,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: identity_service/
+          context: .
           push: true
           tags: ghcr.io/unspokenteam/identity_service:latest
+          file: ./identity_service.Dockerfile
