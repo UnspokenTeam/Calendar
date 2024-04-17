@@ -33,4 +33,4 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/unspokenteam/invite_service:latest
-          dockerfile: ./invite_service.Dockerfile
+          file: ./invite_service.Dockerfile

@@ -7,6 +7,8 @@ on:
       - master
     paths:
       - 'gateway/**'
+      - 'shared/**'
+      - 'gateway.Dockerfile'
 
 jobs:
   push_to_registry:
@@ -31,4 +33,4 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/unspokenteam/gateway:latest
-          dockerfile: ./gateway.Dockerfile
+          file: ./gateway.Dockerfile
