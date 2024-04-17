@@ -1,4 +1,5 @@
 """User Model"""
+
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
@@ -104,9 +105,9 @@ class User:
             id=self.id,
             username=self.username,
             email=self.email,
-            type=GrpcUserType.USER
-            if self.type == UserType.USER
-            else GrpcUserType.ADMIN,
+            type=(
+                GrpcUserType.USER if self.type == UserType.USER else GrpcUserType.ADMIN
+            ),
             suspended_at=None,
         )
         user.created_at.FromDatetime(self.created_at)
@@ -217,11 +218,13 @@ class User:
             created_at=datetime.fromtimestamp(
                 grpc_user.created_at.seconds + grpc_user.created_at.nanos / 1e9
             ),
-            suspended_at=datetime.fromtimestamp(
-                grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
-            )
-            if grpc_user.suspended_at is not None
-            else None,
+            suspended_at=(
+                datetime.fromtimestamp(
+                    grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
+                )
+                if grpc_user.suspended_at is not None
+                else None
+            ),
         )
 
     @classmethod
@@ -249,11 +252,13 @@ class User:
             created_at=datetime.fromtimestamp(
                 grpc_user.created_at.seconds + grpc_user.created_at.nanos / 1e9
             ),
-            suspended_at=datetime.fromtimestamp(
-                grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
-            )
-            if grpc_user.suspended_at is not None
-            else None,
+            suspended_at=(
+                datetime.fromtimestamp(
+                    grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
+                )
+                if grpc_user.suspended_at is not None
+                else None
+            ),
         )
 
     def __eq__(self, other: object) -> bool:

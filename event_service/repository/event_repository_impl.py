@@ -1,4 +1,5 @@
 """Event repository with data from database."""
+
 from datetime import datetime
 from typing import List, Optional
 
@@ -78,7 +79,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             List[PrismaEvent]
         ] = await self._db_client.db.event.find_many(
             where={"id": author_id, "deleted_at": None},
-            skip=items_per_page * (page_number - 1) if items_per_page != -1 else None,
+            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
         if db_events is None or len(db_events) == 0:
@@ -151,7 +152,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 "id": {"in": [event_id for event_id in events_ids]},
                 "deleted_at": None,
             },
-            skip=items_per_page * (page_number - 1) if items_per_page != -1 else None,
+            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
         if db_events is None or len(db_events) == 0:
@@ -189,7 +190,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
         db_events: Optional[
             List[PrismaEvent]
         ] = await self._db_client.db.event.find_many(
-            skip=items_per_page * (page_number - 1) if items_per_page != -1 else None,
+            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
         if db_events is None or len(db_events) == 0:

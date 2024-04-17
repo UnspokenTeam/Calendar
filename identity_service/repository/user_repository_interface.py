@@ -1,4 +1,5 @@
 """User repository interface"""
+
 from abc import ABC, abstractmethod
 from typing import List
 

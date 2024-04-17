@@ -1,11 +1,11 @@
 """Event Service Controller."""
 import grpc
 
-from errors.permission_denied import PermissionDeniedError
+from errors.permission_denied_error import PermissionDeniedError
 from src.models.event import Event
+from utils.ai_client import AIClient
 
 from generated.event_service.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
-from generated.user.user_pb2 import GrpcUserType
 from google.protobuf.empty_pb2 import Empty
 from repository.event_repository_interface import EventRepositoryInterface
 import generated.event_service.event_service_pb2 as proto
@@ -18,6 +18,7 @@ class EventServiceImpl(GrpcServicer):
     Attributes
     ----------
     _event_repository : EventRepositoryInterface
+        The event repository interface attribute.
 
     Methods
     -------
@@ -35,7 +36,8 @@ class EventServiceImpl(GrpcServicer):
         Function that need to be bind to the server that updates the event.
     async delete_event(request, context)
         Function that need to be bind to the server that deletes the event.
-
+    async generate_event_description(request, context)
+        Function that need to be bind to the server that creates the event description.
     """
 
     _event_repository: EventRepositoryInterface
@@ -157,7 +159,7 @@ class EventServiceImpl(GrpcServicer):
             Raises when user dont has enough access.
 
         """
-        if request.user.type != GrpcUserType.ADMIN:
+        if request.requesting_user.type != proto.GrpcUserType.ADMIN:
             raise PermissionDeniedError("Permission denied")
         events = await self._event_repository.get_all_events(
             page_number=request.page_number, items_per_page=request.items_per_page
@@ -195,8 +197,8 @@ class EventServiceImpl(GrpcServicer):
         """
         event = Event.from_grpc_event(request.event)
         if (
-            request.user.type != GrpcUserType.ADMIN
-            and request.user.id != event.author_id
+            request.requesting_user.type != proto.GrpcUserType.ADMIN
+            and request.requesting_user.id != event.author_id
         ):
             raise PermissionDeniedError("Permission denied")
         await self._event_repository.create_event(event=event)
@@ -228,8 +230,8 @@ class EventServiceImpl(GrpcServicer):
 
         """
         if (
-            request.user.type != GrpcUserType.ADMIN
-            and request.user.id != request.event.author_id
+            request.requesting_user.type != proto.GrpcUserType.ADMIN
+            and request.requesting_user.id != request.event.author_id
         ):
             raise PermissionDeniedError("Permission denied")
         event = Event.from_grpc_event(request.event)
@@ -263,10 +265,37 @@ class EventServiceImpl(GrpcServicer):
         """
         event = await self._event_repository.get_event_by_event_id(request.event_id)
         if (
-            request.user.type != GrpcUserType.ADMIN
-            and request.user.id != event.author_id
+            request.requesting_user.type != proto.GrpcUserType.ADMIN
+            and request.requesting_user.id != event.author_id
         ):
             raise PermissionDeniedError("Permission denied")
         await self._event_repository.delete_event(event_id=request.event_id)
         context.set_code(grpc.StatusCode.OK)
         return Empty()
+
+    async def generate_event_description(
+        self, request: proto.GenerateDescriptionRequest, context: grpc.ServicerContext
+    ) -> proto.GenerateDescriptionResponse:
+        """
+        Generate event description.
+
+        Parameters
+        ----------
+        request : proto.GenerateDescriptionRequest
+            Request event description by event title from AI Client.
+        context : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        proto.GenerateDescriptionResponse
+            Response object for generate description request.
+
+        """
+        event_description = await AIClient.generate_event_description(
+            request.event_title
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return proto.GenerateDescriptionResponse(
+            event_description=event_description,
+        )

@@ -1,4 +1,5 @@
 """Invite repository with data from database."""
+
 from datetime import datetime
 from typing import List, Optional
 
@@ -66,10 +67,10 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             No invites was found for given author id.
 
         """
-        db_invites: Optional[
-            List[PrismaInvite]
-        ] = await self._db_client.db.invite.find_many(
-            where={"id": author_id, "deleted_at": None}
+        db_invites: Optional[List[PrismaInvite]] = (
+            await self._db_client.db.invite.find_many(
+                where={"id": author_id, "deleted_at": None}
+            )
         )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
@@ -95,9 +96,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             No invites was found.
 
         """
-        db_invites: Optional[
-            List[PrismaInvite]
-        ] = await self._db_client.db.invite.find_many()
+        db_invites: Optional[List[PrismaInvite]] = (
+            await self._db_client.db.invite.find_many()
+        )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return [
@@ -127,13 +128,13 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             No invites was found for given invitee id.
 
         """
-        db_invites: Optional[
-            List[PrismaInvite]
-        ] = await self._db_client.db.invite.find_many(
-            where={
-                "id": invitee_id,
-                "deleted_at": None,
-            }
+        db_invites: Optional[List[PrismaInvite]] = (
+            await self._db_client.db.invite.find_many(
+                where={
+                    "id": invitee_id,
+                    "deleted_at": None,
+                }
+            )
         )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Events not found")
@@ -157,7 +158,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.invite.create(data=invite.to_dict(exclude=["created_at", "deleted_at"]))
+        await self._db_client.db.invite.create(
+            data=invite.to_dict(exclude=["created_at", "deleted_at"])
+        )
 
     async def update_invite(self, invite: Invite) -> None:
         """

@@ -1,4 +1,5 @@
 """Identity Service Controller"""
+
 from typing import Tuple
 from uuid import uuid4
 

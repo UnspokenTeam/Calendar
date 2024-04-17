@@ -1,4 +1,5 @@
 """User repository with data from database"""
+
 from datetime import datetime
 from typing import List, Optional
 import logging
