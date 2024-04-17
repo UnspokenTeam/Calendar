@@ -11,7 +11,7 @@ service EventService {
   rpc create_event(EventRequest) returns (google.protobuf.Empty){}
   rpc update_event(EventRequest) returns (google.protobuf.Empty){}
   rpc delete_event(DeleteEventRequest) returns (google.protobuf.Empty){}
-  rpc generate_description(GenerateDescriptionRequest) returns (GenerateDescriptionResponse){}
+  rpc generate_event_description(GenerateDescriptionRequest) returns (GenerateDescriptionResponse){}
 }
 
 message EventsRequestByAuthorId {

@@ -37,7 +37,7 @@ class EventServiceImpl(GrpcServicer):
         Function that need to be bind to the server that updates the event.
     async delete_event(request, context)
         Function that need to be bind to the server that deletes the event.
-    static async generate_event_description(request, context)
+    async generate_event_description(request, context)
         Function that need to be bind to the server that creates the event description.
     """
 
@@ -274,9 +274,8 @@ class EventServiceImpl(GrpcServicer):
         context.set_code(grpc.StatusCode.OK)
         return Empty()
 
-    @staticmethod
     async def generate_event_description(
-        request: proto.GenerateDescriptionRequest, context: grpc.ServicerContext
+        self, request: proto.GenerateDescriptionRequest, context: grpc.ServicerContext
     ) -> proto.GenerateDescriptionResponse:
         """
         Delete event.
