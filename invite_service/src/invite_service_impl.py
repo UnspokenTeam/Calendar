@@ -1,4 +1,5 @@
 """Invite Service Controller"""
+
 import grpc
 
 import prisma.errors
@@ -68,18 +69,16 @@ class InviteServiceImpl(GrpcServicer):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        InvitesResponse
-            Response object for invite response.
         PermissionDeniedError
             Raises when user dont has enough access.
 
         """
+        if (
+                request.requesting_user != request.author_id
+                and request.requesting_user.type != proto.GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
         try:
-            if (
-                request.user.id != request.author_id
-                or request.user.type != proto.GrpcUserType.ADMIN
-            ):
-                raise PermissionDeniedError("Permission denied")
             invites = await self._invite_repository.get_invites_by_author_id(
                 author_id=request.author_id,
             )
@@ -114,22 +113,20 @@ class InviteServiceImpl(GrpcServicer):
 
         Returns
         -------
-        List[Invite]
-            List of all invites.
+        proto.InvitesResponse
+            Response object for invite response.
 
         Raises
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        InvitesResponse
-            Response object for invite response.
         PermissionDeniedError
             Raises when user dont has enough access.
 
         """
+        if request.requesting_user.type != proto.GrpcUserType.ADMIN:
+            raise PermissionDeniedError("Permission denied")
         try:
-            if request.user.type != proto.GrpcUserType.ADMIN:
-                raise PermissionDeniedError("Permission denied")
             invites = await self._invite_repository.get_all_invites()
             context.set_code(grpc.StatusCode.OK)
             return proto.InvitesResponse(
@@ -169,22 +166,20 @@ class InviteServiceImpl(GrpcServicer):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        InvitesResponse
-            Response object for invite response.
         PermissionDeniedError
             Raises when user dont has enough access.
 
         """
+        invite = await self._invite_repository.get_invite_by_invite_id(
+            invite_id=request.invite_id
+        )
+        if (
+                request.requesting_user.id != invite.author_id
+                and request.requesting_user.id != invite.invitee_id
+                and request.requesting_user.type != proto.GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
         try:
-            invite = await self._invite_repository.get_invite_by_invite_id(
-                invite_id=request.invite_id
-            )
-            if (
-                request.user.id != invite.author_id
-                or request.user.id != invite.invitee_id
-                or request.user.type != proto.GrpcUserType.ADMIN
-            ):
-                raise PermissionDeniedError("Permission denied")
             context.set_code(grpc.StatusCode.OK)
             return proto.InviteResponse(status_code=200, invite=invite.to_grpc_invite())
         except ValueNotFoundError:
@@ -218,18 +213,16 @@ class InviteServiceImpl(GrpcServicer):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        InvitesResponse
-            Response object for invite response.
         PermissionDeniedError
             Raises when user dont has enough access.
 
         """
+        if (
+                request.requesting_user.id != request.invitee_id
+                and request.requesting_user.type != proto.GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
         try:
-            if (
-                request.user.id != request.invitee_id
-                or request.user.type != proto.GrpcUserType.ADMIN
-            ):
-                raise PermissionDeniedError("Permission denied")
             invites = await self._invite_repository.get_invites_by_invitee_id(
                 invitee_id=request.invitee_id,
             )
@@ -264,21 +257,24 @@ class InviteServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.InvitesResponse
-            Invites object for invite response.
+        proto.BaseResponse
+            Object containing status code and message if the response status is not 200.
 
         Raises
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        InvitesResponse
-            Response object for invite response.
-        proto.BaseResponse
-            Object containing status code and message if the response status is not 200.
+        PermissionDeniedError
+            Raises when user dont has enough access.
 
         """
+        invite = Invite.from_grpc_invite(request.invite)
+        if (
+                request.requesting_user.id != invite.author_id
+                and request.requesting_user.type != proto.GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
         try:
-            invite = Invite.from_grpc_invite(request.invite)
             await self._invite_repository.create_invite(invite=invite)
             context.set_code(grpc.StatusCode.OK)
             return proto.BaseResponse(status_code=200)
@@ -311,19 +307,12 @@ class InviteServiceImpl(GrpcServicer):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        InvitesResponse
-            Response object for invite response.
         PermissionDeniedError
             Raises when user dont has enough access.
 
         """
         try:
             invite = Invite.from_grpc_invite(request.invite)
-            if (
-                request.user.id != invite.author_id
-                or request.user.type != proto.GrpcUserType.ADMIN
-            ):
-                raise PermissionDeniedError("Permission denied")
             await self._invite_repository.update_invite(invite=invite)
             context.set_code(grpc.StatusCode.OK)
             return proto.BaseResponse(status_code=200)
@@ -356,21 +345,19 @@ class InviteServiceImpl(GrpcServicer):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        InvitesResponse
-            Response object for invite response.
         PermissionDeniedError
             Raises when user dont has enough access.
 
         """
+        invite = await self._invite_repository.get_invite_by_invite_id(
+            request.invite_id
+        )
+        if (
+                request.requesting_user.id != invite.author_id
+                and request.requesting_user.type != proto.GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
         try:
-            invite = await self._invite_repository.get_invite_by_invite_id(
-                request.invite_id
-            )
-            if (
-                request.user.id != invite.author_id
-                or request.user.type != proto.GrpcUserType.ADMIN
-            ):
-                raise PermissionDeniedError("Permission denied")
             await self._invite_repository.delete_invite(invite_id=request.invite_id)
             context.set_code(grpc.StatusCode.OK)
             return proto.BaseResponse(status_code=200)

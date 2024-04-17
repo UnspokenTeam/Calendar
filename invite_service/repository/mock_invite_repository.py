@@ -1,4 +1,5 @@
 """Mock invite repository"""
+
 from typing import List
 from uuid import uuid4
 

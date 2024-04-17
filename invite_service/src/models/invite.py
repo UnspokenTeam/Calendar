@@ -1,4 +1,5 @@
 """Invite Model"""
+
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Self
@@ -146,11 +147,13 @@ class Invite:
             created_at=datetime.fromtimestamp(
                 grpc_invite.created_at.seconds + grpc_invite.created_at.nanos / 1e9
             ),
-            deleted_at=datetime.fromtimestamp(
-                grpc_invite.deleted_at.seconds + grpc_invite.deleted_at.nanos / 1e9
-            )
-            if grpc_invite.deleted_at is not None
-            else None,
+            deleted_at=(
+                datetime.fromtimestamp(
+                    grpc_invite.deleted_at.seconds + grpc_invite.deleted_at.nanos / 1e9
+                )
+                if grpc_invite.deleted_at is not None
+                else None
+            ),
         )
 
     def __repr__(self) -> str:

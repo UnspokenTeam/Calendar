@@ -1,4 +1,5 @@
 """Invite repository interface"""
+
 from abc import ABC, abstractmethod
 from typing import List
 
@@ -106,7 +107,7 @@ class InviteRepositoryInterface(ABC):
         Parameters
         ----------
         invitee_id : str
-            invitee id object.
+            Invitee's id object.
 
         Returns
         -------

@@ -1,4 +1,5 @@
 """Invite repository with data from database."""
+
 from datetime import datetime
 from typing import List, Optional
 
@@ -68,10 +69,10 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             No invites were found for given author id.
 
         """
-        db_invites: Optional[
-            List[PrismaInvite]
-        ] = await self._db_client.db.invite.find_many(
-            where={"id": author_id, "deleted_at": None}
+        db_invites: Optional[List[PrismaInvite]] = (
+            await self._db_client.db.invite.find_many(
+                where={"id": author_id, "deleted_at": None}
+            )
         )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
@@ -126,9 +127,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             No invites were found.
 
         """
-        db_invites: Optional[
-            List[PrismaInvite]
-        ] = await self._db_client.db.invite.find_many()
+        db_invites: Optional[List[PrismaInvite]] = (
+            await self._db_client.db.invite.find_many()
+        )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return [
@@ -143,7 +144,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         Parameters
         ----------
         invitee_id : str
-            invitee id object.
+            Invitee's id object.
 
         Returns
         -------
@@ -155,16 +156,16 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No invitee's were found for given invitee id.
+            No invites were found for given invitee id.
 
         """
-        db_invites: Optional[
-            List[PrismaInvite]
-        ] = await self._db_client.db.invite.find_many(
-            where={
-                "invitee_id": invitee_id,
-                "deleted_at": None,
-            }
+        db_invites: Optional[List[PrismaInvite]] = (
+            await self._db_client.db.invite.find_many(
+                where={
+                    "invitee_id": invitee_id,
+                    "deleted_at": None,
+                }
+            )
         )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")

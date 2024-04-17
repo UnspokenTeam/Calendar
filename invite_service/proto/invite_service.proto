@@ -73,7 +73,7 @@ message BaseResponse {
 
 message DeleteInviteRequest {
   string invite_id = 1;
-  GrpcUser user = 2;
+  GrpcUser requesting_user = 2;
 }
 
 message GetInvitesByInviteeIdRequest {
