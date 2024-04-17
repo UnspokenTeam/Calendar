@@ -279,7 +279,7 @@ class EventServiceImpl(GrpcServicer):
         self, request: proto.GenerateDescriptionRequest, context: grpc.ServicerContext
     ) -> proto.GenerateDescriptionResponse:
         """
-        Delete event.
+        Generate event description.
 
         Parameters
         ----------
