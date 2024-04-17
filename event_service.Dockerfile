@@ -14,20 +14,31 @@ RUN python3 -m venv $POETRY_VENV \
 
 FROM python-base as example-app
 
+RUN apt-get update && apt-get install -y protobuf-compiler
+
 COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
 
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
 
 WORKDIR /app
 
-COPY ./poetry.lock ./pyproject.toml ./
+COPY shared ./shared
+
+WORKDIR /app/event_service
+
+COPY event_service/poetry.lock ./event_service/pyproject.toml ./
 
 RUN poetry install --no-interaction --no-cache --without dev
 
-COPY . /app
-RUN poetry run python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. --pyi_out=. ./proto/event_service.proto
+RUN mkdir generated
+
+COPY event_service ./
+
+RUN poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ../shared/proto/user/*.proto ../shared/proto/event_service/*.proto
+RUN poetry run protol --create-package --in-place --python-out generated protoc --proto-path=../shared/proto ../shared/proto/event_service/*.proto ../shared/proto/user/*.proto
 
 RUN poetry run prisma generate
 
 EXPOSE 8081
+
 CMD poetry run prisma db push && poetry run python main.py

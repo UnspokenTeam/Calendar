@@ -12,7 +12,7 @@ from utils.jwt_controller import JwtController
 from repository.token_repository_impl import TokenRepositoryImpl
 from repository.user_repository_impl import UserRepositoryImpl
 import dotenv
-import generated.identity_service_pb2_grpc as identity_service_grpc
+import generated.identity_service.identity_service_pb2_grpc as identity_service_grpc
 
 
 async def serve() -> None:

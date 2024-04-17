@@ -1,8 +1,9 @@
 """Event Service Controller."""
 import grpc
 
-from proto.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
-import proto.event_service_pb2 as proto
+from generated.event_service.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
+import generated.event_service.event_service_pb2 as proto
+from generated.user.user_pb2 import GrpcUserType
 
 from errors.permission_denied import PermissionDeniedError
 from src.models.event import Event
@@ -157,7 +158,7 @@ class EventServiceImpl(GrpcServicer):
             Raises when user dont has enough access.
 
         """
-        if request.user.type != proto.GrpcUserType.ADMIN:
+        if request.user.type != GrpcUserType.ADMIN:
             raise PermissionDeniedError("Permission denied")
         events = await self._event_repository.get_all_events(
             page_number=request.page_number, items_per_page=request.items_per_page
@@ -195,7 +196,7 @@ class EventServiceImpl(GrpcServicer):
         """
         event = Event.from_grpc_event(request.event)
         if (
-            request.user.type != proto.GrpcUserType.ADMIN
+            request.user.type != GrpcUserType.ADMIN
             and request.user.id != event.author_id
         ):
             raise PermissionDeniedError("Permission denied")
@@ -228,7 +229,7 @@ class EventServiceImpl(GrpcServicer):
 
         """
         if (
-            request.user.type != proto.GrpcUserType.ADMIN
+            request.user.type != GrpcUserType.ADMIN
             and request.user.id != request.event.author_id
         ):
             raise PermissionDeniedError("Permission denied")
@@ -263,7 +264,7 @@ class EventServiceImpl(GrpcServicer):
         """
         event = await self._event_repository.get_event_by_event_id(request.event_id)
         if (
-            request.user.type != proto.GrpcUserType.ADMIN
+            request.user.type != GrpcUserType.ADMIN
             and request.user.id != event.author_id
         ):
             raise PermissionDeniedError("Permission denied")
