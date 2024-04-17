@@ -7,6 +7,8 @@ on:
       - master
     paths:
       - 'event_service/**'
+      - 'shared/**'
+      - 'event_service.Dockerfile'
 
 jobs:
   push_to_registry:
@@ -31,4 +33,4 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/unspokenteam/event_service:latest
-          dockerfile: ./event_service.Dockerfile
+          file: ./event_service.Dockerfile

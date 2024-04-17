@@ -33,4 +33,4 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/unspokenteam/identity_service:latest
-          dockerfile: ./identity_service.Dockerfile
+          file: ./identity_service.Dockerfile

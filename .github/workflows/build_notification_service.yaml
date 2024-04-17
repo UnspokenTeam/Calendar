@@ -33,4 +33,4 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/unspokenteam/notification_service:latest
-          dockerfile: ./notification_service.Dockerfile
+          file: ./notification_service.Dockerfile
