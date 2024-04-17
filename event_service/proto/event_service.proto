@@ -11,23 +11,24 @@ service EventService {
   rpc create_event(EventRequest) returns (google.protobuf.Empty){}
   rpc update_event(EventRequest) returns (google.protobuf.Empty){}
   rpc delete_event(DeleteEventRequest) returns (google.protobuf.Empty){}
+  rpc generate_description(GenerateDescriptionRequest) returns (GenerateDescriptionResponse){}
 }
 
 message EventsRequestByAuthorId {
   string author_id = 1;
-  GrpcUser user = 2;
+  GrpcUser requesting_user = 2;
   uint64 page_number = 3;
   int64 items_per_page = 4;
 }
 
 message EventRequestByEventId {
   string event_id = 1;
-  GrpcUser user = 2;
+  GrpcUser requesting_user = 2;
 }
 
 message EventsRequestByEventsIds {
   ListOfEventsIds events_ids = 1;
-  GrpcUser user = 2;
+  GrpcUser requesting_user = 2;
   uint64 page_number = 3;
   int64 items_per_page = 4;
 }
@@ -68,14 +69,14 @@ message GrpcUser {
 }
 
 message RequestingUser {
-  GrpcUser user = 1;
+  GrpcUser requesting_user = 1;
   uint64 page_number = 2;
   int64 items_per_page = 3;
 }
 
 message EventRequest {
   GrpcEvent event = 1;
-  GrpcUser user = 2;
+  GrpcUser requesting_user = 2;
 }
 
 message ListOfEvents {
@@ -88,5 +89,13 @@ message ListOfEventsIds {
 
 message DeleteEventRequest {
   string event_id = 1;
-  GrpcUser user = 2;
+  GrpcUser requesting_user = 2;
+}
+
+message GenerateDescriptionRequest {
+  string event_title = 1;
+}
+
+message GenerateDescriptionResponse {
+  string event_description = 1;
 }
