@@ -66,7 +66,8 @@ class Notification:
             enabled=self.enabled,
         )
         notification.created_at.FromDatetime(self.created_at)
-        notification.deleted_at.FromDatetime(self.deleted_at)
+        if self.deleted_at is not None:
+            notification.deleted_at.FromDatetime(self.deleted_at)
 
         return notification
 

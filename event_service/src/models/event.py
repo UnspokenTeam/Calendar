@@ -80,9 +80,11 @@ class Event:
         )
         event.start.FromDatetime(self.start)
         event.end.FromDatetime(self.end)
-        event.repeating_delay.FromDatetime(self.repeating_delay)
+        if self.repeating_delay is not None:
+            event.repeating_delay.FromDatetime(self.repeating_delay)
         event.created_at.FromDatetime(self.created_at)
-        event.deleted_at.FromDatetime(self.deleted_at)
+        if self.deleted_at is not None:
+            event.deleted_at.FromDatetime(self.deleted_at)
 
         return event
 
