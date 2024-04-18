@@ -14,7 +14,7 @@ class InviteRepositoryInterface(ABC):
     -------
     async get_invites_by_author_id(author_id)
         Returns invites that has matches with given author id.
-    async get_invite_by_invite_id(invitee_id)
+    async get_invite_by_invite_id(invite_id)
         Returns invite that has matches with given invite id.
     async get_all_invites()
         Returns all invites.

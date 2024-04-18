@@ -55,7 +55,7 @@ class InviteServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : proto.InvitesByUserIdRequest
+        request : proto.InvitesByAuthorIdRequest
             Request data.
         context : grpc.ServicerContext
             Request context.
@@ -250,7 +250,7 @@ class InviteServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : proto.Invite
+        request : proto.InviteRequest
             Request data containing GrpcInvite.
         context : grpc.ServicerContext
             Request context.
@@ -293,7 +293,7 @@ class InviteServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : proto.Invite
+        request : proto.InviteRequest
             Request data containing GrpcInvite.
         context : grpc.ServicerContext
             Request context.

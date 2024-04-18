@@ -71,7 +71,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         """
         db_invites: Optional[List[PrismaInvite]] = (
             await self._db_client.db.invite.find_many(
-                where={"id": author_id, "deleted_at": None}
+                where={"author_id": author_id, "deleted_at": None}
             )
         )
         if db_invites is None or len(db_invites) == 0:
