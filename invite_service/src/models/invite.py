@@ -71,7 +71,8 @@ class Invite:
             status=self.status,
         )
         invite.created_at.FromDatetime(self.created_at)
-        invite.deleted_at.FromDateTime(self.created_at)
+        if self.deleted_at is not None:
+            invite.deleted_at.FromDateTime(self.deleted_at)
 
         return invite
 
