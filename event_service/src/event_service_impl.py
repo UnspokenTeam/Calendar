@@ -6,6 +6,7 @@ from src.models.event import Event
 from utils.ai_client import AIClient
 
 from generated.event_service.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
+from generated.user.user_pb2 import GrpcUserType
 from google.protobuf.empty_pb2 import Empty
 from repository.event_repository_interface import EventRepositoryInterface
 import generated.event_service.event_service_pb2 as proto
@@ -159,7 +160,7 @@ class EventServiceImpl(GrpcServicer):
             Raises when user dont has enough access.
 
         """
-        if request.requesting_user.type != proto.GrpcUserType.ADMIN:
+        if request.requesting_user.type != GrpcUserType.ADMIN:
             raise PermissionDeniedError("Permission denied")
         events = await self._event_repository.get_all_events(
             page_number=request.page_number, items_per_page=request.items_per_page
@@ -197,7 +198,7 @@ class EventServiceImpl(GrpcServicer):
         """
         event = Event.from_grpc_event(request.event)
         if (
-            request.requesting_user.type != proto.GrpcUserType.ADMIN
+            request.requesting_user.type != GrpcUserType.ADMIN
             and request.requesting_user.id != event.author_id
         ):
             raise PermissionDeniedError("Permission denied")
@@ -230,7 +231,7 @@ class EventServiceImpl(GrpcServicer):
 
         """
         if (
-            request.requesting_user.type != proto.GrpcUserType.ADMIN
+            request.requesting_user.type != GrpcUserType.ADMIN
             and request.requesting_user.id != request.event.author_id
         ):
             raise PermissionDeniedError("Permission denied")
@@ -265,7 +266,7 @@ class EventServiceImpl(GrpcServicer):
         """
         event = await self._event_repository.get_event_by_event_id(request.event_id)
         if (
-            request.requesting_user.type != proto.GrpcUserType.ADMIN
+            request.requesting_user.type != GrpcUserType.ADMIN
             and request.requesting_user.id != event.author_id
         ):
             raise PermissionDeniedError("Permission denied")

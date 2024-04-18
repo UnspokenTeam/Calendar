@@ -14,9 +14,9 @@ ignore_missing_imports = true
 exclude = [
     ".venv",
     "__pycache__",
-    "event_service/proto/*.py",
-    "event_service/proto/*.pyi",
+    "event_service/generated",
     "identity_service/generated",
+    "notification_service/generated",
     "singleton.py",
     "event_service/constants.py"
 ]

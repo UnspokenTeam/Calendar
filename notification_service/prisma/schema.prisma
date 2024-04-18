@@ -1,0 +1,17 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-py"
+}
+
+model Notification {
+  id         String    @id @default(uuid())
+  event_id   String
+  author_id  String
+  enabled    Boolean   @default(true)
+  created_at DateTime  @default(now())
+  deleted_at DateTime?
+}

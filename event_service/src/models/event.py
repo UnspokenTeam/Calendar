@@ -82,7 +82,7 @@ class Event:
         event.end.FromDatetime(self.end)
         event.repeating_delay.FromDatetime(self.repeating_delay)
         event.created_at.FromDatetime(self.created_at)
-        event.deleted_at.FromDatetime(self.created_at)
+        event.deleted_at.FromDatetime(self.deleted_at)
 
         return event
 
@@ -118,6 +118,7 @@ class Event:
         ----------
         prisma_event : PrismaEvent
             Prisma event.
+
         Returns
         -------
         Event
