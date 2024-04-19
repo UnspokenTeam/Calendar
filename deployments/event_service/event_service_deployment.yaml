@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-service-deployment
+  labels:
+    app: event-service-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event-service-deployment
+  template:
+    metadata:
+      name: event-service-deployment
+      labels:
+        app: event-service-deployment
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: event-service-deployment
+          image: "ghcr.io/unspokenteam/event_service"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: "DATABASE_URL"
+              valueFrom:
+                secretKeyRef:
+                  name: event-service-secret
+                  key: DATABASE_URL
+          ports:
+            - containerPort: 8081
+              name: evs-port
+      restartPolicy: Always

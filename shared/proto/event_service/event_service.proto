@@ -1,46 +1,45 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "user/user.proto";
 
 service EventService {
   rpc get_event_by_event_id(EventRequestByEventId) returns (EventResponse){}
   rpc get_events_by_events_ids(EventsRequestByEventsIds) returns (EventsResponse){}
   rpc get_events_by_author_id(EventsRequestByAuthorId) returns (EventsResponse){}
   rpc get_all_events(RequestingUser) returns (EventsResponse){}
-  rpc create_event(EventRequest) returns (BaseResponse){}
-  rpc update_event(EventRequest) returns (BaseResponse){}
-  rpc delete_event(DeleteEventRequest) returns (BaseResponse){}
+  rpc create_event(EventRequest) returns (google.protobuf.Empty){}
+  rpc update_event(EventRequest) returns (google.protobuf.Empty){}
+  rpc delete_event(DeleteEventRequest) returns (google.protobuf.Empty){}
+  rpc generate_event_description(GenerateDescriptionRequest) returns (GenerateDescriptionResponse){}
 }
 
 message EventsRequestByAuthorId {
   string author_id = 1;
-  GrpcUser user = 2;
-  int64 page_number = 3;
+  GrpcUser requesting_user = 2;
+  uint64 page_number = 3;
   int64 items_per_page = 4;
 }
 
 message EventRequestByEventId {
   string event_id = 1;
-  GrpcUser user = 2;
+  GrpcUser requesting_user = 2;
 }
 
 message EventsRequestByEventsIds {
   ListOfEventsIds events_ids = 1;
-  GrpcUser user = 2;
-  int64 page_number = 3;
+  GrpcUser requesting_user = 2;
+  uint64 page_number = 3;
   int64 items_per_page = 4;
 }
 
 message EventResponse {
-  int32 status_code = 1;
-  GrpcEvent event = 2;
-  optional string message = 3;
+  GrpcEvent event = 1;
 }
 
 message EventsResponse {
-  int32 status_code = 1;
-  optional ListOfEvents events = 2;
-  optional string message = 3;
+  ListOfEvents events = 1;
 }
 
 message GrpcEvent {
@@ -56,29 +55,15 @@ message GrpcEvent {
   optional google.protobuf.Timestamp deleted_at = 10;
 }
 
-enum GrpcUserType {
-    USER = 0;
-    ADMIN = 1;
-}
-
-message GrpcUser {
-  string id = 1;
-  string username = 2;
-  string email = 3;
-  google.protobuf.Timestamp created_at = 4;
-  optional google.protobuf.Timestamp suspended_at = 5;
-  GrpcUserType type = 6;
-}
-
 message RequestingUser {
-  GrpcUser user = 1;
-  int64 page_number = 3;
-  int64 items_per_page = 4;
+  GrpcUser requesting_user = 1;
+  uint64 page_number = 2;
+  int64 items_per_page = 3;
 }
 
 message EventRequest {
   GrpcEvent event = 1;
-  GrpcUser user = 2;
+  GrpcUser requesting_user = 2;
 }
 
 message ListOfEvents {
@@ -89,12 +74,15 @@ message ListOfEventsIds {
   repeated string ids = 1;
 }
 
-message BaseResponse {
-  int32 status_code = 1;
-  optional string message = 2;
-}
-
 message DeleteEventRequest {
   string event_id = 1;
-  GrpcUser user = 2;
+  GrpcUser requesting_user = 2;
+}
+
+message GenerateDescriptionRequest {
+  string event_title = 1;
+}
+
+message GenerateDescriptionResponse {
+  string event_description = 1;
 }

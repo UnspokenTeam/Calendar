@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: invite-service-service
+spec:
+  selector:
+    app: invite-service-deployment
+  ports:
+    - protocol: TCP
+      port: 8082
+      targetPort: ins-port
+  clusterIP: None

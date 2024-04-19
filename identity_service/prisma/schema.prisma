@@ -12,7 +12,7 @@ model User {
   username String
   password String
   email String
-  role UserRole @default(User)
+  type UserRole @default(USER)
   created_at DateTime @default(now())
   suspended_at DateTime?
   tokens Token[]
@@ -26,6 +26,6 @@ model Token {
 }
 
 enum UserRole {
-  Admin
-  User
+  ADMIN
+  USER
 }

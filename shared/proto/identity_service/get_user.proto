@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+import "user/user.proto";
+
+message UserByIdRequest {
+  string user_id = 1;
+}
+
+message UserResponse {
+  GrpcUser user = 1;
+}
+
+message UsersResponse {
+  ListOfUser users = 1;
+}
+
+message ListOfUser {
+  repeated GrpcUser users = 1;
+}
+
+message UsersByIdRequest {
+  uint64 page = 1;
+  int64 items_per_page = 2;
+  repeated string id = 3;
+}
+
+message GetAllUsersRequest {
+  uint64 page = 1;
+  int64 items_per_page = 2;
+  GrpcUser requested_user = 3;
+}

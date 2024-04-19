@@ -5,7 +5,5 @@ message GetNewAccessTokenRequest {
 }
 
 message GetNewAccessTokenResponse {
-  int64 status_code = 1;
-  optional string access_token = 2;
-  optional string message = 3;
+  string access_token = 1;
 }

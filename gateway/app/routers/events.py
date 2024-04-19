@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter
 
 router = APIRouter(
@@ -7,10 +9,10 @@ router = APIRouter(
 
 
 @router.get("/{event_id}")
-async def get_event_by_event_id(event_id: int):
-    # TODO some grpc logic here
+async def get_event_by_event_id(event_id: int) -> dict[str, Any]:
     return {"event_id": event_id}
 
+
 @router.get("/my")
-async def get_my_events():
+async def get_my_events() -> dict[str, Any]:
     return {"my_events": 331232}
