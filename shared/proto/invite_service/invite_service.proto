@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "user/user.proto";
 
 service InviteService {
   rpc get_invite_by_invite_id(InviteRequestByInviteId) returns (InviteResponse){}
@@ -43,15 +44,6 @@ message GrpcInvite {
   optional google.protobuf.Timestamp deleted_at = 7;
 }
 
-message GrpcUser {
-  string id = 1;
-  string username = 2;
-  string email = 3;
-  google.protobuf.Timestamp created_at = 4;
-  optional google.protobuf.Timestamp suspended_at = 5;
-  GrpcUserType type = 6;
-}
-
 message RequestingUser {
   GrpcUser requesting_user = 1;
 }
@@ -79,11 +71,6 @@ message DeleteInviteRequest {
 message GetInvitesByInviteeIdRequest {
   string invitee_id = 1;
   GrpcUser requesting_user = 2;
-}
-
-enum GrpcUserType {
-    USER = 0;
-    ADMIN = 1;
 }
 
 enum InviteStatus {

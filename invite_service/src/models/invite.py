@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Self
 
 from prisma.models import Invite as PrismaInvite
 
-from proto.invite_service_pb2 import GrpcInvite, InviteStatus
+from generated.invite_service.invite_service_pb2 import GrpcInvite, InviteStatus
 
 
 @dataclass

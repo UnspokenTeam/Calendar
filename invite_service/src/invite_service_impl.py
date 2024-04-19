@@ -4,14 +4,16 @@ import grpc
 
 import prisma.errors
 
-from proto.invite_service_pb2_grpc import InviteServiceServicer as GrpcServicer
-import proto.invite_service_pb2 as proto
-
 from errors.permission_denied import PermissionDeniedError
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.invite import Invite
 
+from generated.invite_service.invite_service_pb2_grpc import (
+    InviteServiceServicer as GrpcServicer,
+)
+from generated.user.user_pb2 import GrpcUserType
 from repository.invite_repository_interface import InviteRepositoryInterface
+import generated.invite_service.invite_service_pb2 as proto
 
 
 class InviteServiceImpl(GrpcServicer):
@@ -76,7 +78,7 @@ class InviteServiceImpl(GrpcServicer):
         try:
             if (
                 request.requesting_user != request.author_id
-                and request.requesting_user.type != proto.GrpcUserType.ADMIN
+                and request.requesting_user.type != GrpcUserType.ADMIN
             ):
                 raise PermissionDeniedError("Permission denied")
             invites = await self._invite_repository.get_invites_by_author_id(
@@ -128,7 +130,7 @@ class InviteServiceImpl(GrpcServicer):
 
         """
         try:
-            if request.requesting_user.type != proto.GrpcUserType.ADMIN:
+            if request.requesting_user.type != GrpcUserType.ADMIN:
                 raise PermissionDeniedError("Permission denied")
             invites = await self._invite_repository.get_all_invites()
             context.set_code(grpc.StatusCode.OK)
@@ -183,7 +185,7 @@ class InviteServiceImpl(GrpcServicer):
             if (
                 request.requesting_user.id != invite.author_id
                 and request.requesting_user.id != invite.invitee_id
-                and request.requesting_user.type != proto.GrpcUserType.ADMIN
+                and request.requesting_user.type != GrpcUserType.ADMIN
             ):
                 raise PermissionDeniedError("Permission denied")
             context.set_code(grpc.StatusCode.OK)
@@ -198,7 +200,7 @@ class InviteServiceImpl(GrpcServicer):
             )
         except PermissionDeniedError:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.InvitesResponse(status_code=403, message="Permission denied")
+            return proto.InviteResponse(status_code=403, message="Permission denied")
 
     async def get_invites_by_invitee_id(
         self, request: proto.GetInvitesByInviteeIdRequest, context: grpc.ServicerContext
@@ -229,7 +231,7 @@ class InviteServiceImpl(GrpcServicer):
         try:
             if (
                 request.requesting_user.id != request.invitee_id
-                and request.requesting_user.type != proto.GrpcUserType.ADMIN
+                and request.requesting_user.type != GrpcUserType.ADMIN
             ):
                 raise PermissionDeniedError("Permission denied")
             invites = await self._invite_repository.get_invites_by_invitee_id(
@@ -284,7 +286,7 @@ class InviteServiceImpl(GrpcServicer):
             invite = Invite.from_grpc_invite(request.invite)
             if (
                 request.requesting_user.id != invite.author_id
-                and request.requesting_user.type != proto.GrpcUserType.ADMIN
+                and request.requesting_user.type != GrpcUserType.ADMIN
             ):
                 raise PermissionDeniedError("Permission denied")
             await self._invite_repository.create_invite(invite=invite)
@@ -298,7 +300,7 @@ class InviteServiceImpl(GrpcServicer):
             return proto.BaseResponse(status_code=500, message="Internal server error")
         except PermissionDeniedError:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.InvitesResponse(status_code=403, message="Permission denied")
+            return proto.BaseResponse(status_code=403, message="Permission denied")
 
     async def update_invite(
         self, request: proto.InviteRequest, context: grpc.ServicerContext
@@ -368,7 +370,7 @@ class InviteServiceImpl(GrpcServicer):
             )
             if (
                 request.requesting_user.id != invite.author_id
-                and request.requesting_user.type != proto.GrpcUserType.ADMIN
+                and request.requesting_user.type != GrpcUserType.ADMIN
             ):
                 raise PermissionDeniedError("Permission denied")
             await self._invite_repository.delete_invite(invite_id=request.invite_id)
@@ -382,4 +384,4 @@ class InviteServiceImpl(GrpcServicer):
             return proto.BaseResponse(status_code=500, message="Internal server error")
         except PermissionDeniedError:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.InvitesResponse(status_code=403, message="Permission denied")
+            return proto.BaseResponse(status_code=403, message="Permission denied")
