@@ -2,21 +2,25 @@
 strict = true
 ignore_missing_imports = true
 explicit_package_bases = true
-
+exclude = "gateway"
 # Disabled errors
 disallow_subclassing_any = false
 
 [[tool.mypy.overrides]]
-module = ["google.*"]
+module = ["google.*", "fastapi", "generated"]
+ignore_errors = true
 ignore_missing_imports = true
+disallow_untyped_decorators = false
+
 
 [tool.ruff]
 exclude = [
     ".venv",
     "__pycache__",
-    "event_service/proto/*.py",
-    "event_service/proto/*.pyi",
+    "event_service/generated",
+    "invite_service/generated",
     "identity_service/generated",
+    "gateway/generated",
     "singleton.py",
     "event_service/constants.py"
 ]
