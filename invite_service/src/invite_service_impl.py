@@ -5,12 +5,13 @@ import grpc
 from proto.invite_service_pb2_grpc import InviteServiceServicer as GrpcServicer
 import proto.invite_service_pb2 as proto
 
-from src.models.invite import Invite
+from google.protobuf.empty_pb2 import Empty
+from repository.invite_repository_interface import InviteRepositoryInterface
 
 
 class InviteServiceImpl(GrpcServicer):
     """
-    Implementation of the Event Service.
+    Implementation of the Invite Service.
 
     Attributes
     ----------
@@ -27,26 +28,23 @@ class InviteServiceImpl(GrpcServicer):
         Function that need to be bind to the server that updates the invite.
     delete_invite(request, context)
         Function that need to be bind to the server that deletes the invite.
-     get_invites_by_invitee_id(request, context)
+    get_invites_by_invitee_id(request, context)
         Function that need to be bind to the server that returns invites list by invitee id.
+    get_all_invites(request, context)
+        Function that need to be bind to the server that returns all invites in list.
 
     """
 
-    def __init__(self) -> None:
-        self.invites = [
-            Invite(
-                "id", "event_id", "author_id", "invitee_id", proto.InviteStatus.PENDING
-            ),
-            Invite(
-                "id", "event_id", "author_id", "invitee_id", proto.InviteStatus.PENDING
-            ),
-        ]
+    _invite_repository: InviteRepositoryInterface
 
-    def get_invites_by_user_id(
+    def __init__(self, invite_repository: InviteRepositoryInterface) -> None:
+        self._invite_repository = invite_repository
+
+    def get_invites_by_author_id(
         self, request: proto.InvitesByUserIdRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
-        Get all invites by user id.
+        Get all invites by author id.
 
         Parameters
         ----------
@@ -61,14 +59,33 @@ class InviteServiceImpl(GrpcServicer):
             Invites object for invite response.
 
         """
-        context.set_code(grpc.StatusCode.OK)
+        pass
 
-        return proto.InvitesResponse(
-            code=200,
-            invites=proto.ListOfInvites(
-                invites=[invite.to_grpc_invite() for invite in self.invites if invite.author_id == request.author_id]
-            ),
-        )
+    def get_all_invites(
+        self, request: Empty, context: grpc.ServicerContext
+    ) -> proto.InvitesResponse:
+        """
+        Get all invites.
+
+        Parameters
+        ----------
+        request : Empty
+            Request data.
+        context : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        List[Invite]
+            List of all invites.
+
+        Raises
+        ------
+        InvitesResponse
+            Response object for invite response.
+
+        """
+        pass
 
     def get_invites_by_invitee_id(
         self, request: proto.GetInviteeByInviteIdRequest, context: grpc.ServicerContext

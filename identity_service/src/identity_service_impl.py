@@ -1,27 +1,25 @@
 """Identity Service Controller"""
+
 from typing import Tuple
 from uuid import uuid4
 
 import grpc
 
-import prisma.errors
-
-from errors.InvalidTokenError import InvalidTokenError
-from errors.unique_error import UniqueError
+from errors.permission_denied import PermissionDeniedError
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.user import User, UserType
 from utils.encoder import Encoder
 from utils.jwt_controller import JwtController, TokenType
 
-from generated.identity_service_pb2_grpc import IdentityServiceServicer as GrpcServicer
+from generated.identity_service.identity_service_pb2_grpc import IdentityServiceServicer as GrpcServicer
+from google.protobuf.empty_pb2 import Empty
 from repository.token_repository_interface import TokenRepositoryInterface
 from repository.user_repository_interface import UserRepositoryInterface
-import generated.auth_pb2 as auth_proto
-import generated.delete_user_pb2 as delete_user_proto
-import generated.get_access_token_pb2 as get_access_token_proto
-import generated.get_user_pb2 as get_user_proto
-import generated.identity_service_pb2 as requests_proto
-import generated.update_user_pb2 as update_user_proto
+import generated.identity_service.auth_pb2 as auth_proto
+import generated.identity_service.delete_user_pb2 as delete_user_proto
+import generated.identity_service.get_access_token_pb2 as get_access_token_proto
+import generated.identity_service.get_user_pb2 as get_user_proto
+import generated.identity_service.update_user_pb2 as update_user_proto
 
 
 class IdentityServiceImpl(GrpcServicer):
@@ -91,39 +89,27 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with credentials
 
         """
-        try:
-            user = await self._user_repository.get_user_by_email(request.email)
+        user = await self._user_repository.get_user_by_email(request.email)
 
-            if not self._encoder.compare(
-                password=request.password, hashed_password=user.password
-            ):
-                raise ValueNotFoundError("Invalid password")
+        if not self._encoder.compare(
+            password=request.password, hashed_password=user.password
+        ):
+            raise ValueNotFoundError("Invalid password")
 
-            session_id = str(uuid4())
-            access_token, refresh_token = self._generate_tokens(
-                session_id=session_id, user_id=user.id
-            )
-            await self._token_repository.store_refresh_token(
-                refresh_token=refresh_token, session_id=session_id, user_id=user.id
-            )
+        session_id = str(uuid4())
+        access_token, refresh_token = self._generate_tokens(
+            session_id=session_id, user_id=user.id
+        )
+        await self._token_repository.store_refresh_token(
+            refresh_token=refresh_token, session_id=session_id, user_id=user.id
+        )
 
-            context.set_code(grpc.StatusCode.OK)
-            return auth_proto.CredentialsResponse(
-                status_code=200,
-                data=auth_proto.LoginData(
-                    access_token=access_token, refresh_token=refresh_token
-                ),
-            )
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.UNAUTHENTICATED)
-            return auth_proto.CredentialsResponse(
-                status_code=403, message="Email or password are incorrect"
-            )
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return auth_proto.CredentialsResponse(
-                status_code=500, message="Internal server error"
-            )
+        context.set_code(grpc.StatusCode.OK)
+        return auth_proto.CredentialsResponse(
+            data=auth_proto.LoginData(
+                access_token=access_token, refresh_token=refresh_token
+            ),
+        )
 
     async def register(
         self, request: auth_proto.RegisterRequest, context: grpc.ServicerContext
@@ -144,37 +130,25 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with credentials
 
         """
-        try:
-            user = User.from_register_request(request)
-            user.password = self._encoder.encode(user.password)
+        user = User.from_register_request(request)
+        user.password = self._encoder.encode(user.password)
 
-            await self._user_repository.create_user(user=user)
+        user = await self._user_repository.create_user(user=user)
 
-            session_id = str(uuid4())
-            access_token, refresh_token = self._generate_tokens(
-                session_id=session_id, user_id=user.id
-            )
-            await self._token_repository.store_refresh_token(
-                refresh_token=refresh_token, session_id=session_id, user_id=user.id
-            )
+        session_id = str(uuid4())
+        access_token, refresh_token = self._generate_tokens(
+            session_id=session_id, user_id=user.id
+        )
+        await self._token_repository.store_refresh_token(
+            refresh_token=refresh_token, session_id=session_id, user_id=user.id
+        )
 
-            context.set_code(grpc.StatusCode.OK)
-            return auth_proto.CredentialsResponse(
-                status_code=200,
-                data=auth_proto.LoginData(
-                    access_token=access_token, refresh_token=refresh_token
-                ),
-            )
-        except UniqueError:
-            context.set_code(grpc.StatusCode.ALREADY_EXISTS)
-            return auth_proto.CredentialsResponse(
-                status_code=400, message="User with this data already exists"
-            )
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return auth_proto.CredentialsResponse(
-                status_code=500, message="Internal server error"
-            )
+        context.set_code(grpc.StatusCode.OK)
+        return auth_proto.CredentialsResponse(
+            data=auth_proto.LoginData(
+                access_token=access_token, refresh_token=refresh_token
+            ),
+        )
 
     async def auth(
         self, request: auth_proto.AccessToken, context: grpc.ServicerContext
@@ -195,26 +169,12 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with user object
 
         """
-        try:
-            _, session_id = self._jwt_controller.decode(
-                request.access_token, TokenType.ACCESS_TOKEN
-            )
-            user = await self._user_repository.get_user_by_session_id(session_id)
-            context.set_code(grpc.StatusCode.OK)
-            return get_user_proto.UserResponse(
-                status_code=200, user=user.to_grpc_user()
-            )
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.UNAUTHENTICATED)
-            return get_user_proto.UserResponse(status_code=403, message="Unauthorized")
-        except InvalidTokenError:
-            context.set_code(grpc.StatusCode.UNAUTHENTICATED)
-            return get_user_proto.UserResponse(status_code=403, message="Unauthorized")
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return get_user_proto.UserResponse(
-                status_code=500, message="Internal server error"
-            )
+        _, session_id = self._jwt_controller.decode(
+            request.access_token, TokenType.ACCESS_TOKEN
+        )
+        user = await self._user_repository.get_user_by_session_id(session_id)
+        context.set_code(grpc.StatusCode.OK)
+        return get_user_proto.UserResponse(user=user.to_grpc_user())
 
     async def get_new_access_token(
         self,
@@ -237,33 +197,17 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with new access token
 
         """
-        try:
-            user_id, session_id = self._jwt_controller.decode(
-                request.refresh_token, TokenType.ACCESS_TOKEN
-            )
-            await self._user_repository.get_user_by_session_id(session_id=session_id)
-            access_token = self._jwt_controller.generate_access_token(
-                user_id=user_id, session_id=session_id
-            )
-            context.set_code(grpc.StatusCode.OK)
-            return get_access_token_proto.GetNewAccessTokenResponse(
-                status_code=200, access_token=access_token
-            )
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.UNAUTHENTICATED)
-            return get_access_token_proto.GetNewAccessTokenResponse(
-                status_code=403, message="Unauthorized"
-            )
-        except InvalidTokenError:
-            context.set_code(grpc.StatusCode.UNAUTHENTICATED)
-            return get_access_token_proto.GetNewAccessTokenResponse(
-                status_code=403, message="Unauthorized"
-            )
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return get_access_token_proto.GetNewAccessTokenResponse(
-                status_code=500, message="Internal server error"
-            )
+        user_id, session_id = self._jwt_controller.decode(
+            request.refresh_token, TokenType.REFRESH_TOKEN
+        )
+        await self._user_repository.get_user_by_session_id(session_id=session_id)
+        access_token = self._jwt_controller.generate_access_token(
+            user_id=user_id, session_id=session_id
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return get_access_token_proto.GetNewAccessTokenResponse(
+            access_token=access_token
+        )
 
     async def get_user_by_id(
         self, request: get_user_proto.UserByIdRequest, context: grpc.ServicerContext
@@ -284,22 +228,9 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with public user data
 
         """
-        try:
-            user = await self._user_repository.get_user_by_id(request.user_id)
-            context.set_code(grpc.StatusCode.OK)
-            return get_user_proto.UserResponse(
-                status_code=200, user=user.to_dict(exclude=["password"])
-            )
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return get_user_proto.UserResponse(
-                status_code=404, message="User not found"
-            )
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return get_user_proto.UserResponse(
-                status_code=500, message="Internal server error"
-            )
+        user = await self._user_repository.get_user_by_id(request.user_id)
+        context.set_code(grpc.StatusCode.OK)
+        return get_user_proto.UserResponse(user=user.to_dict(exclude=["password"]))
 
     async def get_users_by_id(
         self, request: get_user_proto.UsersByIdRequest, context: grpc.ServicerContext
@@ -320,29 +251,17 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with array of user data
 
         """
-        try:
-            users = await self._user_repository.get_users_by_ids(
-                user_ids=list(request.id),
-                page=request.page,
-                items_per_page=request.items_per_page,
-            )
-            context.set_code(grpc.StatusCode.OK)
-            return get_user_proto.UsersResponse(
-                status_code=200,
-                users=get_user_proto.ListOfUser(
-                    users=[user.to_grpc_user() for user in users]
-                ),
-            )
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return get_user_proto.UsersResponse(
-                status_code=404, message="Users not found"
-            )
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return get_user_proto.UsersResponse(
-                status_code=500, message="Internal server error"
-            )
+        users = await self._user_repository.get_users_by_ids(
+            user_ids=list(request.id),
+            page=request.page,
+            items_per_page=request.items_per_page,
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return get_user_proto.UsersResponse(
+            users=get_user_proto.ListOfUser(
+                users=[user.to_grpc_user() for user in users]
+            ),
+        )
 
     async def get_all_users(
         self, request: get_user_proto.GetAllUsersRequest, context: grpc.ServicerContext
@@ -360,36 +279,26 @@ class IdentityServiceImpl(GrpcServicer):
         Returns
         -------
         get_user_proto.UsersResponse
-            Response object with array of user data
+            Response object with array of user data4
+
+        Raises
+        ------
+        PermissionDeniedError
+            Permission denied
 
         """
-        try:
-            requesting_user = User.from_grpc_user(request.requested_user)
-            if requesting_user.type != UserType.ADMIN:
-                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-                return get_user_proto.UsersResponse(
-                    status_code=403,
-                    message="Permission denied",
-                )
-            users = await self._user_repository.get_all_users(
-                page=request.page, items_per_page=request.items_per_page
+        requesting_user = User.from_grpc_user(request.requested_user)
+        if requesting_user.type != UserType.ADMIN:
+            raise PermissionDeniedError("Permission denied")
+        users = await self._user_repository.get_all_users(
+            page=request.page, items_per_page=request.items_per_page
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return get_user_proto.UsersResponse(
+            users=get_user_proto.ListOfUser(
+                users=[user.to_grpc_user() for user in users]
             )
-            context.set_code(grpc.StatusCode.OK)
-            return get_user_proto.UsersResponse(
-                users=get_user_proto.ListOfUser(
-                    users=[user.to_grpc_user() for user in users]
-                )
-            )
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return get_user_proto.UsersResponse(
-                status_code=404, message="Users not found"
-            )
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return get_user_proto.UsersResponse(
-                status_code=500, message="Internal server error"
-            )
+        )
 
     async def update_user(
         self,
@@ -411,65 +320,47 @@ class IdentityServiceImpl(GrpcServicer):
         auth_proto.CredentialsResponse
             Response with credentials for user
 
+        Raises
+        ------
+        PermissionDeniedError
+            Permission denied
+
         """
-        try:
-            user = User.from_update_grpc_user(grpc_user=request.new_user)
-            requesting_user = User.from_grpc_user(request.requesting_user)
-            db_user = await self._user_repository.get_user_by_id(
-                user_id=requesting_user.id
-            )
+        user = User.from_update_grpc_user(grpc_user=request.new_user)
+        requesting_user = User.from_grpc_user(request.requesting_user)
+        db_user = await self._user_repository.get_user_by_id(user_id=requesting_user.id)
 
-            if requesting_user.type != UserType.ADMIN and user.id != requesting_user.id:
-                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-                return auth_proto.CredentialsResponse(
-                    status_code=403,
-                    message="Permission denied",
-                )
+        if requesting_user.type != UserType.ADMIN and user.id != requesting_user.id:
+            raise PermissionDeniedError("Permission denied")
 
-            if self._encoder.compare(user.password, db_user.password):
-                user.password = db_user.password
-            else:
-                user.password = self._encoder.encode(password=user.password)
+        if self._encoder.compare(user.password, db_user.password):
+            user.password = db_user.password
+        else:
+            user.password = self._encoder.encode(password=user.password)
 
-            await self._user_repository.update_user(user=user)
-            await self._token_repository.delete_all_refresh_tokens(user_id=user.id)
+        await self._user_repository.update_user(user=user)
+        await self._token_repository.delete_all_refresh_tokens(user_id=user.id)
 
-            session_id = str(uuid4())
-            access_token, refresh_token = self._generate_tokens(
-                session_id=session_id, user_id=user.id
-            )
-            await self._token_repository.store_refresh_token(
-                refresh_token=refresh_token, session_id=session_id, user_id=user.id
-            )
+        session_id = str(uuid4())
+        access_token, refresh_token = self._generate_tokens(
+            session_id=session_id, user_id=user.id
+        )
+        await self._token_repository.store_refresh_token(
+            refresh_token=refresh_token, session_id=session_id, user_id=user.id
+        )
 
-            context.set_code(grpc.StatusCode.OK)
-            return auth_proto.CredentialsResponse(
-                status_code=200,
-                data=auth_proto.LoginData(
-                    access_token=access_token, refresh_token=refresh_token
-                ),
-            )
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return auth_proto.CredentialsResponse(
-                status_code=404, message="User with provided id does not exist"
-            )
-        except UniqueError:
-            context.set_code(grpc.StatusCode.ALREADY_EXISTS)
-            return auth_proto.CredentialsResponse(
-                status_code=400, message="User with provided data already exists"
-            )
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return auth_proto.CredentialsResponse(
-                status_code=500, message="Internal server error"
-            )
+        context.set_code(grpc.StatusCode.OK)
+        return auth_proto.CredentialsResponse(
+            data=auth_proto.LoginData(
+                access_token=access_token, refresh_token=refresh_token
+            ),
+        )
 
     async def delete_user(
         self,
         request: delete_user_proto.DeleteUserRequest,
         context: grpc.ServicerContext,
-    ) -> requests_proto.BaseResponse:
+    ) -> Empty:
         """
         Deletes user with matching ID
 
@@ -482,38 +373,27 @@ class IdentityServiceImpl(GrpcServicer):
 
         Returns
         -------
-        requests_proto.BaseResponse
-            Base response with status code and optional message
+        Empty
+            Empty response
+
+        Raises
+        ------
+        PermissionDeniedError
+            Permission denied
 
         """
-        try:
-            requesting_user = User.from_grpc_user(request.requesting_user)
-            user = await self._user_repository.get_user_by_id(request.user_id)
-            if requesting_user.type != UserType.ADMIN and requesting_user.id != user.id:
-                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-                return requests_proto.BaseResponse(
-                    status_code=403, message="Permission denied"
-                )
-            await self._token_repository.delete_all_refresh_tokens(
-                user_id=request.user_id
-            )
-            await self._user_repository.delete_user(user_id=request.user_id)
-            context.set_code(grpc.StatusCode.OK)
-            return requests_proto.BaseResponse(status_code=200)
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return requests_proto.BaseResponse(
-                status_code=404, message="Users not found"
-            )
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return requests_proto.BaseResponse(
-                status_code=500, message="Internal server error"
-            )
+        requesting_user = User.from_grpc_user(request.requesting_user)
+        user = await self._user_repository.get_user_by_id(request.user_id)
+        if requesting_user.type != UserType.ADMIN and requesting_user.id != user.id:
+            raise PermissionDeniedError("Permission denied")
+        await self._token_repository.delete_all_refresh_tokens(user_id=request.user_id)
+        await self._user_repository.delete_user(user_id=request.user_id)
+        context.set_code(grpc.StatusCode.OK)
+        return Empty()
 
     async def logout(
         self, request: auth_proto.AccessToken, context: grpc.ServicerContext
-    ) -> requests_proto.BaseResponse:
+    ) -> Empty:
         """
         Logs out and deletes user's access token from database
 
@@ -526,22 +406,16 @@ class IdentityServiceImpl(GrpcServicer):
 
         Returns
         -------
-        requests_proto.BaseResponse
-            Base response with status code and optional message
+        Empty
+            Empty response
 
         """
-        try:
-            _, session_id = self._jwt_controller.decode(
-                token=request.access_token, token_type=TokenType.ACCESS_TOKEN
-            )
-            await self._token_repository.delete_refresh_token(session_id=session_id)
-            context.set_code(grpc.StatusCode.OK)
-            return requests_proto.BaseResponse(status_code=200)
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return requests_proto.BaseResponse(
-                status_code=404, message="Users not found"
-            )
+        _, session_id = self._jwt_controller.decode(
+            token=request.access_token, token_type=TokenType.ACCESS_TOKEN
+        )
+        await self._token_repository.delete_refresh_token(session_id=session_id)
+        context.set_code(grpc.StatusCode.OK)
+        return Empty()
 
     def _generate_tokens(self, session_id: str, user_id: str) -> Tuple[str, str]:
         """

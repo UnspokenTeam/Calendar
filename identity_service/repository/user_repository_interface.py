@@ -1,4 +1,5 @@
 """User repository interface"""
+
 from abc import ABC, abstractmethod
 from typing import List
 
@@ -112,7 +113,7 @@ class UserRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def create_user(self, user: User) -> None:
+    async def create_user(self, user: User) -> User:
         """
         Creates user with matching data or throws an exception
 
@@ -120,6 +121,11 @@ class UserRepositoryInterface(ABC):
         ----------
         user : User
             User data
+
+        Returns
+        -------
+        User
+            Created user
 
         Raises
         ------

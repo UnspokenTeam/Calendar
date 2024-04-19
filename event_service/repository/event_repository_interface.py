@@ -1,4 +1,5 @@
 """Event repository interface"""
+
 from abc import ABC, abstractmethod
 from typing import List
 
@@ -54,7 +55,7 @@ class EventRepositoryInterface(ABC):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No events was found for given author id.
+            No events were found for given author id.
 
         """
         pass
@@ -72,14 +73,14 @@ class EventRepositoryInterface(ABC):
         Returns
         -------
         Event
-            List of events that matches by event id.
+            Events that matches by event id.
 
         Raises
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No events was found for given event id.
+            No events were found for given event id.
 
         """
         pass
@@ -110,7 +111,7 @@ class EventRepositoryInterface(ABC):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No events was found for given author id.
+            No events were found for given event ids.
 
         """
         pass
@@ -132,14 +133,14 @@ class EventRepositoryInterface(ABC):
         Returns
         -------
         List[Event]
-            List of events that matches by event id.
+            List of events.
 
         Raises
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No events was found for given author id.
+            No events were found.
 
         """
         pass

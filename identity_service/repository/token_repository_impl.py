@@ -1,4 +1,5 @@
 """Tokens repository"""
+
 from db.postgres_client import PostgresClient
 from errors.value_not_found_error import ValueNotFoundError
 from utils.singleton import singleton

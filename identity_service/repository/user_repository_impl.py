@@ -1,6 +1,8 @@
 """User repository with data from database"""
+
 from datetime import datetime
 from typing import List, Optional
+import logging
 
 from prisma.models import User as PrismaUser
 
@@ -149,7 +151,7 @@ class UserRepositoryImpl(UserRepositoryInterface):
 
         return [User.from_prisma_user(db_user) for db_user in db_users]
 
-    async def create_user(self, user: User) -> None:
+    async def create_user(self, user: User) -> User:
         """
         Creates user with matching data or throws an exception
 
@@ -157,6 +159,11 @@ class UserRepositoryImpl(UserRepositoryInterface):
         ----------
         user : User
             User data
+
+        Returns
+        -------
+        User
+            Created user
 
         Raises
         ------
@@ -178,7 +185,10 @@ class UserRepositoryImpl(UserRepositoryInterface):
         )
         if db_user_counter != 0:
             raise UniqueError("User with this email or username already exists")
-        await self._db_client.db.user.create(data=user.to_dict())
+        logging.info(user.to_dict())
+        prisma_user_data = await self._db_client.db.user.create(data=user.to_dict())
+        user.id = prisma_user_data.id
+        return user
 
     async def update_user(self, user: User) -> None:
         """
@@ -289,9 +299,12 @@ class UserRepositoryImpl(UserRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python
 
         """
-        prisma_user = await self._db_client.db.user.find_first(
-            where={"suspended_at": None, "tokens": {"id": session_id}}
+        token = await self._db_client.db.token.find_unique(
+            where={
+                "id": session_id,
+            },
+            include={"user": True},
         )
-        if prisma_user is None:
-            raise ValueNotFoundError("User not found")
-        return User.from_prisma_user(prisma_user=prisma_user)
+        if token is None or token.user is None:
+            raise ValueNotFoundError("Session not found")
+        return User.from_prisma_user(prisma_user=token.user)

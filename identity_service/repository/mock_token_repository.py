@@ -1,4 +1,5 @@
 """Mock token repository"""
+
 from errors.value_not_found_error import ValueNotFoundError
 from utils.singleton import singleton
 

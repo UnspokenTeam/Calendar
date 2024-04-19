@@ -1,4 +1,5 @@
 """Token repository interface"""
+
 from abc import ABC, abstractmethod
 
 
