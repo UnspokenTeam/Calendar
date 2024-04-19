@@ -1,4 +1,5 @@
 """User repository with data from database"""
+
 from datetime import datetime
 from typing import List, Optional
 import logging
@@ -298,9 +299,12 @@ class UserRepositoryImpl(UserRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python
 
         """
-        prisma_user = await self._db_client.db.user.find_first(
-            where={"suspended_at": None, "tokens": {"id": session_id}}
+        token = await self._db_client.db.token.find_unique(
+            where={
+                "id": session_id,
+            },
+            include={"user": True},
         )
-        if prisma_user is None:
-            raise ValueNotFoundError("User not found")
-        return User.from_prisma_user(prisma_user=prisma_user)
+        if token is None or token.user is None:
+            raise ValueNotFoundError("Session not found")
+        return User.from_prisma_user(prisma_user=token.user)

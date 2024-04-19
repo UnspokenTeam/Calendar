@@ -1,11 +1,12 @@
 """Event Model."""
+
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Self
 
 from prisma.models import Event as PrismaEvent
 
-from proto.event_service_pb2 import GrpcEvent
+from generated.event_service.event_service_pb2 import GrpcEvent
 
 
 @dataclass
@@ -163,20 +164,24 @@ class Event:
             author_id=grpc_event.author_id,
             description=grpc_event.description,
             color=grpc_event.color,
-            repeating_delay=datetime.fromtimestamp(
-                grpc_event.repeating_delay.seconds
-                + grpc_event.repeating_delay.nanos / 1e9
-            )
-            if grpc_event.repeating_delay is not None
-            else None,
+            repeating_delay=(
+                datetime.fromtimestamp(
+                    grpc_event.repeating_delay.seconds
+                    + grpc_event.repeating_delay.nanos / 1e9
+                )
+                if grpc_event.repeating_delay is not None
+                else None
+            ),
             created_at=datetime.fromtimestamp(
                 grpc_event.created_at.seconds + grpc_event.created_at.nanos / 1e9
             ),
-            deleted_at=datetime.fromtimestamp(
-                grpc_event.deleted_at.seconds + grpc_event.deleted_at.nanos / 1e9
-            )
-            if grpc_event.deleted_at is not None
-            else None,
+            deleted_at=(
+                datetime.fromtimestamp(
+                    grpc_event.deleted_at.seconds + grpc_event.deleted_at.nanos / 1e9
+                )
+                if grpc_event.deleted_at is not None
+                else None
+            ),
         )
 
     def __repr__(self) -> str:

@@ -1,4 +1,5 @@
 """User Model"""
+
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
@@ -6,9 +7,9 @@ from typing import Any, List, Optional, Self
 
 from prisma.models import User as PrismaUser
 
-from generated.auth_pb2 import RegisterRequest
-from generated.get_user_pb2 import GrpcUser, GrpcUserType
-from generated.update_user_pb2 import UserToUpdate as GrpcUserToUpdate
+from generated.identity_service.auth_pb2 import RegisterRequest
+from generated.identity_service.update_user_pb2 import UserToUpdate as GrpcUserToUpdate
+from generated.user.user_pb2 import GrpcUser, GrpcUserType
 
 
 class UserType(StrEnum):
@@ -104,9 +105,9 @@ class User:
             id=self.id,
             username=self.username,
             email=self.email,
-            type=GrpcUserType.USER
-            if self.type == UserType.USER
-            else GrpcUserType.ADMIN,
+            type=(
+                GrpcUserType.USER if self.type == UserType.USER else GrpcUserType.ADMIN
+            ),
             suspended_at=None,
         )
         user.created_at.FromDatetime(self.created_at)
@@ -135,7 +136,7 @@ class User:
             username=prisma_user.username,
             email=prisma_user.email,
             password=prisma_user.password,
-            type=UserType(prisma_user.role),
+            type=UserType(prisma_user.type),
             created_at=prisma_user.created_at,
             suspended_at=prisma_user.suspended_at,
         )
@@ -217,8 +218,12 @@ class User:
             created_at=datetime.fromtimestamp(
                 grpc_user.created_at.seconds + grpc_user.created_at.nanos / 1e9
             ),
-            suspended_at=datetime.fromtimestamp(
-                grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
+            suspended_at=(
+                datetime.fromtimestamp(
+                    grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
+                )
+                if grpc_user.suspended_at is not None
+                else None
             ),
         )
 
@@ -247,8 +252,12 @@ class User:
             created_at=datetime.fromtimestamp(
                 grpc_user.created_at.seconds + grpc_user.created_at.nanos / 1e9
             ),
-            suspended_at=datetime.fromtimestamp(
-                grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
+            suspended_at=(
+                datetime.fromtimestamp(
+                    grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
+                )
+                if grpc_user.suspended_at is not None
+                else None
             ),
         )
 

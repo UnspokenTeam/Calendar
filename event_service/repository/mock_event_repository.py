@@ -1,4 +1,5 @@
 """Mock event repository"""
+
 from typing import List
 from uuid import uuid4
 
@@ -64,7 +65,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No events was found for given author id.
+            No events were found for given author id.
 
         """
         events = [
@@ -74,7 +75,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         ]
         if events is None or len(events) == 0:
             raise ValueNotFoundError("Events not found")
-        return events[items_per_page * (page_number - 1) : items_per_page * page_number]
+        return (
+            events[items_per_page * (page_number - 1) : items_per_page * page_number]
+            if items_per_page != -1
+            else events
+        )
 
     async def get_event_by_event_id(self, event_id: str) -> Event:
         """
@@ -93,7 +98,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No events was found for given event id.
+            No events were found for given event id.
 
         """
         try:
@@ -128,7 +133,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No events was found for given author id.
+            No events were found for given event ids.
 
         """
         events = [
@@ -138,7 +143,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         ]
         if events is None or len(events) == 0:
             raise ValueNotFoundError("Events not found")
-        return events[items_per_page * (page_number - 1) : items_per_page * page_number]
+        return (
+            events[items_per_page * (page_number - 1) : items_per_page * page_number]
+            if items_per_page != -1
+            else events
+        )
 
     async def get_all_events(
         self, page_number: int, items_per_page: int
@@ -156,18 +165,22 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         Returns
         -------
         List[Event]
-            List of events that matches by event id.
+            List of events.
 
         Raises
         ------
         ValueNotFoundError
-            No events was found for given author id.
+            No events were found.
 
         """
         if len(self._events) != 0:
-            return self._events[
-                items_per_page * (page_number - 1) : items_per_page * page_number
-            ]
+            return (
+                self._events[
+                    items_per_page * (page_number - 1) : items_per_page * page_number
+                ]
+                if items_per_page != -1
+                else self._events
+            )
         raise ValueNotFoundError("Events not found")
 
     async def create_event(self, event: Event) -> None:
