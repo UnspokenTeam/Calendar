@@ -1,14 +1,16 @@
 from os import environ
 
-from app.identity_service_proto.identity_service_pb2_grpc import IdentityServiceStub
+from app.generated.identity_service.identity_service_pb2_grpc import IdentityServiceStub
+from ..generated.event_service.event_service_pb2_grpc import EventServiceStub
+from ..generated.invite_service.invite_service_pb2_grpc import InviteServiceStub
 
 from ..grpc_client import GrpcClient
 
 
 class GrpcClientParams:
     identity_service_client: GrpcClient[IdentityServiceStub]
-    # event_service_client: GrpcClient
-    # invite_service_client: GrpcClient
+    event_service_client: GrpcClient[EventServiceStub]
+    invite_service_client: GrpcClient[InviteServiceStub]
 
     def __init__(self) -> None:
         try:
@@ -17,15 +19,15 @@ class GrpcClientParams:
                 port=int(environ["IDENTITY_SERVICE_PORT"]),
                 stub=IdentityServiceStub,
             )
-            # self.event_service_client = GrpcClient(
-            #     host=environ["EVENT_SERVICE_HOST"],
-            #     port=int(environ["EVENT_SERVICE_PORT"]),
-            #     stub=EventServiceStub,
-            # )
-            # self.invite_service_client = GrpcClient(
-            #     host=environ["INVITE_SERVICE_HOST"],
-            #     port=int(environ["INVITE_SERVICE_PORT"]),
-            #     stub=InviteServiceStub,
-            # )
+            self.event_service_client = GrpcClient[EventServiceStub](
+                host=environ["EVENT_SERVICE_HOST"],
+                port=int(environ["EVENT_SERVICE_PORT"]),
+                stub=EventServiceStub,
+            )
+            self.invite_service_client = GrpcClient[InviteServiceStub](
+                host=environ["INVITE_SERVICE_HOST"],
+                port=int(environ["INVITE_SERVICE_PORT"]),
+                stub=InviteServiceStub,
+            )
         except KeyError as e:
             raise Exception(f"Missing environment variable: {e}")

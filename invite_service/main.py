@@ -4,7 +4,7 @@ import sys
 
 import grpc
 
-import proto.invite_service_pb2_grpc as invite_service_grpc
+import generated.invite_service.invite_service_pb2_grpc as invite_service_grpc
 
 from src.invite_service_impl import InviteServiceImpl
 
