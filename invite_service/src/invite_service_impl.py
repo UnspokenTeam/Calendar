@@ -99,7 +99,7 @@ class InviteServiceImpl(GrpcServicer):
             )
         except PermissionDeniedError:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.InvitesResponse(status_code=70, message="Permission denied")
+            return proto.InvitesResponse(status_code=403, message="Permission denied")
 
     async def get_all_invites(
         self, request: proto.RequestingUser, context: grpc.ServicerContext
@@ -148,7 +148,7 @@ class InviteServiceImpl(GrpcServicer):
             )
         except PermissionDeniedError:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.InvitesResponse(status_code=70, message="Permission denied")
+            return proto.InvitesResponse(status_code=403, message="Permission denied")
 
     async def get_invite_by_invite_id(
         self, request: proto.InviteRequestByInviteId, context: grpc.ServicerContext
@@ -198,7 +198,7 @@ class InviteServiceImpl(GrpcServicer):
             )
         except PermissionDeniedError:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.InvitesResponse(status_code=70, message="Permission denied")
+            return proto.InvitesResponse(status_code=403, message="Permission denied")
 
     async def get_invites_by_invitee_id(
         self, request: proto.GetInvitesByInviteeIdRequest, context: grpc.ServicerContext
@@ -252,7 +252,7 @@ class InviteServiceImpl(GrpcServicer):
             )
         except PermissionDeniedError:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.InvitesResponse(status_code=70, message="Permission denied")
+            return proto.InvitesResponse(status_code=403, message="Permission denied")
 
     async def create_invite(
         self, request: proto.InviteRequest, context: grpc.ServicerContext
@@ -298,7 +298,7 @@ class InviteServiceImpl(GrpcServicer):
             return proto.BaseResponse(status_code=500, message="Internal server error")
         except PermissionDeniedError:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.InvitesResponse(status_code=70, message="Permission denied")
+            return proto.InvitesResponse(status_code=403, message="Permission denied")
 
     async def update_invite(
         self, request: proto.InviteRequest, context: grpc.ServicerContext
@@ -382,4 +382,4 @@ class InviteServiceImpl(GrpcServicer):
             return proto.BaseResponse(status_code=500, message="Internal server error")
         except PermissionDeniedError:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.InvitesResponse(status_code=70, message="Permission denied")
+            return proto.InvitesResponse(status_code=403, message="Permission denied")
