@@ -14,6 +14,8 @@ class InviteRepositoryInterface(ABC):
     -------
     async get_invites_by_author_id(author_id)
         Returns invites that has matches with given author id.
+    async get_invite_by_invite_id(invite_id)
+        Returns invite that has matches with given invite id.
     async get_all_invites()
         Returns all invites.
     async get_invites_by_invitee_id(invitee_id)
@@ -47,7 +49,32 @@ class InviteRepositoryInterface(ABC):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No invites was found for given author id.
+            No invites were found for given author id.
+
+        """
+        pass
+
+    @abstractmethod
+    async def get_invite_by_invite_id(self, invite_id: str) -> Invite:
+        """
+        Get invite by invite id.
+
+        Parameters
+        ----------
+        invite_id : str
+            invite's id.
+
+        Returns
+        -------
+        Invite
+            Invite that has matches with given invite id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+        ValueNotFoundError
+            No invite was found for given invite id.
 
         """
         pass
@@ -67,7 +94,7 @@ class InviteRepositoryInterface(ABC):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No invites was found.
+            No invites were found.
 
         """
         pass
@@ -80,7 +107,7 @@ class InviteRepositoryInterface(ABC):
         Parameters
         ----------
         invitee_id : str
-            invitee id object.
+            Invitee's id object.
 
         Returns
         -------
@@ -92,7 +119,7 @@ class InviteRepositoryInterface(ABC):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No invites was found for given invitee id.
+            No invites were found for given invitee id.
 
         """
         pass
