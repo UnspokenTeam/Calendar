@@ -9,6 +9,7 @@ on:
       - 'invite_service/**'
       - 'shared/**'
       - 'invite_service.Dockerfile'
+      - '.dockerignore'
 
 jobs:
   push_to_registry:

@@ -9,6 +9,7 @@ on:
       - 'identity_service/**'
       - 'shared/**'
       - 'identity_service.Dockerfile'
+      - '.dockerignore'
 
 jobs:
   push_to_registry:

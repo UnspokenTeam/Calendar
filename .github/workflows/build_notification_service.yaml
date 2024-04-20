@@ -9,6 +9,7 @@ on:
       - 'notification_service/**'
       - 'shared/**'
       - 'notification_service.Dockerfile'
+      - '.dockerignore'
 
 jobs:
   push_to_registry:
