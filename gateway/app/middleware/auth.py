@@ -15,11 +15,29 @@ api_key_header = APIKeyHeader(name="Authorization")
 
 async def auth(
     grpc_client_params: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-    access_token: Annotated[str, api_key_header]
+    access_token: Annotated[str, api_key_header],
 ) -> GrpcUser:
+    """
+    Authenticate user
+
+    Parameters
+    ----------
+    grpc_client_params : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+        Grpc clients injected by DI
+    access_token: Annotated[str, api_key_header]
+        The access token injected by DI
+
+    Returns
+    -------
+    GrpcUser
+        The authenticated user
+
+    """
     try:
-        user: GrpcUserResponse = grpc_client_params.identity_service_client.request().auth(
-            AccessToken(access_token=access_token)
+        user: GrpcUserResponse = (
+            grpc_client_params.identity_service_client.request().auth(
+                AccessToken(access_token=access_token)
+            )
         )
         return user.user
     except grpc.RpcError:
