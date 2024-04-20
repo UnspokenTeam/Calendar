@@ -39,6 +39,7 @@ class EventServiceImpl(GrpcServicer):
         Function that need to be bind to the server that deletes the event.
     async generate_event_description(request, context)
         Function that need to be bind to the server that creates the event description.
+
     """
 
     _event_repository: EventRepositoryInterface
