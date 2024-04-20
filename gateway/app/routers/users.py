@@ -1,6 +1,7 @@
 """Users route"""
 from typing import Annotated, List
 
+from app.constants import MIN_PASSWORD_LENGTH, MIN_USERNAME_LENGTH
 from app.errors import PermissionDeniedError
 from app.generated.identity_service.auth_pb2 import AccessToken as GrpcAccessToken
 from app.generated.identity_service.auth_pb2 import (
@@ -39,11 +40,11 @@ from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware.auth import api_key_header, auth
 from app.models import User, UserType
 from app.params import GrpcClientParams
-from app.validators import str_length_validator, str_special_characters_validator
+from app.validators import str_special_characters_validator
 
 from fastapi import APIRouter, Depends, Security
 from google.protobuf.timestamp_pb2 import Timestamp
-from pydantic import AfterValidator, BaseModel, EmailStr
+from pydantic import AfterValidator, BaseModel, EmailStr, Field
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -65,13 +66,13 @@ class RegisterRequest(BaseModel):
 
     username: Annotated[
         str,
-        AfterValidator(str_length_validator),
+        Field("", min_length=MIN_USERNAME_LENGTH),
         AfterValidator(str_special_characters_validator),
     ]
     email: EmailStr
     password: Annotated[
         str,
-        AfterValidator(str_length_validator),
+        Field("", min_length=MIN_PASSWORD_LENGTH),
         AfterValidator(str_special_characters_validator),
     ]
 
@@ -92,7 +93,7 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: Annotated[
         str,
-        AfterValidator(str_length_validator),
+        Field("", min_length=MIN_PASSWORD_LENGTH),
         AfterValidator(str_special_characters_validator),
     ]
 
@@ -178,7 +179,7 @@ async def get_all_users(
 async def get_user(
     user_id: Annotated[
         str,
-        AfterValidator(str_length_validator),
+        Field("", min_length=1),
         AfterValidator(str_special_characters_validator),
     ],
     _: Annotated[GrpcUser, Security(auth)],
@@ -306,7 +307,10 @@ async def logout(
 
 @router.get("/access_token/")
 async def get_new_access_token(
-    refresh_token: Annotated[str, AfterValidator(str_length_validator)],
+    refresh_token: Annotated[
+        str,
+        Field("", min_length=1),
+    ],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> CredentialsResponse:
     """
