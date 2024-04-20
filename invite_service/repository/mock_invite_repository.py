@@ -5,10 +5,12 @@ from uuid import uuid4
 
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.invite import Invite
+from utils.singleton import singleton
 
 from repository.invite_repository_interface import InviteRepositoryInterface
 
 
+@singleton
 class MockInviteRepositoryImpl(InviteRepositoryInterface):
     """
     Mock class for manipulating with invites data
@@ -20,6 +22,8 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
     Methods
     -------
+    async get_invite_by_invite_id(invite_id)
+        Returns invite that has matching invite_id
     async get_invites_by_author_id(author_id)
         Returns invites that has matches with given author id.
     async get_all_invites()
@@ -39,6 +43,35 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
     def __init__(self) -> None:
         self._invites = []
+
+    async def get_invite_by_invite_id(self, invite_id: str) -> Invite:
+        """
+        Get invite by invite id.
+
+        Parameters
+        ----------
+        invite_id : str
+            Invite's id
+
+        Returns
+        -------
+        Invite
+            Invite object
+
+        Raises
+        ------
+        ValueNotFoundError
+            Invite not found
+
+        """
+        try:
+            return next(
+                invite
+                for invite in self._invites
+                if invite.id == invite_id and invite.deleted_at is None
+            )
+        except StopIteration:
+            raise ValueNotFoundError("Invite does not exist")
 
     async def get_invites_by_author_id(self, author_id: str) -> List[Invite]:
         """
