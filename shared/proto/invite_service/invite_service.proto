@@ -5,7 +5,7 @@ import "user/user.proto";
 
 service InviteService {
   rpc get_invite_by_invite_id(InviteRequestByInviteId) returns (InviteResponse){}
-  rpc get_all_invites(RequestingUser) returns (InvitesResponse){}
+  rpc get_all_invites(GrpcUser) returns (InvitesResponse){}
   rpc get_invites_by_author_id(InvitesByAuthorIdRequest) returns (InvitesResponse){}
   rpc get_invites_by_invitee_id(GetInvitesByInviteeIdRequest) returns (InvitesResponse){}
   rpc create_invite(InviteRequest) returns (BaseResponse){}
@@ -42,10 +42,6 @@ message GrpcInvite {
   InviteStatus status = 5;
   google.protobuf.Timestamp created_at = 6;
   optional google.protobuf.Timestamp deleted_at = 7;
-}
-
-message RequestingUser {
-  GrpcUser requesting_user = 1;
 }
 
 message ListOfInvites {

@@ -8,7 +8,7 @@ service EventService {
   rpc get_event_by_event_id(EventRequestByEventId) returns (EventResponse){}
   rpc get_events_by_events_ids(EventsRequestByEventsIds) returns (EventsResponse){}
   rpc get_events_by_author_id(EventsRequestByAuthorId) returns (EventsResponse){}
-  rpc get_all_events(RequestingUser) returns (EventsResponse){}
+  rpc get_all_events(GetAllEventsRequest) returns (EventsResponse){}
   rpc create_event(EventRequest) returns (google.protobuf.Empty){}
   rpc update_event(EventRequest) returns (google.protobuf.Empty){}
   rpc delete_event(DeleteEventRequest) returns (google.protobuf.Empty){}
@@ -55,7 +55,7 @@ message GrpcEvent {
   optional google.protobuf.Timestamp deleted_at = 10;
 }
 
-message RequestingUser {
+message GetAllEventsRequest {
   GrpcUser requesting_user = 1;
   uint64 page_number = 2;
   int64 items_per_page = 3;
