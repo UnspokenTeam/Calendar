@@ -43,8 +43,8 @@ class UserType(StrEnum):
 
         """
         if proto == GrpcUserType.USER:
-            return cls.USER
-        return cls.ADMIN
+            return cls("USER")
+        return cls("ADMIN")
 
     def to_proto(self) -> GrpcUserType:
         """
