@@ -78,7 +78,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
         db_events: Optional[
             List[PrismaEvent]
         ] = await self._db_client.db.event.find_many(
-            where={"id": author_id, "deleted_at": None},
+            where={"author_id": author_id, "deleted_at": None},
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
@@ -149,7 +149,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             List[PrismaEvent]
         ] = await self._db_client.db.event.find_many(
             where={
-                "id": {"in": [event_id for event_id in events_ids]},
+                "id": {"in": events_ids},
                 "deleted_at": None,
             },
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
