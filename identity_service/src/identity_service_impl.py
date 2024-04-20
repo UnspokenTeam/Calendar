@@ -11,7 +11,9 @@ from src.models.user import User, UserType
 from utils.encoder import Encoder
 from utils.jwt_controller import JwtController, TokenType
 
-from generated.identity_service.identity_service_pb2_grpc import IdentityServiceServicer as GrpcServicer
+from generated.identity_service.identity_service_pb2_grpc import (
+    IdentityServiceServicer as GrpcServicer,
+)
 from google.protobuf.empty_pb2 import Empty
 from repository.token_repository_interface import TokenRepositoryInterface
 from repository.user_repository_interface import UserRepositoryInterface

@@ -9,6 +9,7 @@ on:
       - 'event_service/**'
       - 'shared/**'
       - 'event_service.Dockerfile'
+      - '.dockerignore'
 
 jobs:
   push_to_registry:

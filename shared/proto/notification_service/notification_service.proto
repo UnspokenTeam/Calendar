@@ -8,7 +8,7 @@ service NotificationService {
   rpc get_notification_by_notification_id(NotificationRequestByNotificationId) returns (NotificationResponse){}
   rpc get_notifications_by_notifications_ids(NotificationsRequestByNotificationsIds) returns (NotificationsResponse){}
   rpc get_notifications_by_author_id(NotificationsRequestByAuthorId) returns (NotificationsResponse){}
-  rpc get_all_notifications(RequestingUser) returns (NotificationsResponse){}
+  rpc get_all_notifications(GetAllNotificationsRequest) returns (NotificationsResponse){}
   rpc create_notification(NotificationRequest) returns (google.protobuf.Empty){}
   rpc update_notification(NotificationRequest) returns (google.protobuf.Empty){}
   rpc delete_notification(DeleteNotificationRequest) returns (google.protobuf.Empty){}
@@ -50,7 +50,7 @@ message GrpcNotification {
   optional google.protobuf.Timestamp deleted_at = 6;
 }
 
-message RequestingUser {
+message GetAllNotificationsRequest {
   GrpcUser requesting_user = 1;
   uint64 page_number = 2;
   int64 items_per_page = 3;

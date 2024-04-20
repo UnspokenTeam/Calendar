@@ -2,10 +2,7 @@ from typing import Any
 
 from fastapi import APIRouter
 
-router = APIRouter(
-    prefix="/events",
-    tags=["events"]
-)
+router = APIRouter(prefix="/events", tags=["events"])
 
 
 @router.get("/{event_id}")

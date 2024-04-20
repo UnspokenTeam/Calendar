@@ -138,7 +138,7 @@ class EventServiceImpl(GrpcServicer):
         )
 
     async def get_all_events(
-        self, request: proto.RequestingUser, context: grpc.ServicerContext
+        self, request: proto.GetAllEventsRequest, context: grpc.ServicerContext
     ) -> proto.EventsResponse:
         """
         Get all events.

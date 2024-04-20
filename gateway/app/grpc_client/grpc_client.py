@@ -4,7 +4,7 @@ from typing import Generic, TypeVar
 
 from grpc import Channel, insecure_channel
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class GrpcClient(Generic[T]):
@@ -19,7 +19,7 @@ class GrpcClient(Generic[T]):
         Server port
     _channel : Channel
         Grpc channel
-    _stub : TypeVar
+    _stub : T
         Generated grpc stub
 
     Methods
@@ -46,7 +46,7 @@ class GrpcClient(Generic[T]):
 
         Returns
         -------
-        TypeVar
+        T
             Request client
 
         """

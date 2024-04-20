@@ -9,6 +9,7 @@ on:
       - 'gateway/**'
       - 'shared/**'
       - 'gateway.Dockerfile'
+      - '.dockerignore'
 
 jobs:
   push_to_registry:

@@ -407,10 +407,9 @@ notification_service/generate.ps1
 
 invite_service/proto/*.py
 invite_service/proto/*.pyi
-identity_service/generated
 identity_service/__init__.py
 
 gateway/app/identity_service_proto
 gateway/app/invite_service_proto
 gateway/app/event_service_proto
-gateway/generate_proto.bat
+gateway/generate.bat

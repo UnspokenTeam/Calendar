@@ -179,7 +179,7 @@ class NotificationServiceImpl(GrpcServicer):
         )
 
     async def get_all_notifications(
-        self, request: proto.RequestingUser, context: grpc.ServicerContext
+        self, request: proto.GetAllNotificationsRequest, context: grpc.ServicerContext
     ) -> proto.NotificationsResponse:
         """
         Get all notifications.
