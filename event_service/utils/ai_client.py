@@ -35,6 +35,11 @@ class AIClient:
         str
             Generated event description.
 
+        Raises
+        ------
+        AiResponseError
+            Raises when AI sent bad response.
+
         """
         load_dotenv()
         api_key = environ["OPENROUTER_API_KEY"]
