@@ -1,21 +1,40 @@
 syntax = "proto3";
+
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/empty.proto";
+import "user/user.proto";
 
 service InviteService {
-  rpc get_all_invites(google.protobuf.Empty) returns (InvitesResponse){}
-  rpc get_invites_by_author_id(InvitesByUserIdRequest) returns (InvitesResponse){}
-  rpc get_invites_by_invitee_id(GetInviteeByInviteIdRequest) returns (InvitesResponse){}
-  rpc create_invite(Invite) returns (BaseResponse){}
-  rpc update_invite(Invite) returns (BaseResponse){}
+  rpc get_invite_by_invite_id(InviteRequestByInviteId) returns (InviteResponse){}
+  rpc get_all_invites(RequestingUser) returns (InvitesResponse){}
+  rpc get_invites_by_author_id(InvitesByAuthorIdRequest) returns (InvitesResponse){}
+  rpc get_invites_by_invitee_id(GetInvitesByInviteeIdRequest) returns (InvitesResponse){}
+  rpc create_invite(InviteRequest) returns (BaseResponse){}
+  rpc update_invite(InviteRequest) returns (BaseResponse){}
   rpc delete_invite(DeleteInviteRequest) returns (BaseResponse){}
 }
 
-message InvitesByUserIdRequest {
-  string user_id = 1;
+message InvitesByAuthorIdRequest {
+  string author_id = 1;
+  GrpcUser requesting_user = 2;
 }
 
-message Invite {
+message InviteRequestByInviteId {
+  string invite_id = 1;
+  GrpcUser requesting_user = 2;
+}
+
+message InviteResponse {
+  int32 status_code = 1;
+  optional GrpcInvite invite = 2;
+  optional string message = 3;
+}
+
+message InviteRequest {
+  GrpcInvite invite = 1;
+  GrpcUser requesting_user = 2;
+}
+
+message GrpcInvite {
   string id = 1;
   string event_id = 2;
   string author_id = 3;
@@ -25,31 +44,33 @@ message Invite {
   optional google.protobuf.Timestamp deleted_at = 7;
 }
 
+message RequestingUser {
+  GrpcUser requesting_user = 1;
+}
+
 message ListOfInvites {
-  repeated Invite invites = 1;
+  repeated GrpcInvite invites = 1;
 }
 
 message InvitesResponse{
-  int64 code = 1;
+  int32 status_code = 1;
   optional ListOfInvites invites = 2;
   optional string message = 3;
 }
 
 message BaseResponse {
-  int64 code = 1;
+  int32 status_code = 1;
   optional string message = 2;
 }
 
 message DeleteInviteRequest {
   string invite_id = 1;
+  GrpcUser requesting_user = 2;
 }
 
 message GetInvitesByInviteeIdRequest {
   string invitee_id = 1;
-}
-
-message GetInviteeByInviteIdRequest {
-  string invite_id = 1;
+  GrpcUser requesting_user = 2;
 }
 
 enum InviteStatus {

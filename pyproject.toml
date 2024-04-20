@@ -18,6 +18,7 @@ exclude = [
     ".venv",
     "__pycache__",
     "event_service/generated",
+    "notification_service/generated",
     "invite_service/generated",
     "identity_service/generated",
     "gateway/generated",

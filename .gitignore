@@ -392,6 +392,10 @@ invite_service/generate.ps1
 invite_service/generated
 
 notification_service/.idea
+notification_service/generated
+notification_service/generate.bat
+notification_service/generate.sh
+notification_service/generate.ps1
 
 /init.sql
 
