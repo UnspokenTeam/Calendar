@@ -156,9 +156,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             List[PrismaNotification]
         ] = await self._db_client.db.notification.find_many(
             where={
-                "id": {
-                    "in": [notification_id for notification_id in notifications_ids]
-                },
+                "id": {"in": notifications_ids},
                 "deleted_at": None,
             },
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),

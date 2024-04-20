@@ -5,10 +5,12 @@ from uuid import uuid4
 
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.notification import Notification
+from utils.singleton import singleton
 
 from repository.notification_repository_interface import NotificationRepositoryInterface
 
 
+@singleton
 class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
     """
     Mock class for manipulating with notification data.
@@ -113,7 +115,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
                 and notification.deleted_at is None
             )
         except StopIteration:
-            raise ValueNotFoundError("Notifications not found")
+            raise ValueNotFoundError("Notification not found")
 
     async def get_notifications_by_notifications_ids(
         self, notifications_ids: List[str], page_number: int, items_per_page: int

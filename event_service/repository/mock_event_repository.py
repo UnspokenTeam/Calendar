@@ -5,10 +5,12 @@ from uuid import uuid4
 
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.event import Event
+from utils.singleton import singleton
 
 from repository.event_repository_interface import EventRepositoryInterface
 
 
+@singleton
 class MockEventRepositoryImpl(EventRepositoryInterface):
     """
     Mock class for manipulating with event data.
@@ -108,7 +110,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                 if event.id == event_id and event.deleted_at is None
             )
         except StopIteration:
-            raise ValueNotFoundError("Events not found")
+            raise ValueNotFoundError("Event not found")
 
     async def get_events_by_events_ids(
         self, events_ids: List[str], page_number: int, items_per_page: int
