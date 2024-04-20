@@ -5,10 +5,12 @@ from uuid import uuid4
 
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.invite import Invite
+from utils.singleton import singleton
 
 from repository.invite_repository_interface import InviteRepositoryInterface
 
 
+@singleton
 class MockInviteRepositoryImpl(InviteRepositoryInterface):
     """
     Mock class for manipulating with invites data

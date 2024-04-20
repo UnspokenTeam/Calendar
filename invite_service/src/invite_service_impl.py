@@ -69,8 +69,6 @@ class InviteServiceImpl(GrpcServicer):
 
         Raises
         ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
         PermissionDeniedError
             Raises when user dont has enough access.
 
@@ -93,7 +91,7 @@ class InviteServiceImpl(GrpcServicer):
             )
         except ValueNotFoundError:
             context.set_code(grpc.StatusCode.NOT_FOUND)
-            return proto.InvitesResponse(status_code=404, message="Invite not found")
+            return proto.InvitesResponse(status_code=404, message="Invites not found")
         except prisma.errors.PrismaError:
             context.set_code(grpc.StatusCode.INTERNAL)
             return proto.InvitesResponse(
@@ -123,8 +121,6 @@ class InviteServiceImpl(GrpcServicer):
 
         Raises
         ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
         PermissionDeniedError
             Raises when user dont has enough access.
 
@@ -172,8 +168,6 @@ class InviteServiceImpl(GrpcServicer):
 
         Raises
         ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
         PermissionDeniedError
             Raises when user dont has enough access.
 
@@ -192,7 +186,7 @@ class InviteServiceImpl(GrpcServicer):
             return proto.InviteResponse(status_code=200, invite=invite.to_grpc_invite())
         except ValueNotFoundError:
             context.set_code(grpc.StatusCode.NOT_FOUND)
-            return proto.InviteResponse(status_code=404, message="Invites not found")
+            return proto.InviteResponse(status_code=404, message="Invite not found")
         except prisma.errors.PrismaError:
             context.set_code(grpc.StatusCode.INTERNAL)
             return proto.InviteResponse(
@@ -222,8 +216,6 @@ class InviteServiceImpl(GrpcServicer):
 
         Raises
         ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
         PermissionDeniedError
             Raises when user dont has enough access.
 
@@ -276,8 +268,6 @@ class InviteServiceImpl(GrpcServicer):
 
         Raises
         ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
         PermissionDeniedError
             Raises when user dont has enough access.
 
@@ -292,9 +282,6 @@ class InviteServiceImpl(GrpcServicer):
             await self._invite_repository.create_invite(invite=invite)
             context.set_code(grpc.StatusCode.OK)
             return proto.BaseResponse(status_code=200)
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return proto.BaseResponse(status_code=404, message="Invite not found")
         except prisma.errors.PrismaError:
             context.set_code(grpc.StatusCode.INTERNAL)
             return proto.BaseResponse(status_code=500, message="Internal server error")
@@ -319,11 +306,6 @@ class InviteServiceImpl(GrpcServicer):
         -------
         proto.BaseResponse
             Object containing status code and message if the response status is not 200.
-
-        Raises
-        ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
 
         """
         try:
@@ -358,8 +340,6 @@ class InviteServiceImpl(GrpcServicer):
 
         Raises
         ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
         PermissionDeniedError
             Raises when user dont has enough access.
 

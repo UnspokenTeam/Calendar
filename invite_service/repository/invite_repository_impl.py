@@ -107,7 +107,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             where={"id": invite_id, "deleted_at": None}
         )
         if db_invite is None:
-            raise ValueNotFoundError("Invitee's not found")
+            raise ValueNotFoundError("Invite not found")
         return Invite.from_prisma_invite(prisma_invite=db_invite)
 
     async def get_all_invites(self) -> List[Invite]:
