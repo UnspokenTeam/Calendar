@@ -11,7 +11,7 @@ from src.models.invite import Invite
 from generated.invite_service.invite_service_pb2_grpc import (
     InviteServiceServicer as GrpcServicer,
 )
-from generated.user.user_pb2 import GrpcUserType, GrpcUser
+from generated.user.user_pb2 import GrpcUser, GrpcUserType
 from repository.invite_repository_interface import InviteRepositoryInterface
 import generated.invite_service.invite_service_pb2 as proto
 
