@@ -38,6 +38,7 @@ class NotificationServiceImpl(GrpcServicer):
         Function that need to be bind to the server that updates the notification.
     async delete_notification(request, context)
         Function that need to be bind to the server that deletes the notification.
+
     """
 
     _notification_repository: NotificationRepositoryInterface
