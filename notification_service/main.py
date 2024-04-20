@@ -8,7 +8,7 @@ from db.postgres_client import PostgresClient
 from src.notification_service_impl import NotificationServiceImpl
 from utils.custom_interceptor import CustomInterceptor
 
-from repository.mock_notification_repository import MockNotificationRepositoryImpl
+from repository.notification_repository_impl import NotificationRepositoryImpl
 import generated.notification_service.notification_service_pb2_grpc as notification_service_grpc
 
 
@@ -18,7 +18,7 @@ async def serve() -> None:
     await PostgresClient().connect()
     notification_service_grpc.add_NotificationServiceServicer_to_server(
         NotificationServiceImpl(
-            notification_repository=MockNotificationRepositoryImpl()
+            notification_repository=NotificationRepositoryImpl()
         ),
         server=server,
     )

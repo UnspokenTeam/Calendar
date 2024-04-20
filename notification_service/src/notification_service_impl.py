@@ -68,6 +68,11 @@ class NotificationServiceImpl(GrpcServicer):
         proto.NotificationsResponse
             Response object for notification response.
 
+        Raises
+        ------
+        PermissionDeniedError
+            Raises when user dont has enough access.
+
         """
         if (
             request.requesting_user.type != GrpcUserType.ADMIN
@@ -110,6 +115,11 @@ class NotificationServiceImpl(GrpcServicer):
         -------
         proto.NotificationResponse
             Response object for notification response.
+
+        Raises
+        ------
+        PermissionDeniedError
+            Raises when user dont has enough access.
 
         """
         notification = (
