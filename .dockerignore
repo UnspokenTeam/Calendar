@@ -21,3 +21,7 @@ notification_service/.idea
 notification_service/.env
 notification_service/generate.bat
 notification_service/generate.sh
+
+gateway/app/generated
+gateway/generate.bat
+gateway/.idea
