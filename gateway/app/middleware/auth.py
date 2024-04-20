@@ -3,6 +3,7 @@ from typing import Annotated
 import grpc
 
 from app.generated.identity_service.auth_pb2 import AccessToken
+from app.generated.identity_service.get_user_pb2 import UserResponse as GrpcUserResponse
 from app.generated.user.user_pb2 import GrpcUser
 from app.params import GrpcClientParams
 
@@ -17,9 +18,9 @@ async def auth(
     access_token: Annotated[str, api_key_header]
 ) -> GrpcUser:
     try:
-        user: GrpcUser = await grpc_client_params.identity_service_client.request().auth(
+        user: GrpcUserResponse = grpc_client_params.identity_service_client.request().auth(
             AccessToken(access_token=access_token)
         )
-        return user
+        return user.user
     except grpc.RpcError:
         raise ValueError
