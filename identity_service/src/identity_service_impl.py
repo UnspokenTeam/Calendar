@@ -232,7 +232,7 @@ class IdentityServiceImpl(GrpcServicer):
         """
         user = await self._user_repository.get_user_by_id(request.user_id)
         context.set_code(grpc.StatusCode.OK)
-        return get_user_proto.UserResponse(user=user.to_dict(exclude=["password"]))
+        return get_user_proto.UserResponse(user=user.to_grpc_user())
 
     async def get_users_by_id(
         self, request: get_user_proto.UsersByIdRequest, context: grpc.ServicerContext
