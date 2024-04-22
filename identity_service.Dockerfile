@@ -41,4 +41,8 @@ RUN poetry run prisma generate
 
 EXPOSE 8080
 
-CMD poetry run prisma db push && poetry run python main.py
+CMD if [ "$ENVIRONMENT" = "PRODUCTION" ]; then \
+        exec poetry run prisma db push && poetry run python main.py; \
+    else \
+        exec poetry run python main.py; \
+    fi

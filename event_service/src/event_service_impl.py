@@ -5,7 +5,9 @@ from errors.permission_denied_error import PermissionDeniedError
 from src.models.event import Event
 from utils.ai_client import AIClient
 
-from generated.event_service.event_service_pb2_grpc import EventServiceServicer as GrpcServicer
+from generated.event_service.event_service_pb2_grpc import (
+    EventServiceServicer as GrpcServicer,
+)
 from generated.user.user_pb2 import GrpcUserType
 from google.protobuf.empty_pb2 import Empty
 from repository.event_repository_interface import EventRepositoryInterface
