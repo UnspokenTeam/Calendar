@@ -161,6 +161,8 @@ class NotificationRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
+        UniqueError
+            Raises if the notification already exists.
 
         """
         pass

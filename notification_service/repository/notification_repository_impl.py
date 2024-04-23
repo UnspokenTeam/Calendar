@@ -235,12 +235,12 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
                 "deleted_at": None,
             }
         )
-        if db_notification is None:
-            await self._db_client.db.notification.create(
-                data=notification.to_dict(exclude=["created_at", "deleted_at"])
-            )
-        else:
+        if db_notification is not None:
             raise UniqueError("Notification already exists")
+        await self._db_client.db.notification.create(
+            data=notification.to_dict(exclude=["created_at", "deleted_at"])
+        )
+
 
     async def update_notification(self, notification: Notification) -> None:
         """
