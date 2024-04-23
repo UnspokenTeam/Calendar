@@ -6,6 +6,7 @@ from typing import List, Optional
 from prisma.models import Notification as PrismaNotification
 
 from db.postgres_client import PostgresClient
+from errors.unique_error import UniqueError
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.notification import Notification
 from utils.singleton import singleton
@@ -221,11 +222,25 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
+        UniqueError
+            Raises if the notification already exists.
 
         """
-        await self._db_client.db.notification.create(
-            data=notification.to_dict(exclude=["created_at", "deleted_at"])
+        db_notification: Optional[
+            PrismaNotification
+        ] = await self._db_client.db.notification.find_first(
+            where={
+                "event_id": notification.event_id,
+                "author_id": notification.author_id,
+                "deleted_at": None,
+            }
         )
+        if db_notification is None:
+            await self._db_client.db.notification.create(
+                data=notification.to_dict(exclude=["created_at", "deleted_at"])
+            )
+        else:
+            raise UniqueError("Notification already exists")
 
     async def update_notification(self, notification: Notification) -> None:
         """
