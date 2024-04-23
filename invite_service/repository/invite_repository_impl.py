@@ -47,7 +47,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
     def __init__(self) -> None:
         self._db_client = PostgresClient()
 
-    async def get_invites_by_author_id(self, author_id: str) -> List[Invite]:
+    async def get_invites_by_author_id(
+        self, author_id: str, page_number: int, items_per_page: int
+    ) -> List[Invite]:
         """
         Get invites by author id.
 
@@ -55,6 +57,10 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         ----------
         author_id : str
             Author's id.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
 
         Returns
         -------
@@ -72,7 +78,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         db_invites: Optional[
             List[PrismaInvite]
         ] = await self._db_client.db.invite.find_many(
-            where={"author_id": author_id, "deleted_at": None}
+            where={"author_id": author_id, "deleted_at": None},
+            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
+            take=items_per_page if items_per_page != -1 else None,
         )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
@@ -110,9 +118,18 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             raise ValueNotFoundError("Invite not found")
         return Invite.from_prisma_invite(prisma_invite=db_invite)
 
-    async def get_all_invites(self) -> List[Invite]:
+    async def get_all_invites(
+        self, page_number: int, items_per_page: int
+    ) -> List[Invite]:
         """
         Get all invites.
+
+        Parameters
+        ----------
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
 
         Returns
         -------
@@ -129,7 +146,10 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         """
         db_invites: Optional[
             List[PrismaInvite]
-        ] = await self._db_client.db.invite.find_many()
+        ] = await self._db_client.db.invite.find_many(
+            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
+            take=items_per_page if items_per_page != -1 else None,
+        )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return [
@@ -137,7 +157,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             for db_invite in db_invites
         ]
 
-    async def get_invites_by_invitee_id(self, invitee_id: str) -> List[Invite]:
+    async def get_invites_by_invitee_id(
+        self, invitee_id: str, page_number: int, items_per_page: int
+    ) -> List[Invite]:
         """
         Get invites by invitee id.
 
@@ -145,6 +167,10 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         ----------
         invitee_id : str
             Invitee's id object.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
 
         Returns
         -------
@@ -165,7 +191,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             where={
                 "invitee_id": invitee_id,
                 "deleted_at": None,
-            }
+            },
+            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
+            take=items_per_page if items_per_page != -1 else None,
         )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")

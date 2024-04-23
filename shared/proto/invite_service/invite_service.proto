@@ -1,21 +1,24 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 import "user/user.proto";
 
 service InviteService {
   rpc get_invite_by_invite_id(InviteRequestByInviteId) returns (InviteResponse){}
-  rpc get_all_invites(GrpcUser) returns (InvitesResponse){}
+  rpc get_all_invites(GetAllInvitesRequest) returns (InvitesResponse){}
   rpc get_invites_by_author_id(InvitesByAuthorIdRequest) returns (InvitesResponse){}
   rpc get_invites_by_invitee_id(GetInvitesByInviteeIdRequest) returns (InvitesResponse){}
-  rpc create_invite(InviteRequest) returns (BaseResponse){}
-  rpc update_invite(InviteRequest) returns (BaseResponse){}
-  rpc delete_invite(DeleteInviteRequest) returns (BaseResponse){}
+  rpc create_invite(InviteRequest) returns (google.protobuf.Empty){}
+  rpc update_invite(InviteRequest) returns (google.protobuf.Empty){}
+  rpc delete_invite(DeleteInviteRequest) returns (google.protobuf.Empty){}
 }
 
 message InvitesByAuthorIdRequest {
   string author_id = 1;
   GrpcUser requesting_user = 2;
+  uint64 page_number = 3;
+  int64 items_per_page = 4;
 }
 
 message InviteRequestByInviteId {
@@ -23,15 +26,17 @@ message InviteRequestByInviteId {
   GrpcUser requesting_user = 2;
 }
 
+message GetInvitesByInviteeIdRequest {
+  string invitee_id = 1;
+  GrpcUser requesting_user = 2;
+  uint64 page_number = 3;
+  int64 items_per_page = 4;
+}
+
 message InviteResponse {
   int32 status_code = 1;
   optional GrpcInvite invite = 2;
   optional string message = 3;
-}
-
-message InviteRequest {
-  GrpcInvite invite = 1;
-  GrpcUser requesting_user = 2;
 }
 
 message GrpcInvite {
@@ -42,6 +47,17 @@ message GrpcInvite {
   InviteStatus status = 5;
   google.protobuf.Timestamp created_at = 6;
   optional google.protobuf.Timestamp deleted_at = 7;
+}
+
+message GetAllInvitesRequest {
+  GrpcUser requesting_user = 1;
+  uint64 page_number = 2;
+  int64 items_per_page = 3;
+}
+
+message InviteRequest {
+  GrpcInvite invite = 1;
+  GrpcUser requesting_user = 2;
 }
 
 message ListOfInvites {
@@ -61,11 +77,6 @@ message BaseResponse {
 
 message DeleteInviteRequest {
   string invite_id = 1;
-  GrpcUser requesting_user = 2;
-}
-
-message GetInvitesByInviteeIdRequest {
-  string invitee_id = 1;
   GrpcUser requesting_user = 2;
 }
 

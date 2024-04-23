@@ -11,7 +11,7 @@ from src.models.invite import Invite
 from generated.invite_service.invite_service_pb2_grpc import (
     InviteServiceServicer as GrpcServicer,
 )
-from generated.user.user_pb2 import GrpcUser, GrpcUserType
+from generated.user.user_pb2 import GrpcUserType
 from repository.invite_repository_interface import InviteRepositoryInterface
 import generated.invite_service.invite_service_pb2 as proto
 
@@ -81,6 +81,8 @@ class InviteServiceImpl(GrpcServicer):
                 raise PermissionDeniedError("Permission denied")
             invites = await self._invite_repository.get_invites_by_author_id(
                 author_id=request.author_id,
+                page_number=request.page_number,
+                items_per_page=request.items_per_page,
             )
             context.set_code(grpc.StatusCode.OK)
             return proto.InvitesResponse(
@@ -102,7 +104,7 @@ class InviteServiceImpl(GrpcServicer):
             return proto.InvitesResponse(status_code=403, message="Permission denied")
 
     async def get_all_invites(
-        self, request: GrpcUser, context: grpc.ServicerContext
+        self, request: proto.GetAllInvitesRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
         Get all invites.
@@ -126,9 +128,11 @@ class InviteServiceImpl(GrpcServicer):
 
         """
         try:
-            if request.type != GrpcUserType.ADMIN:
+            if request.requesting_user.type != GrpcUserType.ADMIN:
                 raise PermissionDeniedError("Permission denied")
-            invites = await self._invite_repository.get_all_invites()
+            invites = await self._invite_repository.get_all_invites(
+                page_number=request.page_number, items_per_page=request.items_per_page
+            )
             context.set_code(grpc.StatusCode.OK)
             return proto.InvitesResponse(
                 status_code=200,
@@ -228,6 +232,8 @@ class InviteServiceImpl(GrpcServicer):
                 raise PermissionDeniedError("Permission denied")
             invites = await self._invite_repository.get_invites_by_invitee_id(
                 invitee_id=request.invitee_id,
+                page_number=request.page_number,
+                items_per_page=request.items_per_page,
             )
             context.set_code(grpc.StatusCode.OK)
             return proto.InvitesResponse(
