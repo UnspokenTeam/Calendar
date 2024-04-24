@@ -12,6 +12,10 @@ service NotificationService {
   rpc create_notification(NotificationRequest) returns (google.protobuf.Empty){}
   rpc update_notification(NotificationRequest) returns (google.protobuf.Empty){}
   rpc delete_notification(DeleteNotificationRequest) returns (google.protobuf.Empty){}
+  rpc delete_notification_by_event_and_author_ids(DeleteNotificationByEventAndAuthorIdsRequest) returns (google.protobuf.Empty){}
+  rpc delete_notifications_by_events_and_author_ids(DeleteNotificationsByEventsAndAuthorIdsRequest) returns (google.protobuf.Empty){}
+  rpc delete_notifications_by_event_id(DeleteNotificationsByEventIdRequest) returns (google.protobuf.Empty){}
+  rpc delete_notifications_by_author_id(DeleteNotificationsByAuthorIdRequest) returns (google.protobuf.Empty){}
 }
 
 message NotificationsRequestByAuthorId {
@@ -27,7 +31,7 @@ message NotificationRequestByNotificationId {
 }
 
 message NotificationsRequestByNotificationsIds {
-  ListOfNotificationsIds notifications_ids = 1;
+  ListOfIds notifications_ids = 1;
   GrpcUser requesting_user = 2;
   uint64 page_number = 3;
   int64 items_per_page = 4;
@@ -65,11 +69,33 @@ message ListOfNotifications {
   repeated GrpcNotification notifications = 1;
 }
 
-message ListOfNotificationsIds {
+message ListOfIds {
   repeated string ids = 1;
 }
 
 message DeleteNotificationRequest {
   string notification_id = 1;
+  GrpcUser requesting_user = 2;
+}
+
+message DeleteNotificationByEventAndAuthorIdsRequest {
+  string event_id = 1;
+  string author_id = 2;
+  GrpcUser requesting_user = 3;
+}
+
+message DeleteNotificationsByEventsAndAuthorIdsRequest {
+  ListOfIds event_ids = 1;
+  string author_id = 2;
+  GrpcUser requesting_user = 3;
+}
+
+message DeleteNotificationsByEventIdRequest {
+  string event_id = 1;
+  GrpcUser requesting_user = 2;
+}
+
+message DeleteNotificationsByAuthorIdRequest {
+  string author_id = 1;
   GrpcUser requesting_user = 2;
 }
