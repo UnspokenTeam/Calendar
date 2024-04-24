@@ -36,7 +36,7 @@ class NotificationServiceImpl(GrpcServicer):
         Function that need to be bind to the server that creates the notification.
     async update_notification(request, context)
         Function that need to be bind to the server that updates the notification.
-    async delete_notification(request, context)
+    async delete_notification_by_id(request, context)
         Function that need to be bind to the server that deletes the notification.
     async delete_notification_by_event_and_author_ids(request, context)
         Function that need to be bind to the server that deletes the notification by event and author ids.
@@ -298,7 +298,9 @@ class NotificationServiceImpl(GrpcServicer):
         return Empty()
 
     async def delete_notification(
-        self, request: proto.DeleteNotificationRequest, context: grpc.ServicerContext
+        self,
+        request: proto.DeleteNotificationByIdRequest,
+        context: grpc.ServicerContext,
     ) -> Empty:
         """
         Delete notification.
@@ -331,7 +333,7 @@ class NotificationServiceImpl(GrpcServicer):
             and request.requesting_user.id != notification.author_id
         ):
             raise PermissionDeniedError("Permission denied")
-        await self._notification_repository.delete_notification(
+        await self._notification_repository.delete_notification_by_id(
             notification_id=request.notification_id
         )
         context.set_code(grpc.StatusCode.OK)
