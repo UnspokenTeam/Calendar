@@ -297,7 +297,7 @@ class NotificationServiceImpl(GrpcServicer):
         context.set_code(grpc.StatusCode.OK)
         return Empty()
 
-    async def delete_notification(
+    async def delete_notification_by_id(
         self,
         request: proto.DeleteNotificationByIdRequest,
         context: grpc.ServicerContext,
