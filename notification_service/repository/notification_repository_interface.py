@@ -24,7 +24,7 @@ class NotificationRepositoryInterface(ABC):
         Creates new notification inside db or throws an exception.
     async update_notification(notification)
         Updates notification that has the same id as provided notification object inside db or throws an exception.
-    async delete_notification(notification_id)
+    async delete_notification_by_id(notification_id)
         Deletes notification that has matching id from database or throws an exception.
 
     """
@@ -186,7 +186,7 @@ class NotificationRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def delete_notification(self, notification_id: str) -> None:
+    async def delete_notification_by_id(self, notification_id: str) -> None:
         """
         Delete the notification.
 

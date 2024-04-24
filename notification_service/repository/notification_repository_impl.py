@@ -38,7 +38,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         Creates new notification inside db or throws an exception.
     async update_notification(notification)
         Updates notification that has the same id as provided notification object inside db or throws an exception.
-    async delete_notification(notification_id)
+    async delete_notification_by_id(notification_id)
         Deletes notification that has matching id from database or throws an exception.
 
     """
@@ -226,21 +226,34 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             Raises if the notification already exists.
 
         """
-        db_notification: Optional[
-            PrismaNotification
-        ] = await self._db_client.db.notification.find_first(
+        db_notification = await self._db_client.db.notification.find_first(
             where={
                 "event_id": notification.event_id,
                 "author_id": notification.author_id,
-                "deleted_at": None,
             }
         )
         if db_notification is not None:
-            raise UniqueError("Notification already exists")
-        await self._db_client.db.notification.create(
-            data=notification.to_dict(exclude=["created_at", "deleted_at"])
-        )
-
+            if db_notification.enabled:
+                raise UniqueError("Notification already exists")
+            await self._db_client.db.notification.update_many(
+                where={
+                    "event_id": notification.event_id,
+                    "author_id": notification.author_id,
+                },
+                data={"enabled": True},
+            )
+            if db_notification.deleted_at is not None:
+                await self._db_client.db.notification.update_many(
+                    where={
+                        "event_id": notification.event_id,
+                        "author_id": notification.author_id,
+                    },
+                    data={"created_at": datetime.now(), "deleted_at": None},
+                )
+        else:
+            await self._db_client.db.notification.create(
+                data=notification.to_dict(exclude=["created_at", "deleted_at"])
+            )
 
     async def update_notification(self, notification: Notification) -> None:
         """
@@ -261,7 +274,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             where={"id": notification.id}, data=notification.to_dict()
         )
 
-    async def delete_notification(self, notification_id: str) -> None:
+    async def delete_notification_by_id(self, notification_id: str) -> None:
         """
         Delete the notification.
 
@@ -278,5 +291,5 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         """
         await self._db_client.db.notification.update_many(
             where={"id": notification_id, "deleted_at": None},
-            data={"deleted_at": datetime.now()},
+            data={"enabled": False, "deleted_at": datetime.now()},
         )
