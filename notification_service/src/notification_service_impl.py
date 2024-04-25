@@ -299,7 +299,7 @@ class NotificationServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : proto.DeleteNotificationRequest
+        request : proto.DeleteNotificationByIdRequest
             Request data containing notification ID.
         context : grpc.ServicerContext
             Request context.

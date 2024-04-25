@@ -37,8 +37,10 @@ class EventRepositoryImpl(EventRepositoryInterface):
         Creates new event inside db or throws an exception.
     async update_event(event)
         Updates event that has the same id as provided event object inside db or throws an exception.
-    async delete_event(event_id)
+    async delete_event_by_id(event_id)
         Deletes event that has matching id from database or throws an exception.
+    async delete_events_by_author_id(author_id)
+        Deletes event those have matches with given author id.
 
     """
 
@@ -237,7 +239,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             where={"id": event.id}, data=event.to_dict()
         )
 
-    async def delete_event(self, event_id: str) -> None:
+    async def delete_event_by_id(self, event_id: str) -> None:
         """
         Delete the event.
 
@@ -254,5 +256,25 @@ class EventRepositoryImpl(EventRepositoryInterface):
         """
         await self._db_client.db.event.update_many(
             where={"id": event_id, "deleted_at": None},
+            data={"deleted_at": datetime.now()},
+        )
+
+    async def delete_events_by_author_id(self, author_id: str) -> None:
+        """
+        Delete the event.
+
+        Parameters
+        ----------
+        author_id : str
+            Author id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        await self._db_client.db.event.update_many(
+            where={"author_id": author_id, "deleted_at": None},
             data={"deleted_at": datetime.now()},
         )

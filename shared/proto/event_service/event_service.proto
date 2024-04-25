@@ -11,7 +11,8 @@ service EventService {
   rpc get_all_events(GetAllEventsRequest) returns (EventsResponse){}
   rpc create_event(EventRequest) returns (google.protobuf.Empty){}
   rpc update_event(EventRequest) returns (google.protobuf.Empty){}
-  rpc delete_event(DeleteEventRequest) returns (google.protobuf.Empty){}
+  rpc delete_event_by_id(DeleteEventByIdRequest) returns (google.protobuf.Empty){}
+  rpc delete_events_by_author_id(DeleteEventsByAuthorIdRequest) returns (google.protobuf.Empty){}
   rpc generate_event_description(GenerateDescriptionRequest) returns (GenerateDescriptionResponse){}
 }
 
@@ -73,8 +74,13 @@ message ListOfEventsIds {
   repeated string ids = 1;
 }
 
-message DeleteEventRequest {
+message DeleteEventByIdRequest {
   string event_id = 1;
+  GrpcUser requesting_user = 2;
+}
+
+message DeleteEventsByAuthorIdRequest {
+  string author_id = 1;
   GrpcUser requesting_user = 2;
 }
 

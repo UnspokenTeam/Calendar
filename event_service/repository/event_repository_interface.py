@@ -24,8 +24,10 @@ class EventRepositoryInterface(ABC):
         Creates new event inside db or throws an exception.
     async update_event(event)
         Updates event that has the same id as provided event object inside db or throws an exception.
-    async delete_event(event_id)
+    async delete_event_by_id(event_id)
         Deletes event that has matching id from database or throws an exception.
+    async delete_events_by_author_id(author_id)
+        Deletes event those have matches with given author id.
 
     """
 
@@ -182,13 +184,31 @@ class EventRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def delete_event(self, event_id: str) -> None:
+    async def delete_event_by_id(self, event_id: str) -> None:
         """
         Delete the event.
 
         Parameters
         ----------
         event_id : str
+            Event id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        pass
+
+    @abstractmethod
+    async def delete_events_by_author_id(self, author_id: str) -> None:
+        """
+        Delete events.
+
+        Parameters
+        ----------
+        author_id : str
             Event id.
 
         Raises

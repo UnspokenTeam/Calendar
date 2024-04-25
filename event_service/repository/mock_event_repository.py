@@ -1,5 +1,6 @@
 """Mock event repository"""
 
+from datetime import datetime
 from typing import List
 from uuid import uuid4
 
@@ -34,8 +35,10 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         Creates new event inside db or throws an exception.
     async update_event(event)
         Updates event that has the same id as provided event object inside db or throws an exception.
-    async delete_event(event_id)
+    async delete_event_by_id(event_id)
         Deletes event that has matching id from database or throws an exception.
+    async delete_events_by_author_id(author_id)
+        Deletes events that has matching author events id from database or throws an exception
 
     """
 
@@ -75,13 +78,14 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             for event in self._events
             if event.author_id == author_id and event.deleted_at is None
         ]
-        if events is None or len(events) == 0:
-            raise ValueNotFoundError("Events not found")
-        return (
+        events = (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
             else events
         )
+        if events is None or len(events) == 0:
+            raise ValueNotFoundError("Events not found")
+        return events
 
     async def get_event_by_event_id(self, event_id: str) -> Event:
         """
@@ -143,13 +147,14 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             for event in self._events
             if event.id in events_ids and event.deleted_at is None
         ]
-        if events is None or len(events) == 0:
-            raise ValueNotFoundError("Events not found")
-        return (
+        events = (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
             else events
         )
+        if events is None or len(events) == 0:
+            raise ValueNotFoundError("Events not found")
+        return events
 
     async def get_all_events(
         self, page_number: int, items_per_page: int
@@ -175,15 +180,16 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             No events were found.
 
         """
-        if len(self._events) != 0:
-            return (
-                self._events[
-                    items_per_page * (page_number - 1) : items_per_page * page_number
-                ]
-                if items_per_page != -1
-                else self._events
-            )
-        raise ValueNotFoundError("Events not found")
+        events = (
+            self._events[
+                items_per_page * (page_number - 1) : items_per_page * page_number
+            ]
+            if items_per_page != -1
+            else self._events
+        )
+        if events is None or len(events) == 0:
+            raise ValueNotFoundError("Events not found")
+        return events
 
     async def create_event(self, event: Event) -> None:
         """
@@ -196,6 +202,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         """
         event.id = str(uuid4())
+        event.created_at = datetime.now()
         self._events.append(event)
 
     async def update_event(self, event: Event) -> None:
@@ -224,7 +231,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         except StopIteration:
             raise ValueNotFoundError("Event not found")
 
-    async def delete_event(self, event_id: str) -> None:
+    async def delete_event_by_id(self, event_id: str) -> None:
         """
         Deletes event with matching id or throws an exception.
 
@@ -245,6 +252,32 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                 for i in range(len(self._events))
                 if self._events[i].id == event_id and self._events[i].deleted_at is None
             )
-            self._events.pop(index)
+            self._events[index].deleted_at = datetime.now()
+        except StopIteration:
+            raise ValueNotFoundError("Event not found")
+
+    async def delete_events_by_author_id(self, author_id: str) -> None:
+        """
+        Deletes events with matching author ids or throws an exception.
+
+        Parameters
+        ----------
+        author_id : str
+            Author's id.
+
+        Raises
+        ------
+        ValueNotFoundError
+            Can't delete event with provided data.
+
+        """
+        try:
+            index = next(
+                i
+                for i in range(len(self._events))
+                if self._events[i].author_id == author_id
+                and self._events[i].deleted_at is None
+            )
+            self._events[index].deleted_at = datetime.now()
         except StopIteration:
             raise ValueNotFoundError("Event not found")
