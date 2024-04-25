@@ -260,7 +260,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
                 )
         else:
             await self._db_client.db.notification.create(
-                data=notification.to_dict(exclude=["created_at", "deleted_at"])
+                data=notification.to_dict(exclude=["enabled", "created_at", "deleted_at"])
             )
 
     async def update_notification(self, notification: Notification) -> None:
