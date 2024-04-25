@@ -232,6 +232,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         else:
             notification.id = str(uuid4())
             notification.created_at = datetime.now()
+            notification.deleted_at = None
             self._notifications.append(notification)
 
     async def update_notification(self, notification: Notification) -> None:
