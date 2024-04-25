@@ -111,7 +111,7 @@ class InviteServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : proto.RequestingUser
+        request : proto.GetAllInvitesRequest
             Request data.
         context : grpc.ServicerContext
             Request context.
