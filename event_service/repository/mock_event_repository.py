@@ -93,13 +93,14 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             )
             and event.deleted_at is None
         ]
-        if events is None or len(events) == 0:
-            raise ValueNotFoundError("Events not found")
-        return (
+        events = (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
             else events
         )
+        if events is None or len(events) == 0:
+            raise ValueNotFoundError("Events not found")
+        return events
 
     async def get_event_by_event_id(self, event_id: str) -> Event:
         """
@@ -161,13 +162,14 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             for event in self._events
             if event.id in events_ids and event.deleted_at is None
         ]
-        if events is None or len(events) == 0:
-            raise ValueNotFoundError("Events not found")
-        return (
+        events = (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
             else events
         )
+        if events is None or len(events) == 0:
+            raise ValueNotFoundError("Events not found")
+        return events
 
     async def get_all_events(
         self,
@@ -210,13 +212,14 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                 else True
             )
         ]
-        if events is None or len(events) == 0:
-            raise ValueNotFoundError("Events not found")
-        return (
+        events = (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
             else events
         )
+        if events is None or len(events) == 0:
+            raise ValueNotFoundError("Events not found")
+        return events
 
     async def create_event(self, event: Event) -> None:
         """
