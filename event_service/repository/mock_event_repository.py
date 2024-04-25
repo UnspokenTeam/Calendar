@@ -233,6 +233,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         """
         event.id = str(uuid4())
         event.created_at = datetime.now()
+        event.deleted_at = None
         self._events.append(event)
 
     async def update_event(self, event: Event) -> None:
