@@ -1,7 +1,8 @@
 """Event repository interface"""
 
 from abc import ABC, abstractmethod
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 
 from src.models.event import Event
 
@@ -12,13 +13,13 @@ class EventRepositoryInterface(ABC):
 
     Methods
     -------
-    async get_events_by_author_id(author_id, page_number, items_per_page)
+    async get_events_by_author_id(author_id, page_number, items_per_page, start, end)
         Returns page with events that has matches with given author id.
     async get_event_by_event_id(event_id)
         Returns event that has matches with given event id.
     async get_events_by_events_ids(events_ids, page_number, items_per_page)
         Returns page of events that has matches with given list of event ids.
-    async get_all_events(page_number, items_per_page)
+    async get_all_events(page_number, items_per_page, start, end)
         Returns page that contains part of all events.
     async create_event(event)
         Creates new event inside db or throws an exception.
@@ -33,7 +34,12 @@ class EventRepositoryInterface(ABC):
 
     @abstractmethod
     async def get_events_by_author_id(
-        self, author_id: str, page_number: int, items_per_page: int
+        self,
+        author_id: str,
+        page_number: int,
+        items_per_page: int,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
     ) -> List[Event]:
         """
         Get events by author id.
@@ -46,6 +52,10 @@ class EventRepositoryInterface(ABC):
             Number of page to get.
         items_per_page : int
             Number of items per page to load.
+        start : Optional[datetime]
+            Start of time interval for search.
+        end : Optional[datetime]
+            End of time interval for search.
 
         Returns
         -------
@@ -120,7 +130,11 @@ class EventRepositoryInterface(ABC):
 
     @abstractmethod
     async def get_all_events(
-        self, page_number: int, items_per_page: int
+        self,
+        page_number: int,
+        items_per_page: int,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
     ) -> List[Event]:
         """
         Get all events.
@@ -131,6 +145,10 @@ class EventRepositoryInterface(ABC):
             Number of page to get.
         items_per_page : int
             Number of items per page to load.
+        start : Optional[datetime]
+            Start of time interval for search.
+        end : Optional[datetime]
+            End of time interval for search.
 
         Returns
         -------

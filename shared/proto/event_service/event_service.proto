@@ -18,9 +18,11 @@ service EventService {
 
 message EventsRequestByAuthorId {
   string author_id = 1;
-  GrpcUser requesting_user = 2;
-  uint64 page_number = 3;
-  int64 items_per_page = 4;
+  optional google.protobuf.Timestamp start = 2;
+  optional google.protobuf.Timestamp end = 3;
+  GrpcUser requesting_user = 4;
+  uint64 page_number = 5;
+  int64 items_per_page = 6;
 }
 
 message EventRequestByEventId {
@@ -57,8 +59,10 @@ message GrpcEvent {
 
 message GetAllEventsRequest {
   GrpcUser requesting_user = 1;
-  uint64 page_number = 2;
-  int64 items_per_page = 3;
+  optional google.protobuf.Timestamp start = 2;
+  optional google.protobuf.Timestamp end = 3;
+  uint64 page_number = 4;
+  int64 items_per_page = 5;
 }
 
 message EventRequest {

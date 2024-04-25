@@ -1,4 +1,6 @@
 """Event Service Controller."""
+from datetime import datetime
+
 import grpc
 
 from errors.permission_denied_error import PermissionDeniedError
@@ -77,6 +79,12 @@ class EventServiceImpl(GrpcServicer):
             author_id=request.author_id,
             page_number=request.page_number,
             items_per_page=request.items_per_page,
+            start=datetime.fromtimestamp(
+                request.start.seconds + request.start.nanos / 1e9
+            ),
+            end=datetime.fromtimestamp(
+                request.end.seconds + request.end.nanos / 1e9
+            )
         )
         context.set_code(grpc.StatusCode.OK)
         return proto.EventsResponse(
@@ -168,7 +176,13 @@ class EventServiceImpl(GrpcServicer):
         if request.requesting_user.type != GrpcUserType.ADMIN:
             raise PermissionDeniedError("Permission denied")
         events = await self._event_repository.get_all_events(
-            page_number=request.page_number, items_per_page=request.items_per_page
+            page_number=request.page_number, items_per_page=request.items_per_page,
+            start=datetime.fromtimestamp(
+                request.start.seconds + request.start.nanos / 1e9
+            ),
+            end=datetime.fromtimestamp(
+                request.end.seconds + request.end.nanos / 1e9
+            )
         )
         context.set_code(grpc.StatusCode.OK)
         return proto.EventsResponse(
@@ -280,7 +294,9 @@ class EventServiceImpl(GrpcServicer):
         return Empty()
 
     async def delete_events_by_author_id(
-        self, request: proto.DeleteEventsByAuthorIdRequest, context: grpc.ServicerContext
+        self,
+        request: proto.DeleteEventsByAuthorIdRequest,
+        context: grpc.ServicerContext,
     ) -> Empty:
         """
         Delete events by author id.

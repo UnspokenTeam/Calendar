@@ -1,7 +1,7 @@
 """Mock event repository"""
 
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from uuid import uuid4
 
 from errors.value_not_found_error import ValueNotFoundError
@@ -23,13 +23,13 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
     Methods
     -------
-    async get_events_by_author_id(author_id, page_number, items_per_page)
+    async get_events_by_author_id(author_id, page_number, items_per_page, start, end)
         Returns page with events that has matches with given author id.
     async get_event_by_event_id(event_id)
         Returns event that has matches with given event id.
     async get_events_by_events_ids(events_ids, page_number, items_per_page)
         Returns page of events that has matches with given list of event ids.
-    async get_all_events(page_number, items_per_page)
+    async get_all_events(page_number, items_per_page, start, end)
         Returns page that contains part of all events.
     async create_event(event)
         Creates new event inside db or throws an exception.
@@ -48,7 +48,12 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         self._events = []
 
     async def get_events_by_author_id(
-        self, author_id: str, page_number: int, items_per_page: int
+        self,
+        author_id: str,
+        page_number: int,
+        items_per_page: int,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
     ) -> List[Event]:
         """
         Get events by author id.
@@ -61,6 +66,10 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             Number of page to get.
         items_per_page : int
             Number of items per page to load.
+        start : Optional[datetime]
+            Start of time interval for search.
+        end : Optional[datetime]
+            End of time interval for search.
 
         Returns
         -------
@@ -76,16 +85,21 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         events = [
             event
             for event in self._events
-            if event.author_id == author_id and event.deleted_at is None
+            if event.author_id == author_id
+            and (
+                start <= event.start <= end
+                if start is not None and end is not None
+                else True
+            )
+            and event.deleted_at is None
         ]
-        events = (
+        if events is None or len(events) == 0:
+            raise ValueNotFoundError("Events not found")
+        return (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
             else events
         )
-        if events is None or len(events) == 0:
-            raise ValueNotFoundError("Events not found")
-        return events
 
     async def get_event_by_event_id(self, event_id: str) -> Event:
         """
@@ -147,17 +161,20 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             for event in self._events
             if event.id in events_ids and event.deleted_at is None
         ]
-        events = (
+        if events is None or len(events) == 0:
+            raise ValueNotFoundError("Events not found")
+        return (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
             else events
         )
-        if events is None or len(events) == 0:
-            raise ValueNotFoundError("Events not found")
-        return events
 
     async def get_all_events(
-        self, page_number: int, items_per_page: int
+        self,
+        page_number: int,
+        items_per_page: int,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
     ) -> List[Event]:
         """
         Get all events.
@@ -168,6 +185,10 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             Number of page to get.
         items_per_page : int
             Number of items per page to load.
+        start : Optional[datetime]
+            Start of time interval for search.
+        end : Optional[datetime]
+            End of time interval for search.
 
         Returns
         -------
@@ -180,16 +201,22 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             No events were found.
 
         """
-        events = (
-            self._events[
-                items_per_page * (page_number - 1) : items_per_page * page_number
-            ]
-            if items_per_page != -1
-            else self._events
-        )
+        events = [
+            event
+            for event in self._events
+            if (
+                start <= event.start <= end
+                if start is not None and end is not None
+                else True
+            )
+        ]
         if events is None or len(events) == 0:
             raise ValueNotFoundError("Events not found")
-        return events
+        return (
+            events[items_per_page * (page_number - 1) : items_per_page * page_number]
+            if items_per_page != -1
+            else events
+        )
 
     async def create_event(self, event: Event) -> None:
         """
