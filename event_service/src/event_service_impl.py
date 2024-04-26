@@ -82,9 +82,7 @@ class EventServiceImpl(GrpcServicer):
             start=datetime.fromtimestamp(
                 request.start.seconds + request.start.nanos / 1e9
             ),
-            end=datetime.fromtimestamp(
-                request.end.seconds + request.end.nanos / 1e9
-            )
+            end=datetime.fromtimestamp(request.end.seconds + request.end.nanos / 1e9),
         )
         context.set_code(grpc.StatusCode.OK)
         return proto.EventsResponse(
@@ -176,13 +174,12 @@ class EventServiceImpl(GrpcServicer):
         if request.requesting_user.type != GrpcUserType.ADMIN:
             raise PermissionDeniedError("Permission denied")
         events = await self._event_repository.get_all_events(
-            page_number=request.page_number, items_per_page=request.items_per_page,
+            page_number=request.page_number,
+            items_per_page=request.items_per_page,
             start=datetime.fromtimestamp(
                 request.start.seconds + request.start.nanos / 1e9
             ),
-            end=datetime.fromtimestamp(
-                request.end.seconds + request.end.nanos / 1e9
-            )
+            end=datetime.fromtimestamp(request.end.seconds + request.end.nanos / 1e9),
         )
         context.set_code(grpc.StatusCode.OK)
         return proto.EventsResponse(

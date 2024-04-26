@@ -14,11 +14,11 @@ class EventRepositoryInterface(ABC):
     Methods
     -------
     async get_events_by_author_id(author_id, page_number, items_per_page, start, end)
-        Returns page with events that has matches with given author id.
+        Returns page with events those have matches with given author id.
     async get_event_by_event_id(event_id)
         Returns event that has matches with given event id.
     async get_events_by_events_ids(events_ids, page_number, items_per_page)
-        Returns page of events that has matches with given list of event ids.
+        Returns page of events those have matches with given list of event ids.
     async get_all_events(page_number, items_per_page, start, end)
         Returns page that contains part of all events.
     async create_event(event)
@@ -28,7 +28,7 @@ class EventRepositoryInterface(ABC):
     async delete_event_by_id(event_id)
         Deletes event that has matching id from database or throws an exception.
     async delete_events_by_author_id(author_id)
-        Deletes event those have matches with given author id.
+        Deletes events those have matches with given author id.
 
     """
 
@@ -60,7 +60,7 @@ class EventRepositoryInterface(ABC):
         Returns
         -------
         List[Event]
-            List of events that matches by author id.
+            List of events those match by author id.
 
         Raises
         ------
@@ -92,7 +92,7 @@ class EventRepositoryInterface(ABC):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No events were found for given event id.
+            No event was found for given event id.
 
         """
         pass
@@ -116,7 +116,7 @@ class EventRepositoryInterface(ABC):
         Returns
         -------
         List[Event]
-            List of events that matches by event id.
+            List of events those match by event id.
 
         Raises
         ------
