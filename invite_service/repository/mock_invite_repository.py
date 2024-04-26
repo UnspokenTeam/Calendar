@@ -184,6 +184,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         """
         invite.id = str(uuid4())
         invite.created_at = datetime.now()
+        invite.deleted_at = None
         self._invites.append(invite)
 
     async def update_invite(self, invite: Invite) -> None:
