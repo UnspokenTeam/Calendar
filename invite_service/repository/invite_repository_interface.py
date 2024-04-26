@@ -1,9 +1,9 @@
 """Invite repository interface"""
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional
 
-from src.models.invite import Invite
+from src.models.invite import Invite, InviteStatus
 
 
 class InviteRepositoryInterface(ABC):
@@ -24,18 +24,28 @@ class InviteRepositoryInterface(ABC):
         Creates new invite inside db or throws an exception.
     async update_invite(invite)
         Updates invite that has the same id as provided invite object inside db or throws an exception.
-    async delete_invite(invite_id)
+    async delete_invite_by_invite_id(invite_id)
         Deletes invite that has matching id from database or throws an exception.
+    async delete_invite_by_event_id(event_id)
+        Deletes invite that has matching event id from database or throws an exception.
+    async delete_invite_by_author_id(author_id)
+        Deletes invite that has matching author id from database or throws an exception.
+    async delete_invite_by_invitee_id(invitee_id)
+        Deletes invite that has matching invitee id from database or throws an exception.
 
     """
 
     @abstractmethod
-    async def get_invites_by_author_id(self, author_id: str) -> List[Invite]:
+    async def get_invites_by_author_id(
+        self, author_id: str, status: Optional[InviteStatus]
+    ) -> List[Invite]:
         """
         Get invites by author id.
 
         Parameters
         ----------
+        status : Optional[InviteStatus]
+            Optional invite status. If present will filter the events by status
         author_id : str
             Author's id.
 
@@ -80,9 +90,14 @@ class InviteRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_all_invites(self) -> List[Invite]:
+    async def get_all_invites(self, status: Optional[InviteStatus]) -> List[Invite]:
         """
         Get all invites.
+
+        Attributes
+        ----------
+        status : Optional[InviteStatus]
+            Optional invite status. If present will filter the events by status
 
         Returns
         -------
@@ -100,7 +115,9 @@ class InviteRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_invites_by_invitee_id(self, invitee_id: str) -> List[Invite]:
+    async def get_invites_by_invitee_id(
+        self, invitee_id: str, status: Optional[InviteStatus]
+    ) -> List[Invite]:
         """
         Get invites by invitee id.
 
@@ -108,6 +125,8 @@ class InviteRepositoryInterface(ABC):
         ----------
         invitee_id : str
             Invitee's id object.
+        status : Optional[InviteStatus]
+            Optional invite status. If present will filter the events by status
 
         Returns
         -------
@@ -161,14 +180,68 @@ class InviteRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def delete_invite(self, invite_id: str) -> None:
+    async def delete_invite_by_invite_id(self, invite_id: str) -> None:
         """
-        Delete the invite.
+        Delete the invite by invite id.
 
         Parameters
         ----------
         invite_id : str
             Invite id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        pass
+
+    @abstractmethod
+    async def delete_invites_by_event_id(self, event_id: str) -> None:
+        """
+        Delete invites by event id
+
+        Parameters
+        ----------
+        event_id : str
+            Event id
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        pass
+
+    @abstractmethod
+    async def delete_invites_by_author_id(self, author_id: str) -> None:
+        """
+        Delete invites by author id.
+
+        Parameters
+        ----------
+        author_id : str
+            Author id
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        pass
+
+    @abstractmethod
+    async def delete_invites_by_invitee_id(self, invitee_id: str) -> None:
+        """
+        Delete invites by invitee id
+
+        Parameters
+        ----------
+        invitee_id : str
+            Invitee id
 
         Raises
         ------

@@ -2,11 +2,66 @@
 
 from dataclasses import dataclass
 from datetime import datetime
+from enum import StrEnum
 from typing import Any, Dict, List, Optional, Self
 
 from prisma.models import Invite as PrismaInvite
 
-from generated.invite_service.invite_service_pb2 import GrpcInvite, InviteStatus
+from generated.invite_service.invite_service_pb2 import (
+    GrpcInvite,
+    InviteStatus as GrpcInviteStatus,
+)
+
+
+class InviteStatus(StrEnum):
+    """
+    Invite status enum
+
+    Methods
+    -------
+    static from_proto(proto)
+        Get invite status instance from proto invite status
+    to_proto()
+        Get proto invite status from invite status instance
+
+    """
+
+    PENDING = "PENDING"
+    """Invite pending approval"""
+    ACCEPTED = "ACCEPTED"
+    """Invite accepted"""
+    REJECTED = "REJECTED"
+    """Invite rejected"""
+
+    @classmethod
+    def from_proto(cls, proto: GrpcInviteStatus):
+        """
+        Get invite status instance from proto invite status
+
+        Parameters
+        ----------
+        proto : GrpcInviteStatus
+            Proto invite status
+
+        Returns
+        -------
+        InviteStatus
+            Invite status instance
+
+        """
+        return cls(str(proto))
+
+    def to_proto(self) -> GrpcInviteStatus:
+        """
+        Get proto invite status from invite status instance
+
+        Returns
+        -------
+        GrpcInviteStatus
+            Proto invite status
+
+        """
+        return GrpcInviteStatus(str(self))
 
 
 @dataclass
@@ -68,7 +123,7 @@ class Invite:
             event_id=self.event_id,
             author_id=self.author_id,
             invitee_id=self.invitee_id,
-            status=self.status,
+            status=self.status.to_proto(),
         )
         invite.created_at.FromDatetime(self.created_at)
         if self.deleted_at is not None:
@@ -144,7 +199,7 @@ class Invite:
             event_id=grpc_invite.event_id,
             author_id=grpc_invite.author_id,
             invitee_id=grpc_invite.invitee_id,
-            status=grpc_invite.status,
+            status=InviteStatus.from_proto(grpc_invite.status),
             created_at=datetime.fromtimestamp(
                 grpc_invite.created_at.seconds + grpc_invite.created_at.nanos / 1e9
             ),

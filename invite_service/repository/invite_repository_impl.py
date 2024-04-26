@@ -7,7 +7,7 @@ from prisma.models import Invite as PrismaInvite
 
 from db.postgres_client import PostgresClient
 from errors.value_not_found_error import ValueNotFoundError
-from src.models.invite import Invite
+from src.models.invite import Invite, InviteStatus
 from utils.singleton import singleton
 
 from repository.invite_repository_interface import InviteRepositoryInterface
@@ -25,13 +25,13 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
 
     Methods
     -------
-    async get_invites_by_author_id(author_id)
+    async get_invites_by_author_id(author_id, status)
         Returns invites that has matches with given author id.
     async get_invite_by_invite_id(invite_id)
         Returns invite that has matches with given invite id.
-    async get_all_invites()
+    async get_all_invites(status)
         Returns all invites.
-    async get_invites_by_invitee_id(invitee_id)
+    async get_invites_by_invitee_id(invitee_id, status)
         Returns invites that has matches with given invitee id.
     async create_invite(invite)
         Creates new invite inside db or throws an exception.
@@ -47,12 +47,16 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
     def __init__(self) -> None:
         self._db_client = PostgresClient()
 
-    async def get_invites_by_author_id(self, author_id: str) -> List[Invite]:
+    async def get_invites_by_author_id(
+        self, author_id: str, status: Optional[InviteStatus]
+    ) -> List[Invite]:
         """
         Get invites by author id.
 
         Parameters
         ----------
+        status : Optional[InviteStatus]
+            Optional invite status. If present will filter the events by status
         author_id : str
             Author's id.
 
@@ -72,7 +76,11 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         db_invites: Optional[
             List[PrismaInvite]
         ] = await self._db_client.db.invite.find_many(
-            where={"author_id": author_id, "deleted_at": None}
+            where={
+                "author_id": author_id,
+                "deleted_at": None,
+            }
+            | ({"status": str(status)} if status is not None else {})
         )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
@@ -110,9 +118,14 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             raise ValueNotFoundError("Invite not found")
         return Invite.from_prisma_invite(prisma_invite=db_invite)
 
-    async def get_all_invites(self) -> List[Invite]:
+    async def get_all_invites(self, status: Optional[InviteStatus]) -> List[Invite]:
         """
         Get all invites.
+
+        Attributes
+        ----------
+        status : Optional[InviteStatus]
+            Optional invite status. If present will filter the events by status
 
         Returns
         -------
@@ -129,7 +142,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         """
         db_invites: Optional[
             List[PrismaInvite]
-        ] = await self._db_client.db.invite.find_many()
+        ] = await self._db_client.db.invite.find_many(
+            where={"status": str(status)} if status is not None else {}
+        )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return [
@@ -137,7 +152,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             for db_invite in db_invites
         ]
 
-    async def get_invites_by_invitee_id(self, invitee_id: str) -> List[Invite]:
+    async def get_invites_by_invitee_id(
+        self, invitee_id: str, status: Optional[InviteStatus]
+    ) -> List[Invite]:
         """
         Get invites by invitee id.
 
@@ -145,6 +162,8 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         ----------
         invitee_id : str
             Invitee's id object.
+        status : Optional[InviteStatus]
+            Optional invite status. If present will filter the events by status
 
         Returns
         -------
@@ -166,6 +185,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
                 "invitee_id": invitee_id,
                 "deleted_at": None,
             }
+            | ({"status": str(status)} if status is not None else {})
         )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
@@ -212,7 +232,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             where={"id": invite.id}, data=invite.to_dict()
         )
 
-    async def delete_invite(self, invite_id: str) -> None:
+    async def delete_invite_by_invite_id(self, invite_id: str) -> None:
         """
         Delete the invite.
 
@@ -229,5 +249,65 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         """
         await self._db_client.db.invite.update_many(
             where={"id": invite_id, "deleted_at": None},
+            data={"deleted_at": datetime.now()},
+        )
+
+    async def delete_invites_by_event_id(self, event_id: str) -> None:
+        """
+        Delete invites by event id
+
+        Parameters
+        ----------
+        event_id : str
+            Event id
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        await self._db_client.db.invite.update_many(
+            where={"event_id": event_id, "deleted_at": None},
+            data={"deleted_at": datetime.now()},
+        )
+
+    async def delete_invites_by_author_id(self, author_id: str) -> None:
+        """
+        Delete invites by author id.
+
+        Parameters
+        ----------
+        author_id : str
+            Author id
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        await self._db_client.db.invite.update_many(
+            where={"author_id": author_id, "deleted_at": None},
+            data={"deleted_at": datetime.now()},
+        )
+
+    async def delete_invites_by_invitee_id(self, invitee_id: str) -> None:
+        """
+        Delete invites by invitee id
+
+        Parameters
+        ----------
+        invitee_id : str
+            Invitee id
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        await self._db_client.db.invite.update_many(
+            where={"invitee_id": invitee_id, "deleted_at": None},
             data={"deleted_at": datetime.now()},
         )
