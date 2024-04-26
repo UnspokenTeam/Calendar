@@ -53,11 +53,13 @@ class InviteStatus(StrEnum):
         """
         match proto:
             case GrpcInviteStatus.PENDING:
-                return cls.PENDING
+                return cls("PENDING")
             case GrpcInviteStatus.ACCEPTED:
-                return cls.ACCEPTED
+                return cls("ACCEPTED")
             case GrpcInviteStatus.REJECTED:
-                return cls.REJECTED
+                return cls("REJECTED")
+
+        raise ValueError("Invalid proto")
 
     def to_proto(self) -> GrpcInviteStatus:
         """
