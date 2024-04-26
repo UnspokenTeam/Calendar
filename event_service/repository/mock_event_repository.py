@@ -56,7 +56,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         end: Optional[datetime] = None,
     ) -> List[Event]:
         """
-        Get events by author id.
+        Get events by author id and optionally timestamp.
 
         Parameters
         ----------
@@ -178,7 +178,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         end: Optional[datetime] = None,
     ) -> List[Event]:
         """
-        Get all events.
+        Get all events, optionally in the custom timestamp.
 
         Parameters
         ----------
