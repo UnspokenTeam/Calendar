@@ -1,13 +1,17 @@
 """Invite Service Controller"""
 
 import grpc
+
 import prisma.errors
 
-import generated.invite_service.invite_service_pb2 as proto
 from errors.permission_denied import PermissionDeniedError
 from errors.value_not_found_error import ValueNotFoundError
+from src.models.invite import Invite, InviteStatus
+
 from generated.invite_service.invite_service_pb2 import (
     GetAllInvitesRequest as GrpcGetAllInvitesRequest,
+)
+from generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
 from generated.invite_service.invite_service_pb2_grpc import (
@@ -15,7 +19,7 @@ from generated.invite_service.invite_service_pb2_grpc import (
 )
 from generated.user.user_pb2 import GrpcUserType
 from repository.invite_repository_interface import InviteRepositoryInterface
-from src.models.invite import Invite, InviteStatus
+import generated.invite_service.invite_service_pb2 as proto
 
 
 class InviteServiceImpl(GrpcServicer):

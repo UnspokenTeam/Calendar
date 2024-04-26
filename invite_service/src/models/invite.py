@@ -9,6 +9,8 @@ from prisma.models import Invite as PrismaInvite
 
 from generated.invite_service.invite_service_pb2 import (
     GrpcInvite,
+)
+from generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
 
@@ -34,7 +36,7 @@ class InviteStatus(StrEnum):
     """Invite rejected"""
 
     @classmethod
-    def from_proto(cls, proto: GrpcInviteStatus):
+    def from_proto(cls, proto: GrpcInviteStatus) -> Self:
         """
         Get invite status instance from proto invite status
 
