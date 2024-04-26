@@ -143,7 +143,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         db_invites: Optional[
             List[PrismaInvite]
         ] = await self._db_client.db.invite.find_many(
-            where={"status": str(status)} if status is not None else {}
+            where={"status": str(status)} if status is not None else None
         )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")

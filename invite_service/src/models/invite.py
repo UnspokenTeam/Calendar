@@ -49,7 +49,13 @@ class InviteStatus(StrEnum):
             Invite status instance
 
         """
-        return cls(str(proto))
+        match proto:
+            case GrpcInviteStatus.PENDING:
+                return cls.PENDING
+            case GrpcInviteStatus.ACCEPTED:
+                return cls.ACCEPTED
+            case GrpcInviteStatus.REJECTED:
+                return cls.REJECTED
 
     def to_proto(self) -> GrpcInviteStatus:
         """
@@ -61,7 +67,13 @@ class InviteStatus(StrEnum):
             Proto invite status
 
         """
-        return GrpcInviteStatus(str(self))
+        match self:
+            case self.PENDING:
+                return GrpcInviteStatus.PENDING
+            case self.ACCEPTED:
+                return GrpcInviteStatus.ACCEPTED
+            case self.REJECTED:
+                return GrpcInviteStatus.REJECTED
 
 
 @dataclass
@@ -173,7 +185,7 @@ class Invite:
             id=prisma_invite.id,
             event_id=prisma_invite.event_id,
             author_id=prisma_invite.author_id,
-            status=prisma_invite.status,
+            status=InviteStatus(prisma_invite.status),
             invitee_id=prisma_invite.invitee_id,
             created_at=prisma_invite.create_at,
             deleted_at=prisma_invite.deleted_at,

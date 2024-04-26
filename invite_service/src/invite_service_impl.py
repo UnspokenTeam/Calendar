@@ -8,6 +8,7 @@ from errors.permission_denied import PermissionDeniedError
 from errors.value_not_found_error import ValueNotFoundError
 from generated.invite_service.invite_service_pb2 import (
     GetAllInvitesRequest as GrpcGetAllInvitesRequest,
+    InviteStatus as GrpcInviteStatus,
 )
 from generated.invite_service.invite_service_pb2_grpc import (
     InviteServiceServicer as GrpcServicer,
@@ -83,7 +84,7 @@ class InviteServiceImpl(GrpcServicer):
             invites = await self._invite_repository.get_invites_by_author_id(
                 author_id=request.author_id,
                 status=InviteStatus.from_proto(request.invite_status)
-                if request.invite_status is not None
+                if request.invite_status != GrpcInviteStatus.UNSPECIFIED
                 else None,
             )
             context.set_code(grpc.StatusCode.OK)
@@ -134,7 +135,7 @@ class InviteServiceImpl(GrpcServicer):
                 raise PermissionDeniedError("Permission denied")
             invites = await self._invite_repository.get_all_invites(
                 status=InviteStatus.from_proto(request.invite_status)
-                if request.invite_status is not None
+                if request.invite_status != GrpcInviteStatus.UNSPECIFIED
                 else None
             )
             context.set_code(grpc.StatusCode.OK)
@@ -237,7 +238,7 @@ class InviteServiceImpl(GrpcServicer):
             invites = await self._invite_repository.get_invites_by_invitee_id(
                 invitee_id=request.invitee_id,
                 status=InviteStatus.from_proto(request.invite_status)
-                if request.invite_status is not None
+                if request.invite_status != GrpcInviteStatus.UNSPECIFIED
                 else None,
             )
             context.set_code(grpc.StatusCode.OK)
