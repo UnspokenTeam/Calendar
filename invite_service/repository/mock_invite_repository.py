@@ -68,7 +68,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            Invite not found
+            Invite was not found
 
         """
         try:
@@ -105,7 +105,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No invites was found for given author id.
+            No invites were found for given author id.
 
         """
         invites = [
@@ -147,7 +147,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No invites was found for given author id.
+            No invites were found for given author id.
 
         """
         result = [
@@ -186,7 +186,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No invites was found for given author id.
+            No invites were found for given author id.
 
         """
         invites = [
@@ -300,7 +300,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No invites not found
+            Invites were not found
 
         """
         indexes = [
@@ -330,7 +330,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No invites not found
+            Invites were not found
 
         """
         indexes = [
@@ -360,7 +360,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No invites not found
+            Invites were not found
 
         """
         indexes = [

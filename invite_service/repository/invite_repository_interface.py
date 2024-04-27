@@ -134,12 +134,11 @@ class InviteRepositoryInterface(ABC):
         Parameters
         ----------
         invitee_id : str
-            Invitee's id object.
+            Invitee's id.
         page_number : int
             Number of page to get.
         items_per_page : int
             Number of items per page to load.
-            Invitee's id.
         status : Optional[InviteStatus]
             Optional invite status. If present will filter the events by status
 
