@@ -23,11 +23,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
     Methods
     -------
     async get_events_by_author_id(author_id, page_number, items_per_page)
-        Returns page with events that has matches with given author id.
+        Returns page with events those have matches with given author id.
     async get_event_by_event_id(event_id)
         Returns event that has matches with given event id.
     async get_events_by_events_ids(events_ids, page_number, items_per_page)
-        Returns page of events that has matches with given list of event ids.
+        Returns page of events those have matches with given list of event ids.
     async get_all_events(page_number, items_per_page)
         Returns page that contains part of all events.
     async create_event(event)
@@ -62,7 +62,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         Returns
         -------
         List[Event]
-            List of events that matches by author id.
+            List of events those matches by author id.
 
         Raises
         ------
@@ -94,13 +94,13 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         Returns
         -------
-        List[Event]
-            List of events that matches by event id.
+        Event
+            Event that matches by event id.
 
         Raises
         ------
         ValueNotFoundError
-            No events were found for given event id.
+            No event was found for given event id.
 
         """
         try:
@@ -130,7 +130,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         Returns
         -------
         List[Event]
-            List of events that matches by event id.
+            List of events those match by event id.
 
         Raises
         ------

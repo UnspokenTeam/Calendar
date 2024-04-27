@@ -149,7 +149,7 @@ class Notification:
                     grpc_notification.deleted_at.seconds
                     + grpc_notification.deleted_at.nanos / 1e9
                 )
-                if grpc_notification.deleted_at is not None
+                if grpc_notification.WhichOneof("optional_deleted_at") is not None
                 else None
             ),
         )

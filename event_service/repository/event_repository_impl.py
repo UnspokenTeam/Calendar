@@ -26,11 +26,11 @@ class EventRepositoryImpl(EventRepositoryInterface):
     Methods
     -------
     async get_events_by_author_id(author_id, page_number, items_per_page)
-        Returns page with events that has matches with given author id.
+        Returns page with events those have matches with given author id.
     async get_event_by_event_id(event_id)
         Returns event that has matches with given event id.
     async get_events_by_events_ids(events_ids, page_number, items_per_page)
-        Returns page of events that has matches with given list of event ids.
+        Returns page of events those have matches with given list of event ids.
     async get_all_events(page_number, items_per_page)
         Returns page that contains part of all events.
     async create_event(event)
@@ -65,7 +65,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
         Returns
         -------
         List[Event]
-            List of events that matches by author id.
+            List of events those matches by author id.
 
         Raises
         ------
@@ -90,7 +90,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
 
     async def get_event_by_event_id(self, event_id: str) -> Event:
         """
-        Get events by event id.
+        Get event by event id.
 
         Parameters
         ----------
@@ -107,7 +107,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No events were found for given event id.
+            No event was found for given event id.
 
         """
         db_event: Optional[PrismaEvent] = await self._db_client.db.event.find_first(
@@ -135,7 +135,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
         Returns
         -------
         List[Event]
-            List of events that matches by event id.
+            List of events those match by event id.
 
         Raises
         ------
