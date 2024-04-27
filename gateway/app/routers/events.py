@@ -1,24 +1,15 @@
 from datetime import datetime
-from typing import Optional, Annotated, List, Self
+from typing import Annotated, List, Optional
 
 from fastapi import APIRouter, Security, Depends
-from google.protobuf.timestamp_pb2 import Timestamp
 from pydantic import BaseModel
 
 from app.errors import PermissionDeniedError
-from app.generated.notification_service.notification_service_pb2 import (
-    NotificationResponse as GrpcNotificationResponse
-)
-from app.generated.identity_service.get_user_pb2 import (
-    UsersByIdRequest as GrpcGetUsersByIdsRequest,
-    UsersResponse as GrpcGetUsersResponse,
-)
 from app.generated.event_service.event_service_pb2 import (
     EventsRequestByAuthorId as GrpcGetEventsByAuthorIdRequest,
     EventsResponse as GrpcGetEventsResponse,
     EventsRequestByEventsIds as GrpcGetEventsRequestByEventsIdsRequest,
     ListOfEventsIds,
-    GrpcEvent,
     EventResponse as GrpcEventResponse,
     EventRequestByEventId as GrpcGetEventByEventIdRequest,
     DeleteEventRequest as GrpcDeleteEventRequest,
@@ -26,68 +17,27 @@ from app.generated.event_service.event_service_pb2 import (
     GenerateDescriptionRequest as GrpcGenerateDescriptionRequest,
     GenerateDescriptionResponse as GrpcGenerateDescriptionResponse,
 )
+from app.generated.identity_service.get_user_pb2 import (
+    UsersByIdRequest as GrpcGetUsersByIdsRequest,
+    UsersResponse as GrpcGetUsersResponse,
+)
 from app.generated.invite_service.invite_service_pb2 import (
     GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
     InvitesResponse as GrpcGetInvitesResponse,
+    DeleteInvitesByEventIdRequest as GrpcDeleteInvitesByEventIdRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    DeleteNotificationsByEventIdRequest as GrpcDeleteNotificationsByEventIdRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    NotificationResponse as GrpcNotificationResponse
 )
 from app.generated.user.user_pb2 import GrpcUser
 from app.middleware import auth
-from app.models import User, UserType
+from app.models import User, UserType, Event
 from app.params import GrpcClientParams
 
 router = APIRouter(prefix="/events", tags=["events"])
-
-
-class Event(BaseModel):
-    id: str
-    title: str
-    start: datetime
-    end: datetime
-    author_id: str
-    created_at: datetime
-    description: Optional[str] = None
-    color: Optional[str] = None
-    repeating_delay: Optional[datetime] = None
-    deleted_at: Optional[datetime] = None
-
-    @classmethod
-    def from_proto(cls, proto: GrpcEvent) -> Self:
-        return cls(
-            id=proto.id,
-            title=proto.title,
-            start=datetime.fromtimestamp(
-                proto.start.seconds + proto.start.nanos / 1e9
-            ),
-            end=datetime.fromtimestamp(
-                proto.end.seconds + proto.end.nanos / 1e9
-            ),
-            author_id=proto.author_id,
-            created_at=datetime.fromtimestamp(
-                proto.created_at.seconds + proto.created_at.nanos / 1e9
-            ),
-            description=proto.description if proto.description is not None else None,
-            color=proto.color if proto.color is not None else None,
-            repeating_delay=datetime.fromtimestamp(
-                proto.repeating_delay.seconds + proto.repeating_delay.nanos / 1e9
-            ) if proto.repeating_delay is not None else None,
-            deleted_at=datetime.fromtimestamp(
-                proto.deleted_at.seconds + proto.deleted_at.nanos / 1e9
-            ) if proto.deleted_at is not None else None,
-        )
-
-    def to_proto(self) -> GrpcEvent:
-        return GrpcEvent(
-            id=self.id,
-            title=self.title,
-            start=Timestamp.FromDatetime(self.start),
-            end=Timestamp.FromDatetime(self.end),
-            author_id=self.author_id,
-            created_at=Timestamp.FromDatetime(self.created_at),
-            description=self.description if self.description is not None else None,
-            color=self.color if self.color is not None else None,
-            repeating_delay=Timestamp.FromDatetime(self.repeating_delay) if self.repeating_delay is not None else None,
-            deleted_at=Timestamp.FromDatetime(self.deleted_at) if self.deleted_at is not None else None,
-        )
 
 
 class EventResponse(BaseModel):
@@ -102,6 +52,8 @@ async def get_my_events(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
         page: int,
         items_per_page: int,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
 ) -> List[Event]:
     my_events_result: GrpcGetEventsResponse = grpc_clients.event_service_client.request().get_events_by_author_id(
         GrpcGetEventsByAuthorIdRequest(
@@ -126,7 +78,6 @@ async def get_my_events(
             events_ids=ListOfEventsIds(
                 ids=invited_events_id_list
             ),
-            requesting_user=user,
             page_number=page,
             items_per_page=items_per_page // 2 + items_per_page % 2
         )
@@ -238,4 +189,16 @@ def delete_event(
             requesting_user=user
         )
     )
-    # TODO: @Nhsdkk delete related notifications and invites
+
+    grpc_clients.notification_service_client.request().delete_notifications_by_event_id(
+        GrpcDeleteNotificationsByEventIdRequest(
+            event_id=event_id,
+            requesting_user=user
+        )
+    )
+
+    grpc_clients.invite_service_client.request().delete_invites_by_event_id(
+        GrpcDeleteInvitesByEventIdRequest(
+            event_id=event_id,
+        )
+    )
