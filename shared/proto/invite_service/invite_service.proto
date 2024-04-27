@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 import "user/user.proto";
+import "google/protobuf/struct.proto";
 
 service InviteService {
   rpc get_invite_by_invite_id(InviteRequestByInviteId) returns (InviteResponse){}
@@ -18,13 +19,19 @@ service InviteService {
 
 message GetAllInvitesRequest {
   GrpcUser requesting_user = 1;
-  optional InviteStatus invite_status = 2;
+  oneof optional_invite_status {
+    google.protobuf.NullValue invite_status_null = 2;
+    InviteStatus invite_status = 3;
+  }
 }
 
 message InvitesByAuthorIdRequest {
   string author_id = 1;
   GrpcUser requesting_user = 2;
-  optional InviteStatus invite_status = 3;
+  oneof optional_invite_status {
+    google.protobuf.NullValue invite_status_null = 3;
+    InviteStatus invite_status = 4;
+  }
 }
 
 message InviteRequestByInviteId {
@@ -50,7 +57,10 @@ message GrpcInvite {
   string invitee_id = 4;
   InviteStatus status = 5;
   google.protobuf.Timestamp created_at = 6;
-  optional google.protobuf.Timestamp deleted_at = 7;
+  oneof optional_deleted_at {
+    google.protobuf.NullValue deleted_at_null = 7;
+    google.protobuf.Timestamp deleted_at = 8;
+  }
 }
 
 message ListOfInvites {
@@ -88,12 +98,14 @@ message DeleteInvitesByInviteeIdRequest {
 message GetInvitesByInviteeIdRequest {
   string invitee_id = 1;
   GrpcUser requesting_user = 2;
-  optional InviteStatus invite_status = 3;
+  oneof optional_invite_status {
+    google.protobuf.NullValue invite_status_null = 3;
+    InviteStatus invite_status = 4;
+  }
 }
 
 enum InviteStatus {
-  UNSPECIFIED = 0;
-  PENDING = 1;
-  ACCEPTED = 2;
-  REJECTED = 3;
+  PENDING = 0;
+  ACCEPTED = 1;
+  REJECTED = 2;
 }

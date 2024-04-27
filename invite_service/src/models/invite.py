@@ -13,6 +13,8 @@ from generated.invite_service.invite_service_pb2 import (
 from generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
+from google.protobuf.struct_pb2 import NullValue
+from google.protobuf.timestamp_pb2 import Timestamp
 
 
 class InviteStatus(StrEnum):
@@ -140,10 +142,12 @@ class Invite:
             author_id=self.author_id,
             invitee_id=self.invitee_id,
             status=self.status.to_proto(),
+            created_at=Timestamp.FromDatetime(self.created_at)
         )
-        invite.created_at.FromDatetime(self.created_at)
         if self.deleted_at is not None:
             invite.deleted_at.FromDateTime(self.deleted_at)
+        else:
+            invite.deleted_at_null = NullValue
 
         return invite
 
@@ -191,7 +195,7 @@ class Invite:
             author_id=prisma_invite.author_id,
             status=InviteStatus(prisma_invite.status),
             invitee_id=prisma_invite.invitee_id,
-            created_at=prisma_invite.create_at,
+            created_at=prisma_invite.created_at,
             deleted_at=prisma_invite.deleted_at,
         )
 
@@ -223,7 +227,7 @@ class Invite:
                 datetime.fromtimestamp(
                     grpc_invite.deleted_at.seconds + grpc_invite.deleted_at.nanos / 1e9
                 )
-                if grpc_invite.deleted_at is not None
+                if grpc_invite.WhichOneof("optional_deleted_at") is not None
                 else None
             ),
         )

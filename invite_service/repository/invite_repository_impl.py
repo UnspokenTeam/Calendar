@@ -83,11 +83,11 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         db_invites: Optional[
             List[PrismaInvite]
         ] = await self._db_client.db.invite.find_many(
-            where={
-                      "author_id": author_id,
-                      "deleted_at": None,
-                  }
-                  | ({"status": str(status)} if status is not None else {})
+            where=
+            {
+                "author_id": author_id,
+                "deleted_at": None,
+            } | ({"status": str(status)} if status is not None else {})
         )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
@@ -188,11 +188,11 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         db_invites: Optional[
             List[PrismaInvite]
         ] = await self._db_client.db.invite.find_many(
-            where={
-                      "invitee_id": invitee_id,
-                      "deleted_at": None,
-                  }
-                  | ({"status": str(status)} if status is not None else {})
+            where=
+            {
+                "invitee_id": invitee_id,
+                "deleted_at": None,
+            } | ({"status": str(status)} if status is not None else {})
         )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
