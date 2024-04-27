@@ -14,6 +14,8 @@ class InviteRepositoryInterface(ABC):
     -------
     async get_invites_by_author_id(author_id, status)
         Returns invites that have matches with given author id.
+    async get_invites_by_event_id(event_id, status)
+        Returns invites that have matches with given event id.
     async get_invite_by_invite_id(invite_id)
         Returns invite that has matches with given invite id.
     async get_all_invites(status)
@@ -34,6 +36,32 @@ class InviteRepositoryInterface(ABC):
         Deletes invites that have matching invitee id.
 
     """
+
+    @abstractmethod
+    async def get_invites_by_event_id(self, event_id: str, status: Optional[InviteStatus]) -> List[Invite]:
+        """
+        Returns invites that have matching event id.
+
+        Parameters
+        ----------
+        event_id : str
+            Event id.
+        status : Optional[InviteStatus]
+            Optional invite status. If present will filter the events by status
+
+        Returns
+        -------
+        List[Invite]
+            Invites that have matching event id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+        ValueNotFoundError
+            No invites were found for given event id.
+
+        """
 
     @abstractmethod
     async def get_invites_by_author_id(

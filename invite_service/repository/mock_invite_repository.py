@@ -25,6 +25,8 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
     -------
     async get_invites_by_author_id(author_id, status)
         Returns invites that have matches with given author id.
+    async get_invites_by_event_id(event_id, status)
+        Returns invites that have matches with given event id.
     async get_invite_by_invite_id(invite_id)
         Returns invite that has matches with given invite id.
     async get_all_invites(status)
@@ -50,6 +52,28 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
     def __init__(self) -> None:
         self._invites = []
+
+    async def get_invites_by_event_id(
+            self, event_id: str, status: Optional[InviteStatus]
+    ) -> List[Invite]:
+        """
+        Get invites by event id.
+
+        Parameters
+        ----------
+        event_id : str
+            Event id.
+        status : Optional[InviteStatus]
+            Optional invite status. If present will filter the events by status
+
+        Returns
+        -------
+        List[Invite]
+            Invites with matching event id.
+
+        """
+        invites = [invite for invite in self._invites if invite.event_id == event_id and (True if status is None else invite.status == status) and invite.deleted_at is not None]
+        return invites
 
     async def get_invite_by_invite_id(self, invite_id: str) -> Invite:
         """
