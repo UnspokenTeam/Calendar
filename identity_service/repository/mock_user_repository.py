@@ -137,7 +137,12 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             user
             for user in self._users
             if user.id in user_ids and user.suspended_at is None
-        ][(page - 1) * items_per_page : page * items_per_page]
+        ]
+        values = (
+            values[(page - 1) * items_per_page : page * items_per_page]
+            if items_per_page != -1
+            else values
+        )
         if len(values) == 0:
             raise ValueNotFoundError("Users with these ids not exist")
         return values
@@ -242,7 +247,11 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             All existing users
 
         """
-        result = self._users[(page - 1) * items_per_page : page * items_per_page]
+        result = (
+            self._users[(page - 1) * items_per_page : page * items_per_page]
+            if items_per_page != -1
+            else self._users
+        )
         if len(result) == 0:
             raise ValueNotFoundError("No users found")
         return result
