@@ -13,8 +13,6 @@ from generated.invite_service.invite_service_pb2 import (
 from generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
-from google.protobuf.struct_pb2 import NullValue
-from google.protobuf.timestamp_pb2 import Timestamp
 
 
 class InviteStatus(StrEnum):
