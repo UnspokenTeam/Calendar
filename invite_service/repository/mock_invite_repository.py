@@ -68,7 +68,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            Invite not found
+            Invite was not found
 
         """
         try:
@@ -81,7 +81,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             raise ValueNotFoundError("Invite does not exist")
 
     async def get_invites_by_author_id(
-        self, author_id: str, status: Optional[InviteStatus]
+            self, author_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]
     ) -> List[Invite]:
         """
         Get invites by author id.
@@ -92,6 +92,10 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             Author's id.
         status : Optional[InviteStatus]
             Optional invite status. If present will filter the events by status
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
 
         Returns
         -------
@@ -101,26 +105,37 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No invites was found for given author id.
+            No invites were found for given author id.
 
         """
         invites = [
             invite
             for invite in self._invites
             if invite.author_id == author_id
-            and invite.deleted_at is None
-            and (invite.status == status if status is not None else True)
+               and invite.deleted_at is None
+               and (invite.status == status if status is not None else True)
         ]
+        invites = (
+            invites[items_per_page * (page_number - 1): items_per_page * page_number]
+            if items_per_page != -1
+            else invites
+        )
         if invites is None or len(invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return invites
 
-    async def get_all_invites(self, status: Optional[InviteStatus]) -> List[Invite]:
+    async def get_all_invites(
+            self, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+    ) -> List[Invite]:
         """
         Get all invites.
 
-        Attributes
-        ----------
+        Parameters
+        -------
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
         status : Optional[InviteStatus]
             Optional invite status. If present will filter the events by status
 
@@ -132,20 +147,22 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No invites was found for given author id.
+            No invites were found for given author id.
 
         """
         result = [
-            invite
-            for invite in self._invites
-            if status is None or invite.status == status
-        ]
+                     invite
+                     for invite in self._invites
+                     if status is None or invite.status == status
+                 ][
+                 items_per_page * (page_number - 1): items_per_page * page_number
+                 ]
         if len(result) != 0:
             return result
         raise ValueNotFoundError("Invites not found")
 
     async def get_invites_by_invitee_id(
-        self, invitee_id: str, status: Optional[InviteStatus]
+            self, invitee_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]
     ) -> List[Invite]:
         """
         Get invites by invitee id.
@@ -156,6 +173,10 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             Optional invite status. If present will filter the events by status
         invitee_id : str
             Invitee id.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
 
         Returns
         -------
@@ -165,16 +186,21 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No invites was found for given author id.
+            No invites were found for given author id.
 
         """
         invites = [
             invite
             for invite in self._invites
             if invite.id == invitee_id
-            and invite.deleted_at is None
-            and (invite.status == status if status is not None else True)
+               and invite.deleted_at is None
+               and (invite.status == status if status is not None else True)
         ]
+        invites = (
+            invites[items_per_page * (page_number - 1): items_per_page * page_number]
+            if items_per_page != -1
+            else invites
+        )
         if invites is None or len(invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return invites
@@ -274,7 +300,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No invites not found
+            Invites were not found
 
         """
         indexes = [
@@ -304,7 +330,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No invites not found
+            Invites were not found
 
         """
         indexes = [
@@ -334,7 +360,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Raises
         ------
         ValueNotFoundError
-            No invites not found
+            Invites were not found
 
         """
         indexes = [

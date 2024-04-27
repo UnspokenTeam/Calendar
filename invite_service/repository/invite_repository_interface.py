@@ -37,7 +37,7 @@ class InviteRepositoryInterface(ABC):
 
     @abstractmethod
     async def get_invites_by_author_id(
-        self, author_id: str, status: Optional[InviteStatus]
+        self, author_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]
     ) -> List[Invite]:
         """
         Get invites by author id.
@@ -48,6 +48,10 @@ class InviteRepositoryInterface(ABC):
             Optional invite status. If present will filter the events by status
         author_id : str
             Author's id.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
 
         Returns
         -------
@@ -90,12 +94,18 @@ class InviteRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_all_invites(self, status: Optional[InviteStatus]) -> List[Invite]:
+    async def get_all_invites(
+        self, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+    ) -> List[Invite]:
         """
         Get all invites.
 
-        Attributes
+        Parameters
         ----------
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
         status : Optional[InviteStatus]
             Optional invite status. If present will filter the events by status
 
@@ -116,7 +126,7 @@ class InviteRepositoryInterface(ABC):
 
     @abstractmethod
     async def get_invites_by_invitee_id(
-        self, invitee_id: str, status: Optional[InviteStatus]
+        self, invitee_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]
     ) -> List[Invite]:
         """
         Get invites by invitee id.
@@ -125,6 +135,10 @@ class InviteRepositoryInterface(ABC):
         ----------
         invitee_id : str
             Invitee's id.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
         status : Optional[InviteStatus]
             Optional invite status. If present will filter the events by status
 

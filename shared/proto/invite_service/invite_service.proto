@@ -23,14 +23,18 @@ message GetAllInvitesRequest {
     google.protobuf.NullValue invite_status_null = 2;
     InviteStatus invite_status = 3;
   }
+  uint64 page_number = 4;
+  int64 items_per_page = 5;
 }
 
 message InvitesByAuthorIdRequest {
   string author_id = 1;
   GrpcUser requesting_user = 2;
+  uint64 page_number = 3;
+  int64 items_per_page = 4;
   oneof optional_invite_status {
-    google.protobuf.NullValue invite_status_null = 3;
-    InviteStatus invite_status = 4;
+    google.protobuf.NullValue invite_status_null = 5;
+    InviteStatus invite_status =6;
   }
 }
 
@@ -45,11 +49,6 @@ message InviteResponse {
   optional string message = 3;
 }
 
-message InviteRequest {
-  GrpcInvite invite = 1;
-  GrpcUser requesting_user = 2;
-}
-
 message GrpcInvite {
   string id = 1;
   string event_id = 2;
@@ -61,6 +60,11 @@ message GrpcInvite {
     google.protobuf.NullValue deleted_at_null = 7;
     google.protobuf.Timestamp deleted_at = 8;
   }
+}
+
+message InviteRequest {
+  GrpcInvite invite = 1;
+  GrpcUser requesting_user = 2;
 }
 
 message ListOfInvites {
@@ -102,6 +106,8 @@ message GetInvitesByInviteeIdRequest {
     google.protobuf.NullValue invite_status_null = 3;
     InviteStatus invite_status = 4;
   }
+  uint64 page_number = 5;
+  int64 items_per_page = 6;
 }
 
 enum InviteStatus {

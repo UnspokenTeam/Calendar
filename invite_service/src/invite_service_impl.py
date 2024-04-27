@@ -88,6 +88,8 @@ class InviteServiceImpl(GrpcServicer):
                 status=InviteStatus.from_proto(request.invite_status)
                 if request.WhichOneof("optional_invite_status") is not None
                 else None,
+                page_number=request.page_number,
+                items_per_page=request.items_per_page,
             )
             context.set_code(grpc.StatusCode.OK)
             return proto.InvitesResponse(
@@ -116,7 +118,7 @@ class InviteServiceImpl(GrpcServicer):
 
         Parameters
         ----------
-        request : proto.RequestingUser
+        request : GrpcGetAllInvitesRequest
             Request data.
         context : grpc.ServicerContext
             Request context.
@@ -138,7 +140,9 @@ class InviteServiceImpl(GrpcServicer):
             invites = await self._invite_repository.get_all_invites(
                 status=InviteStatus.from_proto(request.invite_status)
                 if request.WhichOneof("optional_invite_status") is not None
-                else None
+                else None,
+                page_number=request.page_number,
+                items_per_page=request.items_per_page
             )
             context.set_code(grpc.StatusCode.OK)
             return proto.InvitesResponse(
@@ -242,6 +246,8 @@ class InviteServiceImpl(GrpcServicer):
                 status=InviteStatus.from_proto(request.invite_status)
                 if request.WhichOneof("optional_invite_status") is not None
                 else None,
+                page_number=request.page_number,
+                items_per_page=request.items_per_page,
             )
             context.set_code(grpc.StatusCode.OK)
             return proto.InvitesResponse(
