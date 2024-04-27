@@ -8,12 +8,12 @@ generator client {
 }
 
 model Invite {
-  id String @id @default(uuid())
-  event_id String
-  author_id String
+  id         String       @id @default(uuid())
+  event_id   String
+  author_id  String
   invitee_id String
-  status InviteStatus
-  create_at DateTime @default(now())
+  status     InviteStatus
+  created_at DateTime     @default(now())
   deleted_at DateTime?
 }
 

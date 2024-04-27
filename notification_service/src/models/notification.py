@@ -45,9 +45,9 @@ class Notification:
     id: str
     event_id: str
     author_id: str
-    enabled: bool
     created_at: datetime
     deleted_at: Optional[datetime] = None
+    enabled: bool = True
 
     def to_grpc_notification(self) -> GrpcNotification:
         """

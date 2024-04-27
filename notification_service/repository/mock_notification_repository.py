@@ -1,8 +1,10 @@
 """Mock notification repository"""
 
+from datetime import datetime
 from typing import List
 from uuid import uuid4
 
+from errors.unique_error import UniqueError
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.notification import Notification
 from utils.singleton import singleton
@@ -34,7 +36,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         Creates new notification inside db or throws an exception.
     async update_notification(notification)
         Updates notification that has the same id as provided notification object inside db or throws an exception.
-    async delete_notification(notification_id)
+    async delete_notification_by_id(notification_id)
         Deletes notification that has matching id from database or throws an exception.
 
     """
@@ -201,9 +203,28 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         notification : Notification
             Notification data.
 
+        Raises
+        ------
+        UniqueError
+            Raises if the notification already exists.
+
         """
-        notification.id = str(uuid4())
-        self._notifications.append(notification)
+        for i in range(len(self._notifications)):
+            if (
+                self._notifications[i].event_id == notification.event_id
+                and self._notifications[i].author_id == notification.author_id
+            ):
+                if self._notifications[i].enabled:
+                    raise UniqueError("Notifications already exists")
+                self._notifications[i].enabled = True
+                if self._notifications[i].deleted_at is not None:
+                    self._notifications[i].created_at = datetime.now()
+                    self._notifications[i].deleted_at = None
+                break
+        else:
+            notification.id = str(uuid4())
+            notification.created_at = datetime.now()
+            self._notifications.append(notification)
 
     async def update_notification(self, notification: Notification) -> None:
         """
@@ -233,7 +254,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         except StopIteration:
             raise ValueNotFoundError("Notification not found")
 
-    async def delete_notification(self, notification_id: str) -> None:
+    async def delete_notification_by_id(self, notification_id: str) -> None:
         """
         Deletes notification with matching id or throws an exception.
 
@@ -255,6 +276,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
                 if self._notifications[i].id == notification_id
                 and self._notifications[i].deleted_at is None
             )
-            self._notifications.pop(index)
+            self._notifications[index].enabled = False
+            self._notifications[index].deleted_at = datetime.now()
         except StopIteration:
             raise ValueNotFoundError("Notification not found")

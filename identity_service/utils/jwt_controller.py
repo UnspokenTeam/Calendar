@@ -70,7 +70,10 @@ class JwtController:
             {
                 "user_id": user_id,
                 "session_id": session_id,
-                "exp": datetime.datetime.now() + datetime.timedelta(days=3),
+                "exp": datetime.datetime.now()
+                + datetime.timedelta(
+                    minutes=int(os.environ["ACCESS_TOKEN_EXPIRATION"])
+                ),
             },
             self._access_key,
             algorithm="HS256",
@@ -98,7 +101,8 @@ class JwtController:
             {
                 "user_id": user_id,
                 "session_id": session_id,
-                "exp": datetime.datetime.now() + datetime.timedelta(days=3),
+                "exp": datetime.datetime.now()
+                + datetime.timedelta(days=int(os.environ["REFRESH_TOKEN_EXPIRATION"])),
             },
             self._refresh_key,
             algorithm="HS256",
