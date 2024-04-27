@@ -72,8 +72,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             Invites with matching event id.
 
         """
-        invites = [invite for invite in self._invites if invite.event_id == event_id and (True if status is None else invite.status == status) and invite.deleted_at is not None]
-        return invites
+        return [invite for invite in self._invites if invite.event_id == event_id and (True if status is None else invite.status == status) and invite.deleted_at is not None]
 
     async def get_invite_by_invite_id(self, invite_id: str) -> Invite:
         """
