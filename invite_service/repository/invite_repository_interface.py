@@ -1,9 +1,9 @@
 """Invite repository interface"""
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional
 
-from src.models.invite import Invite
+from src.models.invite import Invite, InviteStatus
 
 
 class InviteRepositoryInterface(ABC):
@@ -12,37 +12,47 @@ class InviteRepositoryInterface(ABC):
 
     Methods
     -------
-    async get_invites_by_author_id(author_id)
-        Returns invites that has matches with given author id.
+    async get_invites_by_author_id(author_id, status)
+        Returns invites that have matches with given author id.
     async get_invite_by_invite_id(invite_id)
         Returns invite that has matches with given invite id.
-    async get_all_invites()
+    async get_all_invites(status)
         Returns all invites.
-    async get_invites_by_invitee_id(invitee_id)
-        Returns invites that has matches with given invitee id.
+    async get_invites_by_invitee_id(invitee_id, status)
+        Returns invites that have matches with given invitee id.
     async create_invite(invite)
-        Creates new invite inside db or throws an exception.
+        Creates new invite if does not exist or update the existing one.
     async update_invite(invite)
-        Updates invite that has the same id as provided invite object inside db or throws an exception.
-    async delete_invite(invite_id)
-        Deletes invite that has matching id from database or throws an exception.
+        Updates invite that has the same id as provided invite object inside db.
+    async delete_invite_by_invite_id(invite_id)
+        Deletes invite that has matching id.
+    async delete_invite_by_event_id(event_id)
+        Deletes invites that have matching event id.
+    async delete_invite_by_author_id(author_id)
+        Deletes invites that have matching author id.
+    async delete_invite_by_invitee_id(invitee_id)
+        Deletes invites that have matching invitee id.
 
     """
 
     @abstractmethod
-    async def get_invites_by_author_id(self, author_id: str) -> List[Invite]:
+    async def get_invites_by_author_id(
+        self, author_id: str, status: Optional[InviteStatus]
+    ) -> List[Invite]:
         """
         Get invites by author id.
 
         Parameters
         ----------
+        status : Optional[InviteStatus]
+            Optional invite status. If present will filter the events by status
         author_id : str
             Author's id.
 
         Returns
         -------
         List[Invite]
-            List of invites that matches by author id.
+            List of invites that have matching author id.
 
         Raises
         ------
@@ -80,9 +90,14 @@ class InviteRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_all_invites(self) -> List[Invite]:
+    async def get_all_invites(self, status: Optional[InviteStatus]) -> List[Invite]:
         """
         Get all invites.
+
+        Attributes
+        ----------
+        status : Optional[InviteStatus]
+            Optional invite status. If present will filter the events by status
 
         Returns
         -------
@@ -100,19 +115,23 @@ class InviteRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_invites_by_invitee_id(self, invitee_id: str) -> List[Invite]:
+    async def get_invites_by_invitee_id(
+        self, invitee_id: str, status: Optional[InviteStatus]
+    ) -> List[Invite]:
         """
         Get invites by invitee id.
 
         Parameters
         ----------
         invitee_id : str
-            Invitee's id object.
+            Invitee's id.
+        status : Optional[InviteStatus]
+            Optional invite status. If present will filter the events by status
 
         Returns
         -------
         List[Invite]
-            List of invites that matches by invitee id.
+            List of invites that have matching invitee id.
 
         Raises
         ------
@@ -127,7 +146,7 @@ class InviteRepositoryInterface(ABC):
     @abstractmethod
     async def create_invite(self, invite: Invite) -> None:
         """
-        Create an invite.
+        Create an invite if does not exist or update the existing one.
 
         Parameters
         ----------
@@ -138,6 +157,8 @@ class InviteRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
+        UniqueError
+            Invite already exists.
 
         """
         pass
@@ -161,14 +182,68 @@ class InviteRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def delete_invite(self, invite_id: str) -> None:
+    async def delete_invite_by_invite_id(self, invite_id: str) -> None:
         """
-        Delete the invite.
+        Delete the invite by invite id.
 
         Parameters
         ----------
         invite_id : str
             Invite id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        pass
+
+    @abstractmethod
+    async def delete_invites_by_event_id(self, event_id: str) -> None:
+        """
+        Delete invites by event id
+
+        Parameters
+        ----------
+        event_id : str
+            Event id
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        pass
+
+    @abstractmethod
+    async def delete_invites_by_author_id(self, author_id: str) -> None:
+        """
+        Delete invites by author id.
+
+        Parameters
+        ----------
+        author_id : str
+            Author id
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        pass
+
+    @abstractmethod
+    async def delete_invites_by_invitee_id(self, invitee_id: str) -> None:
+        """
+        Delete invites by invitee id
+
+        Parameters
+        ----------
+        invitee_id : str
+            Invitee id
 
         Raises
         ------
