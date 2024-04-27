@@ -1,5 +1,5 @@
 """Mock User Repository"""
-
+from datetime import datetime
 from typing import List
 from uuid import uuid4
 
@@ -226,7 +226,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
                 for i in range(len(self._users))
                 if self._users[i].id == user_id and self._users[i].suspended_at is None
             )
-            self._users.pop(index)
+            self._users[index].suspended_at = datetime.now()
         except StopIteration:
             raise ValueNotFoundError("No user found")
 
