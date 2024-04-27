@@ -23,6 +23,8 @@ message GetAllInvitesRequest {
     google.protobuf.NullValue invite_status_null = 2;
     InviteStatus invite_status = 3;
   }
+  uint64 page_number = 4;
+  int64 items_per_page = 5;
 }
 
 message InvitesByAuthorIdRequest {
