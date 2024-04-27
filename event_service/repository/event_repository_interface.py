@@ -85,7 +85,7 @@ class EventRepositoryInterface(ABC):
         Returns
         -------
         Event
-            Events that matches by event id.
+            Event that matches by event id.
 
         Raises
         ------

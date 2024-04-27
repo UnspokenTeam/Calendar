@@ -38,6 +38,14 @@ class NotificationServiceImpl(GrpcServicer):
         Function that need to be bind to the server that updates the notification.
     async delete_notification_by_id(request, context)
         Function that need to be bind to the server that deletes the notification.
+    async delete_notification_by_event_and_author_ids(request, context)
+        Function that need to be bind to the server that deletes the notification by event and author ids.
+    async delete_notifications_by_events_and_author_ids(request, context)
+        Function that need to be bind to the server that deletes notifications by events and author ids.
+    async delete_notifications_by_author_id(request, context)
+        Function that need to be bind to the server that deletes notifications by author id.
+    async delete_notifications_by_event_id(request, context)
+        Function that need to be bind to the server that deletes notifications by event id.
 
     """
 
@@ -289,7 +297,7 @@ class NotificationServiceImpl(GrpcServicer):
         context.set_code(grpc.StatusCode.OK)
         return Empty()
 
-    async def delete_notification(
+    async def delete_notification_by_id(
         self,
         request: proto.DeleteNotificationByIdRequest,
         context: grpc.ServicerContext,
@@ -327,6 +335,144 @@ class NotificationServiceImpl(GrpcServicer):
             raise PermissionDeniedError("Permission denied")
         await self._notification_repository.delete_notification_by_id(
             notification_id=request.notification_id
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return Empty()
+
+    async def delete_notification_by_event_and_author_ids(
+        self,
+        request: proto.DeleteNotificationByEventAndAuthorIdsRequest,
+        context: grpc.ServicerContext,
+    ) -> Empty:
+        """
+        Delete notification by event and author id.
+
+        Parameters
+        ----------
+        request : proto.DeleteNotificationByEventAndAuthorIdsRequest
+            Request data containing event ID and author ID.
+        context : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        Empty
+            Empty response object.
+
+        Raises
+        ------
+        PermissionDeniedError
+            Raises when user dont has enough access.
+
+        """
+        if (
+            request.requesting_user.id != request.author_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
+        await self._notification_repository.delete_notification_by_event_and_author_ids(
+            event_id=request.event_id, author_id=request.author_id
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return Empty()
+
+    async def delete_notifications_by_events_and_author_ids(
+        self,
+        request: proto.DeleteNotificationsByEventsAndAuthorIdsRequest,
+        context: grpc.ServicerContext,
+    ) -> Empty:
+        """
+        Delete notifications by events and author id.
+
+        Parameters
+        ----------
+        request : proto.DeleteNotificationsByEventsAndAuthorIdsRequest
+            Request data containing events IDs and author ID.
+        context : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        Empty
+            Empty response object.
+
+        Raises
+        ------
+        PermissionDeniedError
+            Raises when user dont has enough access.
+
+        """
+        if (
+            request.requesting_user.id != request.author_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
+        await self._notification_repository.delete_notifications_by_events_and_author_ids(
+            event_ids=list(request.event_ids.ids), author_id=request.author_id
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return Empty()
+
+    async def delete_notifications_by_author_id(
+        self,
+        request: proto.DeleteNotificationsByAuthorIdRequest,
+        context: grpc.ServicerContext,
+    ) -> Empty:
+        """
+        Delete notifications by author id.
+
+        Parameters
+        ----------
+        request : proto.DeleteNotificationsByAuthorIdRequest
+            Request data containing author ID.
+        context : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        Empty
+            Empty response object.
+
+        Raises
+        ------
+        PermissionDeniedError
+            Raises when user dont has enough access.
+
+        """
+        if (
+            request.requesting_user.id != request.author_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
+        await self._notification_repository.delete_notifications_by_author_id(
+            author_id=request.author_id
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return Empty()
+
+    async def delete_notifications_by_event_id(
+        self,
+        request: proto.DeleteNotificationsByEventIdRequest,
+        context: grpc.ServicerContext,
+    ) -> Empty:
+        """
+        Delete notifications by event id.
+
+        Parameters
+        ----------
+        request : proto.DeleteNotificationsByAuthorIdRequest
+            Request data containing event ID.
+        context : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        Empty
+            Empty response object.
+
+        """
+        await self._notification_repository.delete_notifications_by_event_id(
+            event_id=request.event_id
         )
         context.set_code(grpc.StatusCode.OK)
         return Empty()

@@ -112,7 +112,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
 
     async def get_event_by_event_id(self, event_id: str) -> Event:
         """
-        Get events by event id.
+        Get event by event id.
 
         Parameters
         ----------
