@@ -142,12 +142,10 @@ class Invite:
             author_id=self.author_id,
             invitee_id=self.invitee_id,
             status=self.status.to_proto(),
-            created_at=Timestamp.FromDatetime(self.created_at)
         )
+        invite.created_at.FromDatetime(dt=self.created_at)
         if self.deleted_at is not None:
-            invite.deleted_at.FromDateTime(self.deleted_at)
-        else:
-            invite.deleted_at_null = NullValue
+            invite.deleted_at.FromDatetime(self.deleted_at)
 
         return invite
 
