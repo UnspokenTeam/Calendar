@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import uuid4
 
+from errors.unique_error import UniqueError
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.invite import Invite, InviteStatus
 from utils.singleton import singleton
@@ -22,20 +23,26 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
     Methods
     -------
-    async get_invite_by_invite_id(invite_id)
-        Returns invite that has matching invite_id
     async get_invites_by_author_id(author_id, status)
-        Returns invites that has matches with given author id.
+        Returns invites that have matches with given author id.
+    async get_invite_by_invite_id(invite_id)
+        Returns invite that has matches with given invite id.
     async get_all_invites(status)
         Returns all invites.
     async get_invites_by_invitee_id(invitee_id, status)
-        Returns invites that has matches with given of invitee id.
+        Returns invites that have matches with given invitee id.
     async create_invite(invite)
-        Creates new invite inside db.
+        Creates new invite if it does not exist or update the existing one.
     async update_invite(invite)
-        Updates invite that has the same id as provided invite object inside db.
-    async delete_invite(invite_id)
-        Deletes invite that has matching id from database.
+        Updates invite that has the same id as provided invite object.
+    async delete_invite_by_invite_id(invite_id)
+        Deletes invite that has matching id.
+    async delete_invite_by_event_id(event_id)
+        Deletes invites that have matching event id.
+    async delete_invite_by_author_id(author_id)
+        Deletes invites that have matching author id.
+    async delete_invite_by_invitee_id(invitee_id)
+        Deletes invites that have matching invitee id.
 
     """
 
@@ -56,7 +63,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Returns
         -------
         Invite
-            Invite object
+            Invite object with matching invite id
 
         Raises
         ------
@@ -89,7 +96,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Returns
         -------
         List[Invite]
-            List of invites that matches by author id.
+            List of invites that have matching author id.
 
         Raises
         ------
@@ -120,7 +127,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Returns
         -------
         List[Invite]
-            List of invites that matches by invite id.
+            List of all invites.
 
         Raises
         ------
@@ -153,7 +160,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Returns
         -------
         List[Invite]
-            List of invitee that matches by invite id.
+            List of invitee that have matching invite id.
 
         Raises
         ------
@@ -174,22 +181,39 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
     async def create_invite(self, invite: Invite) -> None:
         """
-        Creates invite with matching data or throws an exception
+        Creates invite with matching data
 
         Parameters
         ----------
         invite : Invite
             Invite data
 
+        Raises
+        ------
+        UniqueError
+            Invite already exists
+
         """
-        invite.id = str(uuid4())
-        invite.created_at = datetime.now()
-        invite.deleted_at = None
-        self._invites.append(invite)
+        try:
+            old_invite_index = next(
+                i
+                for i in range(len(self._invites))
+                if self._invites[i].author_id == invite.author_id and self._invites[i].invitee_id == invite.invitee_id
+            )
+
+            if self._invites[old_invite_index].status == InviteStatus.PENDING:
+                raise UniqueError("Invite already exists")
+
+            self._invites[old_invite_index] = invite
+        except StopIteration:
+            invite.id = str(uuid4())
+            invite.created_at = datetime.now()
+            invite.deleted_at = None
+            self._invites.append(invite)
 
     async def update_invite(self, invite: Invite) -> None:
         """
-        Updates invite with matching id or throws an exception
+        Updates invite with matching id
 
         Parameters
         ----------
@@ -214,7 +238,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
     async def delete_invite_by_invite_id(self, invite_id: str) -> None:
         """
-        Deletes invite with matching id or throws an exception
+        Deletes invite with matching id
 
         Parameters
         ----------
@@ -240,7 +264,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
     async def delete_invites_by_event_id(self, event_id: str) -> None:
         """
-        Delete invites by event id
+        Delete invites with matching event id
 
         Parameters
         ----------
@@ -270,7 +294,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
     async def delete_invites_by_author_id(self, author_id: str) -> None:
         """
-        Delete invites by author id
+        Delete invites with matching author id
 
         Parameters
         ----------
@@ -300,7 +324,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
     async def delete_invites_by_invitee_id(self, invitee_id: str) -> None:
         """
-        Delete invites by invitee id
+        Delete invites with matching invitee id
 
         Parameters
         ----------

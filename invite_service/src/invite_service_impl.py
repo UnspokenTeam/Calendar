@@ -5,6 +5,7 @@ import grpc
 import prisma.errors
 
 from errors.permission_denied import PermissionDeniedError
+from errors.unique_error import UniqueError
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.invite import Invite, InviteStatus
 
@@ -304,6 +305,9 @@ class InviteServiceImpl(GrpcServicer):
         except PermissionDeniedError:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
             return proto.BaseResponse(status_code=403, message="Permission denied")
+        except UniqueError:
+            context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+            return proto.BaseResponse(status_code=400, message="Invite already exists")
 
     async def update_invite(
         self, request: proto.InviteRequest, context: grpc.ServicerContext
