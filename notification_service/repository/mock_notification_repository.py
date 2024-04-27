@@ -77,15 +77,16 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             for notification in self._notifications
             if notification.author_id == author_id and notification.deleted_at is None
         ]
-        if notifications is None or len(notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
-        return (
+        notifications = (
             notifications[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
             if items_per_page != -1
             else notifications
         )
+        if notifications is None or len(notifications) == 0:
+            raise ValueNotFoundError("Notifications not found")
+        return notifications
 
     async def get_notification_by_notification_id(
         self, notification_id: str
@@ -150,15 +151,16 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             for notification in self._notifications
             if notification.id in notifications_ids and notification.deleted_at is None
         ]
-        if notifications is None or len(notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
-        return (
+        notifications = (
             notifications[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
             if items_per_page != -1
             else notifications
         )
+        if notifications is None or len(notifications) == 0:
+            raise ValueNotFoundError("Notifications not found")
+        return notifications
 
     async def get_all_notifications(
         self, page_number: int, items_per_page: int
@@ -184,15 +186,16 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             No notifications were found.
 
         """
-        if len(self._notifications) != 0:
-            return (
-                self._notifications[
-                    items_per_page * (page_number - 1) : items_per_page * page_number
-                ]
-                if items_per_page != -1
-                else self._notifications
-            )
-        raise ValueNotFoundError("Notifications not found")
+        notifications = (
+            self._notifications[
+                items_per_page * (page_number - 1) : items_per_page * page_number
+            ]
+            if items_per_page != -1
+            else self._notifications
+        )
+        if notifications is None or len(notifications) == 0:
+            raise ValueNotFoundError("Notifications not found")
+        return notifications
 
     async def create_notification(self, notification: Notification) -> None:
         """
