@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
 import "user/user.proto";
 
@@ -18,11 +19,17 @@ service EventService {
 
 message EventsRequestByAuthorId {
   string author_id = 1;
-  optional google.protobuf.Timestamp start = 2;
-  optional google.protobuf.Timestamp end = 3;
-  GrpcUser requesting_user = 4;
-  uint64 page_number = 5;
-  int64 items_per_page = 6;
+  oneof optional_start {
+    google.protobuf.NullValue start_null = 2;
+    google.protobuf.Timestamp start = 3;
+  }
+  oneof optional_end {
+    google.protobuf.NullValue end_null = 4;
+    google.protobuf.Timestamp end = 5;
+  }
+  GrpcUser requesting_user = 6;
+  uint64 page_number = 7;
+  int64 items_per_page = 8;
 }
 
 message EventRequestByEventId {
@@ -47,22 +54,40 @@ message EventsResponse {
 message GrpcEvent {
   string id = 1;
   string title = 2;
-  optional string description = 3;
-  optional string color = 4;
-  google.protobuf.Timestamp start = 5;
-  google.protobuf.Timestamp end = 6;
-  optional google.protobuf.Timestamp repeating_delay = 7;
-  string author_id = 8;
-  google.protobuf.Timestamp created_at = 9;
-  optional google.protobuf.Timestamp deleted_at = 10;
+  oneof optional_description {
+    google.protobuf.NullValue description_null = 3;
+    string description = 4;
+  }
+  oneof optional_color {
+    google.protobuf.NullValue color_null = 5;
+    string color = 6;
+  }
+  google.protobuf.Timestamp start = 7;
+  google.protobuf.Timestamp end = 8;
+  oneof optional_repeating_delay {
+    google.protobuf.NullValue repeating_delay_null = 9;
+    google.protobuf.Timestamp repeating_delay = 10;
+  }
+  string author_id = 11;
+  google.protobuf.Timestamp created_at = 12;
+  oneof optional_deleted_at {
+    google.protobuf.NullValue deleted_at_null = 13;
+    google.protobuf.Timestamp deleted_at = 14;
+  }
 }
 
 message GetAllEventsRequest {
   GrpcUser requesting_user = 1;
-  optional google.protobuf.Timestamp start = 2;
-  optional google.protobuf.Timestamp end = 3;
-  uint64 page_number = 4;
-  int64 items_per_page = 5;
+  oneof optional_start {
+    google.protobuf.NullValue start_null = 2;
+    google.protobuf.Timestamp start = 3;
+  }
+  oneof optional_end {
+    google.protobuf.NullValue end_null = 4;
+    google.protobuf.Timestamp end = 5;
+  }
+  uint64 page_number = 6;
+  int64 items_per_page = 7;
 }
 
 message EventRequest {

@@ -165,15 +165,14 @@ class Event:
                 grpc_event.end.seconds + grpc_event.end.nanos / 1e9
             ),
             author_id=grpc_event.author_id,
-            description=grpc_event.description,
-            color=grpc_event.color,
+            description=grpc_event.description if grpc_event.WhichOneof("optional_description") is not None else None,
+            color=grpc_event.color if grpc_event.WhichOneof("optional_color") is not None else None,
             repeating_delay=(
                 datetime.fromtimestamp(
                     grpc_event.repeating_delay.seconds
                     + grpc_event.repeating_delay.nanos / 1e9
                 )
-                if grpc_event.repeating_delay is not None
-                else None
+                if grpc_event.WhichOneof("optional_repeating_delay") is not None else None
             ),
             created_at=datetime.fromtimestamp(
                 grpc_event.created_at.seconds + grpc_event.created_at.nanos / 1e9
@@ -182,8 +181,7 @@ class Event:
                 datetime.fromtimestamp(
                     grpc_event.deleted_at.seconds + grpc_event.deleted_at.nanos / 1e9
                 )
-                if grpc_event.deleted_at is not None
-                else None
+                if grpc_event.WhichOneof("optional_deleted_at") is not None else None
             ),
         )
 

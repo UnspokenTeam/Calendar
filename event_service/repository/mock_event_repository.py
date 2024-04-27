@@ -24,11 +24,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
     Methods
     -------
     async get_events_by_author_id(author_id, page_number, items_per_page, start, end)
-        Returns page with events those have matches with given author id.
+        Returns page with events that have matches with given author id.
     async get_event_by_event_id(event_id)
         Returns event that has matches with given event id.
     async get_events_by_events_ids(events_ids, page_number, items_per_page)
-        Returns page of events those have matches with given list of event ids.
+        Returns page of events that have matches with given list of event ids.
     async get_all_events(page_number, items_per_page, start, end)
         Returns page that contains part of all events.
     async create_event(event)
@@ -38,7 +38,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
     async delete_event_by_id(event_id)
         Deletes event that has matching id from database or throws an exception.
     async delete_events_by_author_id(author_id)
-        Deletes events those have matching author events id from database or throws an exception
+        Deletes events that have matching author events id from database or throws an exception
 
     """
 
@@ -74,7 +74,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         Returns
         -------
         List[Event]
-            List of events those match by author id.
+            List of events that match by author id.
 
         Raises
         ------
@@ -148,7 +148,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         Returns
         -------
         List[Event]
-            List of events those match by event id.
+            List of events that match by event id.
 
         Raises
         ------

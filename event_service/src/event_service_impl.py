@@ -42,7 +42,7 @@ class EventServiceImpl(GrpcServicer):
     async delete_event_by_id(request, context)
         Function that need to be bind to the server that deletes the event that matches id.
     async delete_events_by_author_id(request, context)
-        Function that need to be bind to the server that deletes events those matches id.
+        Function that need to be bind to the server that deletes events that match id.
     async generate_event_description(request, context)
         Function that need to be bind to the server that creates the event description.
 
@@ -81,8 +81,12 @@ class EventServiceImpl(GrpcServicer):
             items_per_page=request.items_per_page,
             start=datetime.fromtimestamp(
                 request.start.seconds + request.start.nanos / 1e9
-            ),
-            end=datetime.fromtimestamp(request.end.seconds + request.end.nanos / 1e9),
+            )
+            if request.WhichOneof("optional_start") is not None
+            else None,
+            end=datetime.fromtimestamp(request.end.seconds + request.end.nanos / 1e9)
+            if request.WhichOneof("optional_end") is not None
+            else None,
         )
         context.set_code(grpc.StatusCode.OK)
         return proto.EventsResponse(
@@ -178,8 +182,12 @@ class EventServiceImpl(GrpcServicer):
             items_per_page=request.items_per_page,
             start=datetime.fromtimestamp(
                 request.start.seconds + request.start.nanos / 1e9
-            ),
-            end=datetime.fromtimestamp(request.end.seconds + request.end.nanos / 1e9),
+            )
+            if request.WhichOneof("optional_start") is not None
+            else None,
+            end=datetime.fromtimestamp(request.end.seconds + request.end.nanos / 1e9)
+            if request.WhichOneof("optional_end") is not None
+            else None,
         )
         context.set_code(grpc.StatusCode.OK)
         return proto.EventsResponse(
