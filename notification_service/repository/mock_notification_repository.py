@@ -25,11 +25,11 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
     Methods
     -------
     async get_notifications_by_author_id(author_id, page_number, items_per_page)
-        Returns page with notifications those have matches with given author id.
+        Returns page with notifications that have matches with given author id.
     async get_notification_by_notification_id(notification_id)
         Returns notification that has matches with given notification id.
     async get_notifications_by_notifications_ids(notifications_ids, page_number, items_per_page)
-        Returns page of notifications those have matches with given list of notification ids.
+        Returns page of notifications that have matches with given list of notification ids.
     async get_all_notifications(page_number, items_per_page)
         Returns page that contains part of all notifications.
     async create_notification(notification)
@@ -41,11 +41,11 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
     async delete_notification_by_event_and_author_ids(event_id, author_id)
         Deletes notification that has matching event id and author id from database or throws an exception.
     async delete_notifications_by_events_and_author_ids(event_ids, author_id)
-        Deletes notifications those have matching event ids and author id from database or throws an exception.
+        Deletes notifications that have matching event ids and author id from database or throws an exception.
     async delete_notifications_by_event_id(event_id)
-        Deletes notifications those have matching event id from database or throws an exception.
+        Deletes notifications that have matching event id from database or throws an exception.
     async delete_notifications_by_author_id(author_id)
-        Deletes notifications those have matching author id from database or throws an exception.
+        Deletes notifications that have matching author id from database or throws an exception.
 
     """
 
@@ -72,7 +72,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         Returns
         -------
         List[Notification]
-            List of notifications those match by author id.
+            List of notifications that match by author id.
 
         Raises
         ------
@@ -145,7 +145,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         Returns
         -------
         List[Notification]
-            List of notifications those match by notification id.
+            List of notifications that match by notification id.
 
         Raises
         ------
@@ -349,7 +349,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             and self._notifications[i].event_id in event_ids
             and self._notifications[i].deleted_at is None
         )
-        if indexes is None or len(indexes) == 0:
+        if len(indexes) == 0:
             raise ValueNotFoundError("Notifications not found")
         for index in indexes:
             self._notifications[index].enabled = False
@@ -376,7 +376,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             if self._notifications[i].author_id == author_id
             and self._notifications[i].deleted_at is None
         )
-        if indexes is None or len(indexes) == 0:
+        if len(indexes) == 0:
             raise ValueNotFoundError("Notifications not found")
         for index in indexes:
             self._notifications[index].enabled = False
@@ -403,7 +403,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             if self._notifications[i].event_id == event_id
             and self._notifications[i].deleted_at is None
         )
-        if indexes is None or len(indexes) == 0:
+        if len(indexes) == 0:
             raise ValueNotFoundError("Notifications not found")
         for index in indexes:
             self._notifications[index].enabled = False

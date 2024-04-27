@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
 import "user/user.proto";
 
@@ -51,7 +52,10 @@ message GrpcNotification {
   string author_id = 3;
   bool enabled = 4;
   google.protobuf.Timestamp created_at = 5;
-  optional google.protobuf.Timestamp deleted_at = 6;
+  oneof optional_deleted_at {
+    google.protobuf.NullValue deleted_at_null = 6;
+    google.protobuf.Timestamp deleted_at = 7;
+  }
 }
 
 message GetAllNotificationsRequest {
