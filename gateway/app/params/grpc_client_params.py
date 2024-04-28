@@ -5,7 +5,9 @@ from app.generated.identity_service.identity_service_pb2_grpc import IdentitySer
 
 from ..generated.event_service.event_service_pb2_grpc import EventServiceStub
 from ..generated.invite_service.invite_service_pb2_grpc import InviteServiceStub
-from ..generated.notification_service.notification_service_pb2_grpc import NotificationServiceStub
+from ..generated.notification_service.notification_service_pb2_grpc import (
+    NotificationServiceStub,
+)
 from ..grpc_client import GrpcClient
 
 
