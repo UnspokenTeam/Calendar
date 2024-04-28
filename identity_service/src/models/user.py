@@ -222,7 +222,7 @@ class User:
                 datetime.fromtimestamp(
                     grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
                 )
-                if grpc_user.suspended_at is not None
+                if grpc_user.WhichOneof("optional_suspended_at") is not None
                 else None
             ),
         )
@@ -256,7 +256,7 @@ class User:
                 datetime.fromtimestamp(
                     grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
                 )
-                if grpc_user.suspended_at is not None
+                if grpc_user.WhichOneof("optional_suspended_at") is not None
                 else None
             ),
         )

@@ -14,6 +14,8 @@ class InviteRepositoryInterface(ABC):
     -------
     async get_invites_by_author_id(author_id, status)
         Returns invites that have matches with given author id.
+    async get_invites_by_event_id(event_id, status)
+        Returns invites that have matches with given event id.
     async get_invite_by_invite_id(invite_id)
         Returns invite that has matches with given invite id.
     async get_all_invites(status)
@@ -36,8 +38,34 @@ class InviteRepositoryInterface(ABC):
     """
 
     @abstractmethod
+    async def get_invites_by_event_id(self, event_id: str, status: Optional[InviteStatus]) -> List[Invite]:
+        """
+        Returns invites that have matching event id.
+
+        Parameters
+        ----------
+        event_id : str
+            Event id.
+        status : Optional[InviteStatus]
+            Optional invite status. If present will filter the events by status
+
+        Returns
+        -------
+        List[Invite]
+            Invites that have matching event id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+        ValueNotFoundError
+            No invites were found for given event id.
+
+        """
+
+    @abstractmethod
     async def get_invites_by_author_id(
-        self, author_id: str, status: Optional[InviteStatus]
+        self, author_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]
     ) -> List[Invite]:
         """
         Get invites by author id.
@@ -48,6 +76,10 @@ class InviteRepositoryInterface(ABC):
             Optional invite status. If present will filter the events by status
         author_id : str
             Author's id.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
 
         Returns
         -------
@@ -90,12 +122,18 @@ class InviteRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_all_invites(self, status: Optional[InviteStatus]) -> List[Invite]:
+    async def get_all_invites(
+        self, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+    ) -> List[Invite]:
         """
         Get all invites.
 
-        Attributes
+        Parameters
         ----------
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
         status : Optional[InviteStatus]
             Optional invite status. If present will filter the events by status
 
@@ -116,7 +154,7 @@ class InviteRepositoryInterface(ABC):
 
     @abstractmethod
     async def get_invites_by_invitee_id(
-        self, invitee_id: str, status: Optional[InviteStatus]
+        self, invitee_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]
     ) -> List[Invite]:
         """
         Get invites by invitee id.
@@ -125,6 +163,10 @@ class InviteRepositoryInterface(ABC):
         ----------
         invitee_id : str
             Invitee's id.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
         status : Optional[InviteStatus]
             Optional invite status. If present will filter the events by status
 
