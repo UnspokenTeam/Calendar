@@ -6,6 +6,7 @@ from typing import List, Optional
 from prisma.models import Notification as PrismaNotification
 
 from db.postgres_client import PostgresClient
+from errors.unique_error import UniqueError
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.notification import Notification
 from utils.singleton import singleton
@@ -26,19 +27,27 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
     Methods
     -------
     async get_notifications_by_author_id(author_id, page_number, items_per_page)
-        Returns page with notifications that has matches with given author id.
+        Returns page with notifications that have matches with given author id.
     async get_notification_by_notification_id(notification_id)
         Returns notification that has matches with given notification id.
     async get_notifications_by_notifications_ids(notifications_ids, page_number, items_per_page)
-        Returns page of notifications that has matches with given list of notification ids.
+        Returns page of notifications that have matches with given list of notification ids.
     async get_all_notifications(page_number, items_per_page)
         Returns page that contains part of all notifications.
     async create_notification(notification)
         Creates new notification inside db or throws an exception.
     async update_notification(notification)
         Updates notification that has the same id as provided notification object inside db or throws an exception.
-    async delete_notification(notification_id)
+    async delete_notification_by_id(notification_id)
         Deletes notification that has matching id from database or throws an exception.
+    async delete_notification_by_event_and_author_ids(event_id, author_id)
+        Deletes notification that has matching event id and author id from database or throws an exception.
+    async delete_notifications_by_events_and_author_ids(event_ids, author_id)
+        Deletes notifications that have matching event ids and author id from database or throws an exception.
+    async delete_notifications_by_event_id(event_id)
+        Deletes notifications that have matching event id from database or throws an exception.
+    async delete_notifications_by_author_id(author_id)
+        Deletes notifications that have matching author id from database or throws an exception.
 
     """
 
@@ -65,7 +74,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         Returns
         -------
         List[Notification]
-            List of notifications that matches by author id.
+            List of notifications that match by author id.
 
         Raises
         ------
@@ -110,7 +119,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
-            No notifications were found for given notification id.
+            No notification was found for given notification id.
 
         """
         db_notification: Optional[
@@ -142,7 +151,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         Returns
         -------
         List[Notification]
-            List of notifications that matches by notification id.
+            List of notifications that match by notification id.
 
         Raises
         ------
@@ -221,11 +230,38 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
+        UniqueError
+            Raises if the notification already exists.
 
         """
-        await self._db_client.db.notification.create(
-            data=notification.to_dict(exclude=["created_at", "deleted_at"])
+        db_notification = await self._db_client.db.notification.find_first(
+            where={
+                "event_id": notification.event_id,
+                "author_id": notification.author_id,
+            }
         )
+        if db_notification is not None:
+            if db_notification.enabled:
+                raise UniqueError("Notification already exists")
+            await self._db_client.db.notification.update_many(
+                where={
+                    "event_id": notification.event_id,
+                    "author_id": notification.author_id,
+                },
+                data={"enabled": True},
+            )
+            if db_notification.deleted_at is not None:
+                await self._db_client.db.notification.update_many(
+                    where={
+                        "event_id": notification.event_id,
+                        "author_id": notification.author_id,
+                    },
+                    data={"created_at": datetime.now(), "deleted_at": None},
+                )
+        else:
+            await self._db_client.db.notification.create(
+                data=notification.to_dict(exclude=["enabled", "created_at", "deleted_at"])
+            )
 
     async def update_notification(self, notification: Notification) -> None:
         """
@@ -246,7 +282,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             where={"id": notification.id}, data=notification.to_dict()
         )
 
-    async def delete_notification(self, notification_id: str) -> None:
+    async def delete_notification_by_id(self, notification_id: str) -> None:
         """
         Delete the notification.
 
@@ -263,5 +299,97 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         """
         await self._db_client.db.notification.update_many(
             where={"id": notification_id, "deleted_at": None},
-            data={"deleted_at": datetime.now()},
+            data={"enabled": False, "deleted_at": datetime.now()},
+        )
+
+    async def delete_notification_by_event_and_author_ids(
+        self, event_id: str, author_id: str
+    ) -> None:
+        """
+        Delete the notification by event and author ids.
+
+        Parameters
+        ----------
+        event_id : str
+            Event id.
+        author_id : str
+            Author id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        await self._db_client.db.notification.update_many(
+            where={"event_id": event_id, "author_id": author_id, "deleted_at": None},
+            data={"enabled": False, "deleted_at": datetime.now()},
+        )
+
+    async def delete_notifications_by_events_and_author_ids(
+        self, event_ids: List[str], author_id: str
+    ) -> None:
+        """
+        Delete notifications by events and author ids.
+
+        Parameters
+        ----------
+        event_ids : List[str]
+            Event ids.
+        author_id : str
+            Author id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        await self._db_client.db.notification.update_many(
+            where={
+                "event_id": {"in": event_ids},
+                "author_id": author_id,
+                "deleted_at": None,
+            },
+            data={"enabled": False, "deleted_at": datetime.now()},
+        )
+
+    async def delete_notifications_by_author_id(self, author_id: str) -> None:
+        """
+        Delete notifications by author id.
+
+        Parameters
+        ----------
+        author_id : str
+            Author id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        await self._db_client.db.notification.update_many(
+            where={"author_id": author_id, "deleted_at": None},
+            data={"enabled": False, "deleted_at": datetime.now()},
+        )
+
+    async def delete_notifications_by_event_id(self, event_id: str) -> None:
+        """
+        Delete notifications by event id.
+
+        Parameters
+        ----------
+        event_id : str
+            Event id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        await self._db_client.db.notification.update_many(
+            where={"event_id": event_id, "deleted_at": None},
+            data={"enabled": False, "deleted_at": datetime.now()},
         )

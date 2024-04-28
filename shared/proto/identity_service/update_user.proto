@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 import "user/user.proto";
+import "google/protobuf/struct.proto";
 
 message UpdateUserRequest {
   UserToUpdate new_user = 1;
@@ -14,6 +15,9 @@ message UserToUpdate {
   string email = 3;
   string password = 4;
   google.protobuf.Timestamp created_at = 5;
-  optional google.protobuf.Timestamp suspended_at = 6;
-  GrpcUserType type = 7;
+  oneof optional_suspended_at {
+    google.protobuf.NullValue suspended_at_null = 6;
+    google.protobuf.Timestamp suspended_at = 7;
+  }
+  GrpcUserType type = 8;
 }
