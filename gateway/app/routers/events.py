@@ -44,12 +44,44 @@ router = APIRouter(prefix="/events", tags=["events"])
 
 
 class EventResponse(BaseModel):
+    """
+    Detailed information about an event.
+
+    Attributes
+    ----------
+    event : Event
+        Event object.
+    invited_users : List[User]
+        List of users who are invited to the event.
+    notification_turned_on : bool
+        Whether the event is notified turned on.
+
+    """
     event: Event
     invited_users: List[User]
     notification_turned_on: bool
 
 
 class CreateEventRequest(BaseModel):
+    """
+    Request to create an event.
+
+    Attributes
+    ----------
+    title : str
+        Title of the event.
+    start : datetime
+        Start time of the event.
+    end : datetime
+        End time of the event.
+    description : Optional[str]
+        Description of the event.
+    color : Optional[str]
+        Color of the event.
+    repeating_delay : Optional[datetime]
+        Repeating delay of the event.
+
+    """
     title: str
     start: datetime
     end: datetime
@@ -67,6 +99,30 @@ async def get_my_created_events(
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
 ) -> List[Event]:
+    """
+    Fast api route to get all events created by a user.
+
+    Parameters
+    ----------
+    user : Annotated[GrpcUser, Security]
+        Authenticated user data.
+    grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+        Grpc clients injected by DI
+    page : int
+        Page number greater than 0.
+    items_per_page : int
+        Number of items per page. If -1 then all items are returned.
+    start : Optional[datetime]
+        Start date and time.
+    end : Optional[datetime]
+        End date and time.
+
+    Returns
+    -------
+    List[Event]
+        List of events created by a user.
+
+    """
     my_events_result: GrpcGetEventsResponse = (
         grpc_clients.event_service_client.request().get_events_by_author_id(
             GrpcGetEventsByAuthorIdRequest(
@@ -89,6 +145,30 @@ async def get_my_invited_events(
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
 ) -> List[Event]:
+    """
+    Fast api route to get all events where user is invited.
+
+    Parameters
+    ----------
+    user : Annotated[GrpcUser, Security]
+        Authenticated user data.
+    grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+        Grpc clients injected by DI
+    page : int
+        Page number greater than 0.
+    items_per_page : int
+        Number of items per page. If -1 then all items are returned.
+    start : Optional[datetime]
+        Start date and time.
+    end : Optional[datetime]
+        End date and time.
+
+    Returns
+    -------
+    List[Event]
+        List of events where user is invited.
+
+    """
     invite_result: GrpcGetInvitesResponse = (
         grpc_clients.invite_service_client.request().get_invites_by_author_id(
             GrpcGetInvitesByInviteeIdRequest(
@@ -121,6 +201,24 @@ async def get_event(
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> EventResponse:
+    """
+    Fast api route to get a specific event.
+
+    Parameters
+    ----------
+    event_id : str
+        Event id.
+    user : Annotated[GrpcUser, Security]
+        Authenticated user data.
+    grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+        Grpc clients injected by DI
+
+    Returns
+    -------
+    EventResponse
+        Event response containing event, all invitees and notification status.
+
+    """
     event_response: GrpcEventResponse = (
         grpc_clients.event_service_client.request().get_event_by_event_id(
             GrpcGetEventByEventIdRequest(
@@ -135,6 +233,7 @@ async def get_event(
         invited_users=[],
         notification_turned_on=False,
     )
+
     try:
         invited_people_request: GrpcGetInvitesResponse = (
             grpc_clients.invite_service_client.request().get_invites_by_event_id(
@@ -176,6 +275,24 @@ async def generate_event_description(
         _: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> str:
+    """
+    Fast api route to generate event description by AI.
+
+    Parameters
+    ----------
+    event_title : str
+        Event title.
+    _ : Annotated[GrpcUser, Security]
+        Authenticated user data.
+    grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+        Grpc clients injected by DI
+
+    Returns
+    -------
+    str
+        Event description.
+
+    """
     description_response: GrpcGenerateDescriptionResponse = (
         grpc_clients.event_service_client.request().generate_event_description(
             GrpcGenerateDescriptionRequest(event_title=event_title)
@@ -190,6 +307,19 @@ def create_event(
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
+    """
+    Fast api route to create event.
+
+    Parameters
+    ----------
+    event_data : CreateEventRequest
+        Event data.
+    user : Annotated[GrpcUser, Security]
+        Authenticated user data.
+    grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+        Grpc clients injected by DI
+
+    """
     event = Event(
         id="",
         title=event_data.title,
@@ -213,8 +343,28 @@ def update_event(
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
+    """
+    Fast api route to update event.
+
+    Parameters
+    ----------
+    event : Event
+        Event to update.
+    user : Annotated[GrpcUser, Security]
+        Authenticated user data.
+    grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+        Grpc clients injected by DI
+
+    Raises
+    ------
+    PermissionDeniedError
+        Permission denied.
+
+    """
     if event.author_id != user.id:
         raise PermissionDeniedError
+
+    event.deleted_at = None
 
     grpc_clients.event_service_client.request().update_event(
         GrpcEventRequest(event=event.to_proto(), requesting_user=user)
@@ -227,6 +377,19 @@ def delete_event(
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
+    """
+    Fast api route to delete event.
+
+    Parameters
+    ----------
+    event_id : str
+        Event id.
+    user : Annotated[GrpcUser, Security]
+        Authenticated user data.
+    grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+        Grpc clients injected by DI
+
+    """
     grpc_clients.event_service_client.request().delete_event(
         GrpcDeleteEventRequest(event_id=event_id, requesting_user=user)
     )

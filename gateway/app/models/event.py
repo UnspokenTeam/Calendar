@@ -7,6 +7,40 @@ from app.generated.event_service.event_service_pb2 import GrpcEvent
 
 
 class Event(BaseModel):
+    """
+    Event dataclass
+
+    Attributes
+    ----------
+    id : str
+        Event ID
+    title : str
+        Event title
+    start : datetime
+        Event start time
+    end : datetime
+        Event end time
+    author_id : str
+        Event author ID
+    created_at : datetime
+        Event created time
+    description : Optional[str]
+        Event description
+    color : Optional[str]
+        Event color
+    repeating_delay : Optional[datetime]
+        Event repeating delay
+    deleted_at : Optional[datetime]
+        Event deleted time
+
+    Methods
+    -------
+    static from_proto(proto)
+        Get Event instance from proto
+    to_proto()
+        Get Event proto from Event instance
+
+    """
     id: str
     title: str
     start: datetime
@@ -20,6 +54,20 @@ class Event(BaseModel):
 
     @classmethod
     def from_proto(cls, proto: GrpcEvent) -> Self:
+        """
+        Get Event instance from proto
+
+        Parameters
+        ----------
+        proto : GrpcEvent
+            Event proto
+
+        Returns
+        -------
+        Event
+            Event instance
+
+        """
         return cls(
             id=proto.id,
             title=proto.title,
@@ -44,6 +92,15 @@ class Event(BaseModel):
         )
 
     def to_proto(self) -> GrpcEvent:
+        """
+        Get Event proto from Event instance
+
+        Returns
+        -------
+        GrpcEvent
+            Event proto
+
+        """
         event = GrpcEvent(
             id=self.id,
             title=self.title,
