@@ -81,7 +81,11 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             raise ValueNotFoundError("Invite does not exist")
 
     async def get_invites_by_author_id(
-            self, author_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+        self,
+        author_id: str,
+        page_number: int,
+        items_per_page: int,
+        status: Optional[InviteStatus],
     ) -> List[Invite]:
         """
         Get invites by author id.
@@ -112,20 +116,18 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invite
             for invite in self._invites
             if invite.author_id == author_id
-               and invite.deleted_at is None
-               and (invite.status == status if status is not None else True)
+            and invite.deleted_at is None
+            and (invite.status == status if status is not None else True)
         ]
-        invites = (
-            invites[items_per_page * (page_number - 1): items_per_page * page_number]
-            if items_per_page != -1
-            else invites
-        )
+        invites = invites[
+            items_per_page * (page_number - 1) : items_per_page * page_number
+        ]
         if invites is None or len(invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return invites
 
     async def get_all_invites(
-            self, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+        self, page_number: int, items_per_page: int, status: Optional[InviteStatus]
     ) -> List[Invite]:
         """
         Get all invites.
@@ -151,18 +153,20 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
         """
         result = [
-                     invite
-                     for invite in self._invites
-                     if status is None or invite.status == status
-                 ][
-                 items_per_page * (page_number - 1): items_per_page * page_number
-                 ]
+            invite
+            for invite in self._invites
+            if status is None or invite.status == status
+        ][items_per_page * (page_number - 1) : items_per_page * page_number]
         if len(result) != 0:
             return result
         raise ValueNotFoundError("Invites not found")
 
     async def get_invites_by_invitee_id(
-            self, invitee_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+        self,
+        invitee_id: str,
+        page_number: int,
+        items_per_page: int,
+        status: Optional[InviteStatus],
     ) -> List[Invite]:
         """
         Get invites by invitee id.
@@ -193,14 +197,12 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invite
             for invite in self._invites
             if invite.id == invitee_id
-               and invite.deleted_at is None
-               and (invite.status == status if status is not None else True)
+            and invite.deleted_at is None
+            and (invite.status == status if status is not None else True)
         ]
-        invites = (
-            invites[items_per_page * (page_number - 1): items_per_page * page_number]
-            if items_per_page != -1
-            else invites
-        )
+        invites = invites[
+            items_per_page * (page_number - 1) : items_per_page * page_number
+        ]
         if invites is None or len(invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return invites
@@ -224,7 +226,8 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             old_invite_index = next(
                 i
                 for i in range(len(self._invites))
-                if self._invites[i].author_id == invite.author_id and self._invites[i].invitee_id == invite.invitee_id
+                if self._invites[i].author_id == invite.author_id
+                and self._invites[i].invitee_id == invite.invitee_id
             )
 
             if self._invites[old_invite_index].status == InviteStatus.PENDING:
