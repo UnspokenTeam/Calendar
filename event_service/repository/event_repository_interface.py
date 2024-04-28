@@ -68,6 +68,8 @@ class EventRepositoryInterface(ABC):
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
             No events were found for given author id.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
         pass
@@ -161,6 +163,8 @@ class EventRepositoryInterface(ABC):
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
             No events were found.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
         pass
@@ -179,6 +183,8 @@ class EventRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
         pass
@@ -197,6 +203,8 @@ class EventRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
         pass

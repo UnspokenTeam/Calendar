@@ -6,7 +6,8 @@ from typing import Any, Dict, List, Optional, Self
 
 from prisma.models import Event as PrismaEvent
 
-from generated.event_service.event_service_pb2 import GrpcEvent
+from dateutil.relativedelta import relativedelta
+from generated.event_service.event_service_pb2 import GrpcEvent, Interval
 
 
 @dataclass
@@ -30,7 +31,7 @@ class Event:
         Event description.
     color : Optional[str]
         Event color for the UI.
-    repeating_delay : Optional[datetime]
+    repeating_delay : Optional[str]
         The delay between the same event.
     created_at : datetime
         Time when the event was created.
@@ -39,6 +40,10 @@ class Event:
 
     Methods
     -------
+    static delay_string_to_interval(delay)
+        Converts event repeating delay into interval.
+    static delay_string_to_timedelta(delay)
+        Converts event repeating delay into timedelta.
     to_grpc_event()
         Converts event to grpc event.
     to_dict(exclude)
@@ -58,8 +63,60 @@ class Event:
     created_at: datetime
     description: Optional[str] = None
     color: Optional[str] = None
-    repeating_delay: Optional[datetime] = None
+    repeating_delay: Optional[str] = None
     deleted_at: Optional[datetime] = None
+
+    @staticmethod
+    def delay_string_to_interval(delay: str) -> Interval:
+        """
+        Converts event repeating delay into interval.
+
+        Parameters
+        ----------
+        delay : str
+            Event repeating delay.
+
+        Returns
+        -------
+        Interval
+            Interval object.
+
+        """
+        delay_objects = delay.split()
+        interval = Interval()
+        for i in range(1, len(delay_objects)):
+            if delay_objects[i].lower() in interval.__slots__:
+                interval.__setattr__(
+                    delay_objects[i].lower(), int(delay_objects[i - 1])
+                )
+        return interval
+
+    @staticmethod
+    def delay_string_to_timedelta(delay: str) -> relativedelta:
+        """
+        Converts event repeating delay into interval.
+
+        Parameters
+        ----------
+        delay : str
+            Event repeating delay.
+
+        Returns
+        -------
+        relativedelta
+            relativedelta object.
+
+        """
+        delay_interval = Event.delay_string_to_interval(delay)
+        return relativedelta(
+            years=delay_interval.years,
+            months=delay_interval.months,
+            weeks=delay_interval.weeks,
+            days=delay_interval.days,
+            hours=delay_interval.hours,
+            minutes=delay_interval.minutes,
+            seconds=delay_interval.seconds,
+        )
 
     def to_grpc_event(self) -> GrpcEvent:
         """
@@ -78,14 +135,15 @@ class Event:
             color=self.color,
             author_id=self.author_id,
         )
+        if self.repeating_delay is not None:
+            event.repeating_delay = (
+                self.delay_string_to_interval(self.repeating_delay),
+            )
         event.start.FromDatetime(self.start)
         event.end.FromDatetime(self.end)
-        if self.repeating_delay is not None:
-            event.repeating_delay.FromDatetime(self.repeating_delay)
         event.created_at.FromDatetime(self.created_at)
         if self.deleted_at is not None:
             event.deleted_at.FromDatetime(self.deleted_at)
-
         return event
 
     def to_dict(self, exclude: Optional[List[str]] = None) -> Dict[str, Any]:
@@ -172,10 +230,15 @@ class Event:
             if grpc_event.WhichOneof("optional_color") is not None
             else None,
             repeating_delay=(
-                datetime.fromtimestamp(
-                    grpc_event.repeating_delay.seconds
-                    + grpc_event.repeating_delay.nanos / 1e9
+                None
+                if not (
+                    delay := " ".join(
+                        f"{value} {name.upper()}"
+                        for name in grpc_event.repeating_delay.__slots__
+                        if (value := getattr(grpc_event.repeating_delay, name)) != 0
+                    )
                 )
+                else delay
                 if grpc_event.WhichOneof("optional_repeating_delay") is not None
                 else None
             ),

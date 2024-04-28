@@ -7,6 +7,7 @@ from prisma.models import Event as PrismaEvent
 
 from db.postgres_client import PostgresClient
 from errors.value_not_found_error import ValueNotFoundError
+from errors.wrong_interval_error import WrongIntervalError
 from src.models.event import Event
 from utils.singleton import singleton
 
@@ -84,25 +85,60 @@ class EventRepositoryImpl(EventRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
             No events were found for given author id.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
-        db_events: Optional[
-            List[PrismaEvent]
-        ] = await self._db_client.db.event.find_many(
-            where={
-                "author_id": author_id,
-                "deleted_at": None,
-            }
-            | (
-                {}
-                if not (
-                    timestamp := ({} if start is None else {"_gte": start})
-                    | ({} if end is None else {"_lte": end})
-                )
-                else {"start": timestamp}
-            ),
-            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
-            take=items_per_page if items_per_page != -1 else None,
+        if start is not None and end is not None and start > end:
+            raise WrongIntervalError("Request failed. Wrong time interval.")
+        start_date, end_date = None, None
+        if start is not None:
+            start_date = (
+                f"'{start.day:02d}/{start.month:02d}/{start.year:04d} "
+                f"{start.hour:02d}:{start.minute:02d}:{start.second:02d}'"
+            )
+        if end is not None:
+            end_date = (
+                f"'{end.day:02d}/{end.month:02d}/{end.year:04d} "
+                f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}'"
+            )
+        db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
+            """
+            SET datestyle = DMY;
+            SELECT *
+            FROM "Event" as event
+            WHERE
+                event.author_id = ?
+                AND event.deleted_at IS NULL??
+            UNION
+            SELECT DISTINCT pattern."id", pattern."title", pattern."description", pattern."color", pattern."start", pattern."end", pattern."repeating_delay", pattern."author_id", pattern."created_at", pattern."deleted_at"
+            FROM (
+                SELECT *
+                FROM "Event" as event, GENERATE_SERIES(event.start, timestamp ?, event.repeating_delay::interval) as event_start_series
+                WHERE event.repeating_delay IS NOT NULL
+            ) as pattern
+            WHERE
+                event.author_id = ?
+                AND event.deleted_at IS NULL??
+            ORDER BY start?;
+            """,
+            author_id,
+            f"\n\tAND {start_date}::timestamp <= event.start"
+            if start is not None
+            else "",
+            f"\n\tAND event.start <= {end_date}::timestamp" if end is not None else "",
+            end_date if end is not None else "event.start + event.repeating_delay",
+            author_id,
+            f"\n\tAND {start_date}::timestamp <= pattern.event_start_series"
+            if start is not None
+            else "",
+            f"\n\tAND pattern.event_start_series <= {end_date}::timestamp"
+            if end is not None
+            else "",
+            f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
+            if items_per_page != -1
+            else "",
+            model=PrismaEvent,
         )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
@@ -215,19 +251,60 @@ class EventRepositoryImpl(EventRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
             No events were found.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
-        db_events: Optional[
-            List[PrismaEvent]
-        ] = await self._db_client.db.event.find_many(
-            where={}
-            if not (
-                timestamp := ({} if start is None else {"_gte": start})
-                | ({} if end is None else {"_lte": end})
+        if start is not None and end is not None and start > end:
+            raise WrongIntervalError("Request failed. Wrong time interval.")
+        start_date, end_date = None, None
+        if start is not None:
+            start_date = (
+                f"'{start.day:02d}/{start.month:02d}/{start.year:04d} "
+                f"{start.hour:02d}:{start.minute:02d}:{start.second:02d}'"
             )
-            else {"start": timestamp},
-            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
-            take=items_per_page if items_per_page != -1 else None,
+        if end is not None:
+            end_date = (
+                f"'{end.day:02d}/{end.month:02d}/{end.year:04d} "
+                f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}'"
+            )
+        db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
+            """
+            SET datestyle = DMY;
+            SELECT *
+            FROM "Event" as event?
+            UNION
+            SELECT DISTINCT pattern."id", pattern."title", pattern."description", pattern."color", pattern."start", pattern."end", pattern."repeating_delay", pattern."author_id", pattern."created_at", pattern."deleted_at"
+            FROM (
+                SELECT *
+                FROM "Event" as event, GENERATE_SERIES(event.start, timestamp ?, event.repeating_delay::interval) as event_start_series
+                WHERE event.repeating_delay IS NOT NULL
+            ) as pattern?
+            ORDER BY start?;
+            """,
+            "\nWHERE\n\t" + f"{start_date}::timestamp <= event.start"
+            if start is not None
+            else "" + "\n\tAND "
+            if start is not None and end is not None
+            else "" + f"{end_date}::timestamp <= event.start"
+            if end is not None
+            else ""
+            if start is not None or end is not None
+            else "",
+            end_date if end is not None else "event.start + event.repeating_delay",
+            "\nWHERE\n\t" + f"{start_date}::timestamp <= pattern.event_start_series"
+            if start is not None
+            else "" + "\n\tAND "
+            if start is not None and end is not None
+            else "" + f"{end_date}::timestamp <= pattern.event_start_series"
+            if end is not None
+            else ""
+            if start is not None or end is not None
+            else "",
+            f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
+            if items_per_page != -1
+            else "",
+            model=PrismaEvent,
         )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
@@ -248,8 +325,14 @@ class EventRepositoryImpl(EventRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
+        if event.start > event.end:
+            raise WrongIntervalError(
+                "Request failed. Can't create event with wrong time interval."
+            )
         await self._db_client.db.event.create(
             data=event.to_dict(exclude=["created_at", "deleted_at"])
         )
@@ -267,8 +350,14 @@ class EventRepositoryImpl(EventRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
+        if event.start > event.end:
+            raise WrongIntervalError(
+                "Request failed. Can't create event with wrong time interval."
+            )
         await self._db_client.db.event.update(
             where={"id": event.id}, data=event.to_dict()
         )

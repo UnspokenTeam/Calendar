@@ -1,10 +1,12 @@
 """Mock event repository"""
 
 from datetime import datetime
+from math import ceil
 from typing import List, Optional
 from uuid import uuid4
 
 from errors.value_not_found_error import ValueNotFoundError
+from errors.wrong_interval_error import WrongIntervalError
 from src.models.event import Event
 from utils.singleton import singleton
 
@@ -80,15 +82,38 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         ------
         ValueNotFoundError
             No events were found for given author id.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
+        if start is not None and end is not None and start > end:
+            raise WrongIntervalError("Request failed. Wrong time interval.")
         events = [
             event
             for event in self._events
             if event.author_id == author_id
             and (
-                (True if start is None else start <= event.start)
-                and (True if end is None else event.start <= end)
+                (
+                    (True if start is None else start <= event.start)
+                    and (True if end is None else event.start <= end)
+                )
+                or (
+                    start
+                    <= event.start
+                    + ceil(
+                        (start - event.start).total_seconds()
+                        / (
+                            datetime.now()
+                            - (
+                                datetime.now()
+                                - event.delay_string_to_timedelta(event.repeating_delay)
+                            )
+                        ).total_seconds()
+                    )
+                    * event.delay_string_to_interval(event.repeating_delay)
+                    <= end
+                    and start - event.start > 0
+                )
             )
             and event.deleted_at is None
         ]
@@ -200,14 +225,35 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         ------
         ValueNotFoundError
             No events were found.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
+        if start is not None and end is not None and start > end:
+            raise WrongIntervalError("Request failed. Wrong time interval.")
         events = [
             event
             for event in self._events
             if (
                 (True if start is None else start <= event.start)
                 and (True if end is None else event.start <= end)
+            )
+            or (
+                start
+                <= event.start
+                + ceil(
+                    (start - event.start).total_seconds()
+                    / (
+                        datetime.now()
+                        - (
+                            datetime.now()
+                            - event.delay_string_to_timedelta(event.repeating_delay)
+                        )
+                    ).total_seconds()
+                )
+                * event.delay_string_to_interval(event.repeating_delay)
+                <= end
+                and start - event.start > 0
             )
         ]
         events = (
@@ -228,7 +274,16 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         event : Event
             Event data.
 
+        Raises
+        ------
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
+
         """
+        if event.start > event.end:
+            raise WrongIntervalError(
+                "Request failed. Can't create event with wrong time interval."
+            )
         event.id = str(uuid4())
         event.created_at = datetime.now()
         event.deleted_at = None
@@ -247,8 +302,14 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         ------
         ValueNotFoundError
             Can't update event with provided data.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
+        if event.start > event.end:
+            raise WrongIntervalError(
+                "Request failed. Can't create event with wrong time interval."
+            )
         try:
             index = next(
                 i for i in range(len(self._events)) if self._events[i].id == event.id
