@@ -71,23 +71,14 @@ class InviteServiceImpl(GrpcServicer):
             Invites list.
 
         """
-        try:
-            invites = await self._invite_repository.get_invites_by_event_id(
-                event_id=request.event_id,
-                status=InviteStatus.from_proto(request.invite_status)
-                if request.WhichOneof("optional_invite_status") is not None
-                else None
-            )
-            return proto.InvitesResponse(
-                invites=proto.ListOfInvites(invites=[invite.to_grpc_invite() for invite in invites]))
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return proto.InvitesResponse(status_code=404, message="Invites not found")
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return proto.InvitesResponse(
-                status_code=500, message="Internal server error"
-            )
+        invites = await self._invite_repository.get_invites_by_event_id(
+            event_id=request.event_id,
+            status=InviteStatus.from_proto(request.invite_status)
+            if request.WhichOneof("optional_invite_status") is not None
+            else None
+        )
+        return proto.InvitesResponse(
+            invites=proto.ListOfInvites(invites=[invite.to_grpc_invite() for invite in invites]))
 
     async def get_invites_by_author_id(
             self, request: proto.InvitesByAuthorIdRequest, context: grpc.ServicerContext
