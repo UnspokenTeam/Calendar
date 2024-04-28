@@ -122,7 +122,7 @@ class User(BaseModel):
                 proto.created_at.seconds + proto.created_at.nanos / 1e9
             ),
             suspended_at=None
-            if proto.suspended_at is None
+            if proto.WhichOneof("optional_suspended_at") is None
             else datetime.fromtimestamp(
                 proto.suspended_at.seconds + proto.suspended_at.nanos / 1e9
             ),
