@@ -26,7 +26,7 @@ class NotificationServiceImpl(GrpcServicer):
     -------
     async get_notifications_by_author_id(request, context)
         Function that need to be bind to the server that returns notifications list.
-    async get_notifications_by_event_id(request, context)
+    async get_notification_by_event_and_author_ids(request, context)
         Function that need to be bind to the server that returns notifications list.
     async get_notification_by_notification_id(request, context)
         Function that need to be bind to the server that returns notification.
@@ -105,7 +105,7 @@ class NotificationServiceImpl(GrpcServicer):
             ),
         )
 
-    async def get_notifications_by_event_and_author_ids(
+    async def get_notification_by_event_and_author_ids(
         self,
         request: proto.NotificationRequestByEventAndAuthorIds,
         context: grpc.ServicerContext,
