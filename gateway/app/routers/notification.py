@@ -2,23 +2,19 @@
 from datetime import datetime
 from typing import Annotated, List
 
+from fastapi import APIRouter, Depends, Security
+from pydantic import Field
+
 from app.errors import PermissionDeniedError
-from app.generated.notification_service.notification_service_pb2 import (
-    DeleteNotificationRequest as GrpcDeleteNotificationRequest,
+from app.generated.event_service.event_service_pb2 import (
+    EventRequestByEventId as GrpcGetEventByEventIdRequest,
 )
 from app.generated.notification_service.notification_service_pb2 import (
+    DeleteNotificationByIdRequest as GrpcDeleteNotificationByIdRequest,
     NotificationRequest as GrpcNotificationRequest,
-)
-from app.generated.notification_service.notification_service_pb2 import (
     NotificationRequestByNotificationId as GrpcNotificationByNotificationIdRequest,
-)
-from app.generated.notification_service.notification_service_pb2 import (
     NotificationResponse as GrpcNotificationResponse,
-)
-from app.generated.notification_service.notification_service_pb2 import (
     NotificationsRequestByAuthorId as GrpcNotificationsByAuthorIdRequest,
-)
-from app.generated.notification_service.notification_service_pb2 import (
     NotificationsResponse as GrpcNotificationsResponse,
 )
 from app.generated.user.user_pb2 import GrpcUser
@@ -26,9 +22,6 @@ from app.middleware import auth
 from app.models import Notification, UserType
 from app.params import GrpcClientParams
 from app.validators import str_special_characters_validator
-
-from fastapi import APIRouter, Depends, Security
-from pydantic import Field
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
@@ -139,6 +132,14 @@ async def create_notification(
         Grpc clients which are injected by DI
 
     """
+
+    _ = grpc_clients.event_service_client.request().get_event_by_event_id(
+        GrpcGetEventByEventIdRequest(
+            event_id=event_id,
+            requesting_user=user
+        )
+    )
+
     notification = Notification(
         id="",
         event_id=event_id,
@@ -177,6 +178,13 @@ async def update_notification(
     if notification.author_id != user.id and user.type != UserType.ADMIN:
         raise PermissionDeniedError
 
+    _ = grpc_clients.event_service_client.request().get_event_by_event_id(
+        GrpcGetEventByEventIdRequest(
+            event_id=notification.event_id,
+            requesting_user=user
+        )
+    )
+
     grpc_clients.notification_service_client.request().update_notification(
         GrpcNotificationRequest(
             notification=notification.to_proto(), requesting_user=user
@@ -205,8 +213,8 @@ async def delete_notification(
         Grpc clients which are injected by DI
 
     """
-    grpc_clients.notification_service_client.request().delete_notification(
-        GrpcDeleteNotificationRequest(
+    grpc_clients.notification_service_client.request().delete_notification_by_id(
+        GrpcDeleteNotificationByIdRequest(
             notification_id=notification_id, requesting_user=user
         )
     )

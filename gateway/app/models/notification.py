@@ -64,7 +64,7 @@ class Notification(BaseModel):
             deleted_at=datetime.fromtimestamp(
                 proto.deleted_at.seconds + proto.deleted_at.nanos / 1e9
             )
-            if proto.deleted_at is not None
+            if proto.WhichOneof("optional_deleted_at") is not None
             else None,
         )
 
@@ -78,13 +78,15 @@ class Notification(BaseModel):
             Proto notification object
 
         """
-        return GrpcNotification(
+        notification = GrpcNotification(
             id=self.id,
             event_id=self.event_id,
             author_id=self.author_id,
             enabled=self.enabled,
-            created_at=Timestamp.FromDatetime(self.created_at),
-            deleted_at=Timestamp.FromDatetime(self.deleted_at)
-            if self.deleted_at is not None
-            else None,
         )
+
+        notification.created_at.FromDatetime(self.created_at)
+        if self.deleted_at is not None:
+            notification.deleted_at.FromDatetime(self.deleted_at)
+
+        return notification
