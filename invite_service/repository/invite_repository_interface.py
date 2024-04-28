@@ -24,6 +24,8 @@ class InviteRepositoryInterface(ABC):
         Returns invites that have matches with given invitee id.
     async create_invite(invite)
         Creates new invite if does not exist or update the existing one.
+    async create_multiple_invites(invites)
+        Create multiple invites.
     async update_invite(invite)
         Updates invite that has the same id as provided invite object inside db.
     async delete_invite_by_invite_id(invite_id)
@@ -201,6 +203,25 @@ class InviteRepositoryInterface(ABC):
             Catch all for every exception raised by Prisma Client Python.
         UniqueError
             Invite already exists.
+
+        """
+        pass
+
+    async def create_multiple_invites(self, invites: List[Invite]) -> None:
+        """
+        Create multiple invites.
+
+        Parameters
+        ----------
+        invites : List[Invite]
+            Invite objects to create
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+        UniqueError
+            Some invites already exist.
 
         """
         pass

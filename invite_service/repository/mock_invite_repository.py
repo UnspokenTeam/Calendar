@@ -35,6 +35,8 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Returns invites that have matches with given invitee id.
     async create_invite(invite)
         Creates new invite if it does not exist or update the existing one.
+    async create_multiple_invites(invites)
+        Create multiple invites.
     async update_invite(invite)
         Updates invite that has the same id as provided invite object.
     async delete_invite_by_invite_id(invite_id)
@@ -258,6 +260,39 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invite.id = str(uuid4())
             invite.created_at = datetime.now()
             invite.deleted_at = None
+            self._invites.append(invite)
+
+    async def create_multiple_invites(self, invites: List[Invite]) -> None:
+        """
+        Create multiple invites or modify existing ones
+
+        Parameters
+        ----------
+        invites : List[Invite]
+            List of invites to create
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+        UniqueError
+            Some invites already exists.
+
+        """
+        invite_ids = [invite.id for invite in invites]
+        db_invites = [(self._invites[i], i) for i in range(len(self._invites)) if self._invites[i].id in invite_ids]
+
+        for invite, index in db_invites:
+            if any([invite == InviteStatus.PENDING for invite, _ in db_invites]):
+                raise UniqueError("Some invites already exist")
+
+            self._invites[index].deleted_at = None
+            self._invites[index].status = InviteStatus.PENDING
+
+        ids = [db_invite.id for db_invite, _ in db_invites]
+        invites = [invite for invite in invites if invite.id not in ids]
+
+        for invite in invites:
             self._invites.append(invite)
 
     async def update_invite(self, invite: Invite) -> None:

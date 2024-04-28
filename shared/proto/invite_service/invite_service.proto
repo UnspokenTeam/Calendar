@@ -11,6 +11,7 @@ service InviteService {
   rpc get_invites_by_author_id(InvitesByAuthorIdRequest) returns (InvitesResponse){}
   rpc get_invites_by_invitee_id(GetInvitesByInviteeIdRequest) returns (InvitesResponse){}
   rpc create_invite(InviteRequest) returns (BaseResponse){}
+  rpc create_multiple_invites(InvitesRequest) returns (BaseResponse){}
   rpc update_invite(InviteRequest) returns (BaseResponse){}
   rpc delete_invite_by_id(DeleteInviteByIdRequest) returns (BaseResponse){}
   rpc delete_invites_by_author_id(DeleteInvitesByAuthorIdRequest) returns (BaseResponse){}
@@ -24,6 +25,11 @@ message InvitesByEventIdRequest {
     google.protobuf.NullValue invite_status_null = 2;
     InviteStatus invite_status = 3;
   }
+}
+
+message InvitesRequest {
+  GrpcUser requesting_user = 1;
+  ListOfInvites invites = 2;
 }
 
 message GetAllInvitesRequest {
