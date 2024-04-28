@@ -29,9 +29,8 @@ message EventRequestByEventId {
 
 message EventsRequestByEventsIds {
   ListOfEventsIds events_ids = 1;
-  GrpcUser requesting_user = 2;
-  uint64 page_number = 3;
-  int64 items_per_page = 4;
+  uint64 page_number = 2;
+  int64 items_per_page = 3;
 }
 
 message EventResponse {
@@ -46,7 +45,7 @@ message GrpcEvent {
   string id = 1;
   string title = 2;
   optional string description = 3;
-  string color = 4;
+  optional string color = 4;
   google.protobuf.Timestamp start = 5;
   google.protobuf.Timestamp end = 6;
   optional google.protobuf.Timestamp repeating_delay = 7;

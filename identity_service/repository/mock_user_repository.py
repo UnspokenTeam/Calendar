@@ -1,5 +1,5 @@
 """Mock User Repository"""
-
+from datetime import datetime
 from typing import List
 from uuid import uuid4
 
@@ -137,7 +137,12 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             user
             for user in self._users
             if user.id in user_ids and user.suspended_at is None
-        ][(page - 1) * items_per_page : page * items_per_page]
+        ]
+        values = (
+            values[(page - 1) * items_per_page : page * items_per_page]
+            if items_per_page != -1
+            else values
+        )
         if len(values) == 0:
             raise ValueNotFoundError("Users with these ids not exist")
         return values
@@ -221,7 +226,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
                 for i in range(len(self._users))
                 if self._users[i].id == user_id and self._users[i].suspended_at is None
             )
-            self._users.pop(index)
+            self._users[index].suspended_at = datetime.now()
         except StopIteration:
             raise ValueNotFoundError("No user found")
 
@@ -242,7 +247,11 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             All existing users
 
         """
-        result = self._users[(page - 1) * items_per_page : page * items_per_page]
+        result = (
+            self._users[(page - 1) * items_per_page : page * items_per_page]
+            if items_per_page != -1
+            else self._users
+        )
         if len(result) == 0:
             raise ValueNotFoundError("No users found")
         return result

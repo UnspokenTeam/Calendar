@@ -2,11 +2,82 @@
 
 from dataclasses import dataclass
 from datetime import datetime
+from enum import StrEnum
 from typing import Any, Dict, List, Optional, Self
 
 from prisma.models import Invite as PrismaInvite
 
-from generated.invite_service.invite_service_pb2 import GrpcInvite, InviteStatus
+from generated.invite_service.invite_service_pb2 import (
+    GrpcInvite,
+)
+from generated.invite_service.invite_service_pb2 import (
+    InviteStatus as GrpcInviteStatus,
+)
+
+
+class InviteStatus(StrEnum):
+    """
+    Invite status enum
+
+    Methods
+    -------
+    static from_proto(proto)
+        Get invite status instance from proto invite status
+    to_proto()
+        Get proto invite status from invite status instance
+
+    """
+
+    PENDING = "PENDING"
+    """Invite pending approval"""
+    ACCEPTED = "ACCEPTED"
+    """Invite accepted"""
+    REJECTED = "REJECTED"
+    """Invite rejected"""
+
+    @classmethod
+    def from_proto(cls, proto: GrpcInviteStatus) -> Self:
+        """
+        Get invite status instance from proto invite status
+
+        Parameters
+        ----------
+        proto : GrpcInviteStatus
+            Proto invite status
+
+        Returns
+        -------
+        InviteStatus
+            Invite status instance
+
+        """
+        match proto:
+            case GrpcInviteStatus.PENDING:
+                return cls("PENDING")
+            case GrpcInviteStatus.ACCEPTED:
+                return cls("ACCEPTED")
+            case GrpcInviteStatus.REJECTED:
+                return cls("REJECTED")
+
+        raise ValueError("Invalid proto")
+
+    def to_proto(self) -> GrpcInviteStatus:
+        """
+        Get proto invite status from invite status instance
+
+        Returns
+        -------
+        GrpcInviteStatus
+            Proto invite status
+
+        """
+        match self:
+            case self.PENDING:
+                return GrpcInviteStatus.PENDING
+            case self.ACCEPTED:
+                return GrpcInviteStatus.ACCEPTED
+            case self.REJECTED:
+                return GrpcInviteStatus.REJECTED
 
 
 @dataclass
@@ -68,11 +139,11 @@ class Invite:
             event_id=self.event_id,
             author_id=self.author_id,
             invitee_id=self.invitee_id,
-            status=self.status,
+            status=self.status.to_proto(),
         )
-        invite.created_at.FromDatetime(self.created_at)
+        invite.created_at.FromDatetime(dt=self.created_at)
         if self.deleted_at is not None:
-            invite.deleted_at.FromDateTime(self.deleted_at)
+            invite.deleted_at.FromDatetime(self.deleted_at)
 
         return invite
 
@@ -118,9 +189,9 @@ class Invite:
             id=prisma_invite.id,
             event_id=prisma_invite.event_id,
             author_id=prisma_invite.author_id,
-            status=prisma_invite.status,
+            status=InviteStatus(prisma_invite.status),
             invitee_id=prisma_invite.invitee_id,
-            created_at=prisma_invite.create_at,
+            created_at=prisma_invite.created_at,
             deleted_at=prisma_invite.deleted_at,
         )
 
@@ -144,7 +215,7 @@ class Invite:
             event_id=grpc_invite.event_id,
             author_id=grpc_invite.author_id,
             invitee_id=grpc_invite.invitee_id,
-            status=grpc_invite.status,
+            status=InviteStatus.from_proto(grpc_invite.status),
             created_at=datetime.fromtimestamp(
                 grpc_invite.created_at.seconds + grpc_invite.created_at.nanos / 1e9
             ),
@@ -152,7 +223,7 @@ class Invite:
                 datetime.fromtimestamp(
                     grpc_invite.deleted_at.seconds + grpc_invite.deleted_at.nanos / 1e9
                 )
-                if grpc_invite.deleted_at is not None
+                if grpc_invite.WhichOneof("optional_deleted_at") is not None
                 else None
             ),
         )
