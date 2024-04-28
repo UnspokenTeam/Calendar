@@ -4,6 +4,12 @@ from typing import List, Annotated
 from fastapi import APIRouter, Security, Depends
 
 from app.errors import PermissionDeniedError
+from app.generated.event_service.event_service_pb2 import (
+    EventRequestByEventId as GrpcGetEventByEventIdRequest,
+)
+from app.generated.identity_service.get_user_pb2 import (
+    UserByIdRequest as GrpcGetUserByIdRequest,
+)
 from app.generated.invite_service.invite_service_pb2 import (
     GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
     InvitesResponse as GrpcInvitesResponse,
@@ -138,6 +144,19 @@ async def create_invite(
         Grpc clients injected by DI
 
     """
+    _ = grpc_clients.event_service_client.request().get_event_by_event_id(
+        GrpcGetEventByEventIdRequest(
+            event_id=event_id,
+            requesting_user=user
+        )
+    )
+
+    _ = grpc_clients.identity_service_client.request().get_user_by_id(
+        GrpcGetUserByIdRequest(
+            user_id=invitee_id
+        )
+    )
+
     invite = Invite(
         id="",
         event_id=event_id,
@@ -175,8 +194,21 @@ async def update_invite(
         Grpc clients injected by DI
 
     """
-    if invite.author_id != user.id and invite.invitee_id != user.id and user.type != GrpcUserType.ADMIN:
+    if invite.author_id != user.id and invite.invitee_id != user.id:
         raise PermissionDeniedError
+
+    _ = grpc_clients.event_service_client.request().get_event_by_event_id(
+        GrpcGetEventByEventIdRequest(
+            event_id=invite.event_id,
+            requesting_user=user
+        )
+    )
+
+    _ = grpc_clients.identity_service_client.request().get_user_by_id(
+        GrpcGetUserByIdRequest(
+            user_id=invite.invitee_id
+        )
+    )
 
     grpc_clients.invite_service_client.request().update_invite(
         GrpcInviteRequest(
