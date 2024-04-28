@@ -77,6 +77,7 @@ class InviteServiceImpl(GrpcServicer):
             if request.WhichOneof("optional_invite_status") is not None
             else None
         )
+        context.set_code(grpc.StatusCode.OK)
         return proto.InvitesResponse(
             invites=proto.ListOfInvites(invites=[invite.to_grpc_invite() for invite in invites]))
 
