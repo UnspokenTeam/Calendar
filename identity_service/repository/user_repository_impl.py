@@ -139,8 +139,8 @@ class UserRepositoryImpl(UserRepositoryInterface):
         """
         db_users: Optional[List[PrismaUser]] = await self._db_client.db.user.find_many(
             where={"id": {"in": user_ids}, "suspended_at": None},
-            skip=(page - 1) * items_per_page,
-            take=items_per_page,
+            skip=(page - 1) * items_per_page if items_per_page != -1 else None,
+            take=items_per_page if items_per_page != -1 else None,
         )
 
         if db_users is None:
@@ -269,13 +269,12 @@ class UserRepositoryImpl(UserRepositoryInterface):
 
         """
         users = await self._db_client.db.user.find_many(
-            skip=(page - 1) * items_per_page, take=items_per_page
+            skip=(page - 1) * items_per_page if items_per_page != -1 else None,
+            take=items_per_page if items_per_page != -1 else None
         )
         if len(users) == 0:
             raise ValueNotFoundError("No users found")
-        return [User.from_prisma_user(user) for user in users][
-            (page - 1) * items_per_page : page * items_per_page
-        ]
+        return [User.from_prisma_user(user) for user in users]
 
     async def get_user_by_session_id(self, session_id: str) -> User:
         """

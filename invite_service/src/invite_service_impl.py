@@ -30,6 +30,8 @@ class InviteServiceImpl(GrpcServicer):
     -------
     async get_invites_by_author_id(request, context)
         Function that need to be bind to the server that returns invites list by author id.
+    async get_invites_by_event_id(request, context)
+        Function that need to be bind to the server that returns invites list by event id.
     async get_all_invites(request, context)
         Function that need to be bind to the server that returns all invites in list.
     async get_invite_by_invite_id(request, context)
@@ -50,8 +52,45 @@ class InviteServiceImpl(GrpcServicer):
     def __init__(self, invite_repository: InviteRepositoryInterface) -> None:
         self._invite_repository = invite_repository
 
+    async def get_invites_by_event_id(
+            self, request: proto.InvitesByEventIdRequest, context: grpc.ServicerContext
+    ) -> proto.InvitesResponse:
+        """
+        Get all invites by event id.
+
+        Parameters
+        ----------
+        request : proto.InvitesByEventIdRequest
+            Event id and optional invite status
+        context : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        proto.InvitesResponse
+            Invites list.
+
+        """
+        try:
+            invites = await self._invite_repository.get_invites_by_event_id(
+                event_id=request.event_id,
+                status=InviteStatus.from_proto(request.invite_status)
+                if request.WhichOneof("optional_invite_status") is not None
+                else None
+            )
+            return proto.InvitesResponse(
+                invites=proto.ListOfInvites(invites=[invite.to_grpc_invite() for invite in invites]))
+        except ValueNotFoundError:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return proto.InvitesResponse(status_code=404, message="Invites not found")
+        except prisma.errors.PrismaError:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return proto.InvitesResponse(
+                status_code=500, message="Internal server error"
+            )
+
     async def get_invites_by_author_id(
-        self, request: proto.InvitesByAuthorIdRequest, context: grpc.ServicerContext
+            self, request: proto.InvitesByAuthorIdRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
         Get all invites by author id.
@@ -95,7 +134,7 @@ class InviteServiceImpl(GrpcServicer):
         )
 
     async def get_all_invites(
-        self, request: GrpcGetAllInvitesRequest, context: grpc.ServicerContext
+            self, request: GrpcGetAllInvitesRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
         Get all invites.
@@ -135,7 +174,7 @@ class InviteServiceImpl(GrpcServicer):
         )
 
     async def get_invite_by_invite_id(
-        self, request: proto.InviteRequestByInviteId, context: grpc.ServicerContext
+            self, request: proto.InviteRequestByInviteId, context: grpc.ServicerContext
     ) -> proto.InviteResponse:
         """
         Get invite by invite id.
@@ -171,7 +210,7 @@ class InviteServiceImpl(GrpcServicer):
         return proto.InviteResponse(invite=invite.to_grpc_invite())
 
     async def get_invites_by_invitee_id(
-        self, request: proto.GetInvitesByInviteeIdRequest, context: grpc.ServicerContext
+            self, request: proto.GetInvitesByInviteeIdRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
         Get all invites by invitee id.

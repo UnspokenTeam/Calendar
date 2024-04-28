@@ -6,6 +6,7 @@ import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
 
 service InviteService {
+  rpc get_invites_by_event_id(InvitesByEventIdRequest) returns (InvitesResponse) {}
   rpc get_invite_by_invite_id(InviteRequestByInviteId) returns (InviteResponse){}
   rpc get_all_invites(GetAllInvitesRequest) returns (InvitesResponse){}
   rpc get_invites_by_author_id(InvitesByAuthorIdRequest) returns (InvitesResponse){}
@@ -16,6 +17,14 @@ service InviteService {
   rpc delete_invites_by_author_id(DeleteInvitesByAuthorIdRequest) returns (google.protobuf.Empty){}
   rpc delete_invites_by_event_id(DeleteInvitesByEventIdRequest) returns (google.protobuf.Empty){}
   rpc delete_invites_by_invitee_id(DeleteInvitesByInviteeIdRequest) returns (google.protobuf.Empty){}
+}
+
+message InvitesByEventIdRequest {
+  string event_id = 1;
+  oneof optional_invite_status {
+    google.protobuf.NullValue invite_status_null = 2;
+    InviteStatus invite_status = 3;
+  }
 }
 
 message GetAllInvitesRequest {
@@ -35,7 +44,7 @@ message InvitesByAuthorIdRequest {
   int64 items_per_page = 4;
   oneof optional_invite_status {
     google.protobuf.NullValue invite_status_null = 5;
-    InviteStatus invite_status =6;
+    InviteStatus invite_status = 6;
   }
 }
 
