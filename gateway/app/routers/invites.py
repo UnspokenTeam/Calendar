@@ -11,7 +11,7 @@ from app.generated.invite_service.invite_service_pb2 import (
     InviteRequestByInviteId as GrpcGetInviteByInviteIdRequest,
     InviteResponse as GrpcInviteResponse,
     InviteRequest as GrpcInviteRequest,
-    DeleteInviteRequest as GrpcDeleteInviteRequest,
+    DeleteInviteByIdRequest as GrpcDeleteInviteByIdRequest,
 )
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware import auth
@@ -205,8 +205,8 @@ async def delete_invite(
         Grpc clients injected by DI
 
     """
-    grpc_clients.invite_service_client.request().delete_invite(
-        GrpcDeleteInviteRequest(
+    grpc_clients.invite_service_client.request().delete_invite_by_id(
+        GrpcDeleteInviteByIdRequest(
             invite_id=invite_id,
             requesting_user=user
         )

@@ -47,7 +47,15 @@ class InviteStatus(StrEnum):
             Invite status instance
 
         """
-        return cls(str(proto))
+        match proto:
+            case GrpcInviteStatus.PENDING:
+                return InviteStatus.PENDING
+            case GrpcInviteStatus.ACCEPTED:
+                return InviteStatus.ACCEPTED
+            case GrpcInviteStatus.REJECTED:
+                return InviteStatus.REJECTED
+
+        raise ValueError
 
     def to_proto(self) -> GrpcInviteStatus:
         """
@@ -59,7 +67,15 @@ class InviteStatus(StrEnum):
             Proto invite status
 
         """
-        return GrpcInviteStatus(str(self))
+        match self:
+            case InviteStatus.PENDING:
+                return GrpcInviteStatus.PENDING
+            case InviteStatus.ACCEPTED:
+                return GrpcInviteStatus.ACCEPTED
+            case InviteStatus.REJECTED:
+                return GrpcInviteStatus.REJECTED
+
+        raise ValueError
 
 
 class Invite(BaseModel):
@@ -127,7 +143,7 @@ class Invite(BaseModel):
             ),
             deleted_at=datetime.fromtimestamp(
                 proto.deleted_at.seconds + proto.deleted_at.nanos / 1e9
-            ) if proto.deleted_at is not None else None
+            ) if proto.WhichOneof("optional_deleted_at") is not None else None
         )
 
     def to_proto(self) -> GrpcInvite:
@@ -140,12 +156,17 @@ class Invite(BaseModel):
             Proto invite
 
         """
-        return GrpcInvite(
+        invite = GrpcInvite(
             id=self.id,
             event_id=self.event_id,
             author_id=self.author_id,
             invitee_id=self.invitee_id,
             status=self.status.to_proto(),
-            created_at=Timestamp.FromDatetime(self.created_at),
-            deleted_at=Timestamp.FromDatetime(self.deleted_at) if self.deleted_at is not None else None
         )
+
+        invite.created_at.FromDatetime(self.created_at),
+
+        if self.deleted_at is not None:
+            invite.deleted_at.FromDatetime(self.deleted_at)
+
+        return invite
