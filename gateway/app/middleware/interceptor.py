@@ -1,11 +1,11 @@
 from grpc import RpcError, StatusCode
-from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 
 from app.errors import PermissionDeniedError, RateLimitError
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
+from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 from starlette.types import ASGIApp
 
 
@@ -51,5 +51,5 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
             return JSONResponse(
                 status_code=HTTP_429_TOO_MANY_REQUESTS,
                 content={"message": "Too Many Requests"},
-                headers={"Retry-After": str(rate_limit_error.retry_after)}
+                headers={"Retry-After": str(rate_limit_error.retry_after)},
             )

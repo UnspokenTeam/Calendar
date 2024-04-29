@@ -11,6 +11,7 @@ class RateLimitError(Exception):
         Time in seconds after which the rate limit has expired
 
     """
+
     retry_after: int
 
     def __init__(self, message: str, retry_after: int) -> None:

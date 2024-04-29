@@ -1,14 +1,12 @@
 from math import ceil
 
+from app.errors import RateLimitError
+
 from starlette.requests import Request
 from starlette.responses import Response
 
-from app.errors import RateLimitError
 
-
-async def handler(
-        _: Request, __: Response, pexpire: int
-):
+async def handler(_: Request, __: Response, pexpire: int) -> None:
     """
     Handle rate limiting error.
 
@@ -20,9 +18,6 @@ async def handler(
         The response object.
     pexpire : int
         The remaining milliseconds.
-
-    Returns
-    -------
 
     """
     expire = ceil(pexpire / 1000)
