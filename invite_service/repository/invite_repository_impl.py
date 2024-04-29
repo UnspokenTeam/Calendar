@@ -137,8 +137,8 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
                 "deleted_at": None,
             }
             | ({"status": str(status)} if status is not None else {}),
-            skip=items_per_page * (page_number - 1),
-            take=items_per_page,
+            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
+            take=items_per_page if items_per_page != -1 else None,
         )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
@@ -208,8 +208,8 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             List[PrismaInvite]
         ] = await self._db_client.db.invite.find_many(
             where={"status": str(status)} if status is not None else None,
-            skip=items_per_page * (page_number - 1),
-            take=items_per_page,
+            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
+            take=items_per_page if items_per_page != -1 else None,
         )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")
@@ -260,8 +260,8 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
                 "deleted_at": None,
             }
             | ({"status": str(status)} if status is not None else {}),
-            skip=items_per_page * (page_number - 1),
-            take=items_per_page,
+            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
+            take=items_per_page if items_per_page != -1 else None,
         )
         if db_invites is None or len(db_invites) == 0:
             raise ValueNotFoundError("Invites not found")

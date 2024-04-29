@@ -62,6 +62,7 @@ class InviteRepositoryInterface(ABC):
             No invites were found for given event id.
 
         """
+        pass
 
     @abstractmethod
     async def get_invites_by_author_id(
