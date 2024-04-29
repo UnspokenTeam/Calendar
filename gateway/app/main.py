@@ -1,5 +1,6 @@
-from contextlib import AbstractAsyncContextManager, asynccontextmanager
+from contextlib import asynccontextmanager
 from os import environ
+from typing import AsyncIterator, Never
 
 from .middleware import InterceptorMiddleware
 from .middleware.rate_limiter import handler as rate_limiter_handler
@@ -12,7 +13,7 @@ import redis.asyncio as redis
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI) -> AbstractAsyncContextManager[None]:
+async def lifespan(_: FastAPI) -> AsyncIterator[Never]:
     """
     Context manager that enables lifespan of FastAPI application.
 
@@ -23,7 +24,7 @@ async def lifespan(_: FastAPI) -> AbstractAsyncContextManager[None]:
 
     Returns
     -------
-    AsyncContextManager[None]
+    AsyncContextManager[Never]
         None
 
     """
