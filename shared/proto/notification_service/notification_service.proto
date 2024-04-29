@@ -7,9 +7,9 @@ import "user/user.proto";
 
 service NotificationService {
   rpc get_notification_by_notification_id(NotificationRequestByNotificationId) returns (NotificationResponse){}
-  rpc get_notifications_by_notifications_ids(NotificationsRequestByNotificationsIds) returns (NotificationResponse){}
+  rpc get_notifications_by_notifications_ids(NotificationsRequestByNotificationsIds) returns (NotificationsResponse){}
   rpc get_notifications_by_author_id(NotificationsRequestByAuthorId) returns (NotificationsResponse){}
-  rpc get_notification_by_event_and_author_ids(NotificationRequestByEventAndAuthorIds) returns (NotificationsResponse){}
+  rpc get_notification_by_event_and_author_ids(NotificationRequestByEventAndAuthorIds) returns (NotificationResponse){}
   rpc get_all_notifications(GetAllNotificationsRequest) returns (NotificationsResponse){}
   rpc create_notification(NotificationRequest) returns (google.protobuf.Empty){}
   rpc update_notification(NotificationRequest) returns (google.protobuf.Empty){}
