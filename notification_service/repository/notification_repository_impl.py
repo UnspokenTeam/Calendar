@@ -339,30 +339,6 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             data={"enabled": False, "deleted_at": datetime.now()},
         )
 
-    async def delete_notification_by_event_and_author_ids(
-        self, event_id: str, author_id: str
-    ) -> None:
-        """
-        Delete the notification by event and author ids.
-
-        Parameters
-        ----------
-        event_id : str
-            Event id.
-        author_id : str
-            Author id.
-
-        Raises
-        ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
-
-        """
-        await self._db_client.db.notification.update_many(
-            where={"event_id": event_id, "author_id": author_id, "deleted_at": None},
-            data={"enabled": False, "deleted_at": datetime.now()},
-        )
-
     async def delete_notifications_by_events_and_author_ids(
         self, event_ids: List[str], author_id: str
     ) -> None:
