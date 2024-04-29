@@ -28,8 +28,8 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
     -------
     async get_notifications_by_author_id(author_id, page_number, items_per_page)
         Returns page with notifications that have matches with given author id.
-    async get_notifications_by_event_id(author_id, page_number, items_per_page)
-        Returns page with notifications that have matches with given event id.
+    async get_notification_by_event_and_author_ids(event_id, author_id)
+        Returns notification that has matches with given event and author ids.
     async get_notification_by_notification_id(notification_id)
         Returns notification that has matches with given notification id.
     async get_notifications_by_notifications_ids(notifications_ids, page_number, items_per_page)
@@ -42,8 +42,6 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         Updates notification that has the same id as provided notification object inside db or throws an exception.
     async delete_notification_by_id(notification_id)
         Deletes notification that has matching id from database or throws an exception.
-    async delete_notification_by_event_and_author_ids(event_id, author_id)
-        Deletes notification that has matching event id and author id from database or throws an exception.
     async delete_notifications_by_events_and_author_ids(event_ids, author_id)
         Deletes notifications that have matching event ids and author id from database or throws an exception.
     async delete_notifications_by_event_id(event_id)
