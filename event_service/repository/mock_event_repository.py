@@ -89,7 +89,10 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             raise WrongIntervalError("Request failed. Wrong time interval.")
         events = []
         for event in self._events:
-            if event.repeating_delay is not None:
+            if event.repeating_delay is not None and not (
+                (True if start is None else start <= event.start)
+                and (True if end is None else event.start <= end)
+            ):
                 repeating_delay = (
                     datetime.now()
                     - (
@@ -239,7 +242,10 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             raise WrongIntervalError("Request failed. Wrong time interval.")
         events = []
         for event in self._events:
-            if event.repeating_delay is not None:
+            if event.repeating_delay is not None and not (
+                (True if start is None else start <= event.start)
+                and (True if end is None else event.start <= end)
+            ):
                 repeating_delay = (
                     datetime.now()
                     - (
