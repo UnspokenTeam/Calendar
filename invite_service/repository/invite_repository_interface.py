@@ -38,7 +38,13 @@ class InviteRepositoryInterface(ABC):
     """
 
     @abstractmethod
-    async def get_invites_by_event_id(self, event_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]) -> List[Invite]:
+    async def get_invites_by_event_id(
+        self,
+        event_id: str,
+        page_number: int,
+        items_per_page: int,
+        status: Optional[InviteStatus],
+    ) -> List[Invite]:
         """
         Returns invites that have matching event id.
 

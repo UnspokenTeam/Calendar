@@ -53,7 +53,13 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
     def __init__(self) -> None:
         self._invites = []
 
-    async def get_invites_by_event_id(self, event_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]) -> List[Invite]:
+    async def get_invites_by_event_id(
+        self,
+        event_id: str,
+        page_number: int,
+        items_per_page: int,
+        status: Optional[InviteStatus],
+    ) -> List[Invite]:
         """
         Get invites by event id.
 
@@ -195,7 +201,9 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             if status is None or invite.status == status
         ]
         if items_per_page != -1:
-            result = result[items_per_page * (page_number - 1) : items_per_page * page_number]
+            result = result[
+                items_per_page * (page_number - 1) : items_per_page * page_number
+            ]
         if len(result) != 0:
             return result
         raise ValueNotFoundError("Invites not found")
