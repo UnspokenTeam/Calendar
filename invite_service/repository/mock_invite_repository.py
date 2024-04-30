@@ -142,9 +142,10 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             and invite.deleted_at is None
             and (invite.status == status if status is not None else True)
         ]
-        invites = invites[
-            items_per_page * (page_number - 1) : items_per_page * page_number
-        ]
+        if items_per_page != -1:
+            invites = invites[
+                items_per_page * (page_number - 1) : items_per_page * page_number
+            ]
         if invites is None or len(invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return invites
@@ -179,7 +180,9 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invite
             for invite in self._invites
             if status is None or invite.status == status
-        ][items_per_page * (page_number - 1) : items_per_page * page_number]
+        ]
+        if items_per_page != -1:
+            result = result[items_per_page * (page_number - 1) : items_per_page * page_number]
         if len(result) != 0:
             return result
         raise ValueNotFoundError("Invites not found")
@@ -223,9 +226,10 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             and invite.deleted_at is None
             and (invite.status == status if status is not None else True)
         ]
-        invites = invites[
-            items_per_page * (page_number - 1) : items_per_page * page_number
-        ]
+        if items_per_page != -1:
+            invites = invites[
+                items_per_page * (page_number - 1) : items_per_page * page_number
+            ]
         if invites is None or len(invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return invites
