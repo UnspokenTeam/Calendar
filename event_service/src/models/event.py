@@ -230,7 +230,7 @@ class Event:
                 if not (
                     delay := " ".join(
                         f"{value} {name.upper()}"
-                        for name in grpc_event.repeating_delay.__slots__
+                        for name in ("years", "months", "weeks", "days", "hours", "minutes", "seconds")
                         if (value := getattr(grpc_event.repeating_delay, name)) != 0
                     )
                 )

@@ -110,6 +110,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                 if (
                     (True if start is None else start_modulo <= event_modulo)
                     and (True if end is None else event_modulo <= end_modulo)
+                    and (True if end is None else event.start <= end)
                     and event.author_id == author_id
                     and event.deleted_at is None
                 ):
@@ -258,7 +259,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                 event_modulo = event_seconds % repeating_delay
                 if (True if start is None else start_modulo <= event_modulo) and (
                     True if end is None else event_modulo <= end_modulo
-                ):
+                ) and (True if end is None else event.start <= end):
                     events.append(event)
             else:
                 if (True if start is None else start <= event.start) and (
