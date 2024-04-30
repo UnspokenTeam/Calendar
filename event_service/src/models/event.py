@@ -84,11 +84,8 @@ class Event:
         """
         delay_objects = delay.split()
         interval = Interval()
-        for i in range(1, len(delay_objects)):
-            if delay_objects[i].lower() in interval.__slots__:
-                interval.__setattr__(
-                    delay_objects[i].lower(), int(delay_objects[i - 1])
-                )
+        for i in range(1, len(delay_objects), 2):
+            interval.__setattr__(delay_objects[i].lower(), int(delay_objects[i - 1]))
         return interval
 
     @staticmethod
@@ -134,11 +131,10 @@ class Event:
             description=self.description,
             color=self.color,
             author_id=self.author_id,
+            repeating_delay=self.delay_string_to_interval(self.repeating_delay)
+            if self.repeating_delay is not None
+            else None,
         )
-        if self.repeating_delay is not None:
-            event.repeating_delay = (
-                self.delay_string_to_interval(self.repeating_delay),
-            )
         event.start.FromDatetime(self.start)
         event.end.FromDatetime(self.end)
         event.created_at.FromDatetime(self.created_at)

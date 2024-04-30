@@ -102,42 +102,38 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 f"'{end.day:02d}/{end.month:02d}/{end.year:04d} "
                 f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}'"
             )
+        await self._db_client.db.execute_raw("SET datestyle = DMY;")
         db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
-            """
-            SET datestyle = DMY;
-            SELECT *
-            FROM "Event" as event
-            WHERE
-                event.author_id = ?
-                AND event.deleted_at IS NULL??
-            UNION
-            SELECT DISTINCT pattern."id", pattern."title", pattern."description", pattern."color", pattern."start", pattern."end", pattern."repeating_delay", pattern."author_id", pattern."created_at", pattern."deleted_at"
-            FROM (
-                SELECT *
-                FROM "Event" as event, GENERATE_SERIES(event.start, timestamp ?, event.repeating_delay::interval) as event_start_series
-                WHERE event.repeating_delay IS NOT NULL
-            ) as pattern
-            WHERE
-                event.author_id = ?
-                AND event.deleted_at IS NULL??
-            ORDER BY start?;
-            """,
-            author_id,
-            f"\n\tAND {start_date}::timestamp <= event.start"
-            if start is not None
-            else "",
-            f"\n\tAND event.start <= {end_date}::timestamp" if end is not None else "",
-            end_date if end is not None else "event.start + event.repeating_delay",
-            author_id,
-            f"\n\tAND {start_date}::timestamp <= pattern.event_start_series"
-            if start is not None
-            else "",
-            f"\n\tAND pattern.event_start_series <= {end_date}::timestamp"
-            if end is not None
-            else "",
-            f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
-            if items_per_page != -1
-            else "",
+            # fmt: off
+            "SELECT *\nFROM \"Event\" as event\nWHERE\n\tevent.author_id = {}\n\tAND event.deleted_at IS NULL{}{}\n"
+            "UNION\nSELECT DISTINCT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", "
+            "pattern.\"start\", pattern.\"end\", pattern.\"repeating_delay\", pattern.\"author_id\", "
+            "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM \"Event\" as event, "
+            "GENERATE_SERIES(event.start, {}, event.repeating_delay::interval) as event_start_series\n\t"
+            "WHERE event.repeating_delay IS NOT NULL\n) as pattern\nWHERE\n\tpattern.author_id = {}\n\t"
+            "AND pattern.deleted_at IS NULL{}{}\nORDER BY start{};".format(
+                # fmt: on
+                f"\'{author_id}\'",
+                f"\n\tAND {start_date}::timestamp <= event.start"
+                if start is not None
+                else "",
+                f"\n\tAND event.start <= {end_date}::timestamp"
+                if end is not None
+                else "",
+                f"timestamp {end_date}"
+                if end is not None
+                else f"{start_date}::timestamp + event.repeating_delay::interval",
+                f"\'{author_id}\'",
+                f"\n\tAND {start_date}::timestamp <= pattern.event_start_series"
+                if start is not None
+                else "",
+                f"\n\tAND pattern.event_start_series <= {end_date}::timestamp"
+                if end is not None
+                else "",
+                f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
+                if items_per_page != -1
+                else "",
+            ),
             model=PrismaEvent,
         )
         if db_events is None or len(db_events) == 0:
@@ -268,42 +264,47 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 f"'{end.day:02d}/{end.month:02d}/{end.year:04d} "
                 f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}'"
             )
+        await self._db_client.db.execute_raw("SET datestyle = DMY;")
         db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
-            """
-            SET datestyle = DMY;
-            SELECT *
-            FROM "Event" as event?
-            UNION
-            SELECT DISTINCT pattern."id", pattern."title", pattern."description", pattern."color", pattern."start", pattern."end", pattern."repeating_delay", pattern."author_id", pattern."created_at", pattern."deleted_at"
-            FROM (
-                SELECT *
-                FROM "Event" as event, GENERATE_SERIES(event.start, timestamp ?, event.repeating_delay::interval) as event_start_series
-                WHERE event.repeating_delay IS NOT NULL
-            ) as pattern?
-            ORDER BY start?;
-            """,
-            "\nWHERE\n\t" + f"{start_date}::timestamp <= event.start"
-            if start is not None
-            else "" + "\n\tAND "
-            if start is not None and end is not None
-            else "" + f"{end_date}::timestamp <= event.start"
-            if end is not None
-            else ""
-            if start is not None or end is not None
-            else "",
-            end_date if end is not None else "event.start + event.repeating_delay",
-            "\nWHERE\n\t" + f"{start_date}::timestamp <= pattern.event_start_series"
-            if start is not None
-            else "" + "\n\tAND "
-            if start is not None and end is not None
-            else "" + f"{end_date}::timestamp <= pattern.event_start_series"
-            if end is not None
-            else ""
-            if start is not None or end is not None
-            else "",
-            f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
-            if items_per_page != -1
-            else "",
+            # fmt: off
+            "SELECT *\nFROM \"Event\" as event{}\nUNION\n"
+            "SELECT DISTINCT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", "
+            "pattern.\"start\", pattern.\"end\", pattern.\"repeating_delay\", pattern.\"author_id\", "
+            "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM \"Event\" as event, "
+            "GENERATE_SERIES(event.start, {}, event.repeating_delay::interval) as event_start_series\n"
+            "\tWHERE event.repeating_delay IS NOT NULL\n) as pattern{}\nORDER BY start{};".format(
+                # fmt: on
+                "\nWHERE\n\t"
+                + (
+                    f"{start_date}::timestamp <= event.start"
+                    if start is not None
+                    else ""
+                )
+                + ("\n\tAND " if start is not None and end is not None else "")
+                + (f"event.start <= {end_date}::timestamp" if end is not None else "")
+                if start is not None or end is not None
+                else "",
+                f"timestamp {end_date}"
+                if end is not None
+                else f"{start_date}::timestamp + event.repeating_delay::interval",
+                "\nWHERE\n\t"
+                + (
+                    f"{start_date}::timestamp <= pattern.event_start_series"
+                    if start is not None
+                    else ""
+                )
+                + ("\n\tAND " if start is not None and end is not None else "")
+                + (
+                    f"pattern.event_start_series <= {end_date}::timestamp"
+                    if end is not None
+                    else ""
+                )
+                if start is not None or end is not None
+                else "",
+                f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
+                if items_per_page != -1
+                else "",
+            ),
             model=PrismaEvent,
         )
         if db_events is None or len(db_events) == 0:
