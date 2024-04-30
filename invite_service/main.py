@@ -17,7 +17,6 @@ import generated.invite_service.invite_service_pb2_grpc as invite_service_grpc
 async def serve() -> None:
     """Start an async server"""
     server = grpc.aio.server(interceptors=[CustomInterceptor()])
-    await PostgresClient().connect()
     if os.environ["ENVIRONMENT"] == "PRODUCTION":
         await PostgresClient().connect()
     invite_service_grpc.add_InviteServiceServicer_to_server(
