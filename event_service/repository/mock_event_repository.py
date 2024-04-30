@@ -1,7 +1,6 @@
 """Mock event repository"""
 
 from datetime import datetime
-from math import ceil
 from typing import List, Optional
 from uuid import uuid4
 
@@ -88,35 +87,41 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         """
         if start is not None and end is not None and start > end:
             raise WrongIntervalError("Request failed. Wrong time interval.")
-        events = [
-            event
-            for event in self._events
-            if event.author_id == author_id
-            and (
-                (
+        events = []
+        for event in self._events:
+            if event.repeating_delay is not None:
+                repeating_delay = (
+                    datetime.now()
+                    - (
+                        datetime.now()
+                        - event.delay_string_to_timedelta(event.repeating_delay)
+                    )
+                ).total_seconds()
+                start_modulo, end_modulo = None, None
+                if start is not None:
+                    start_seconds = int(start.timestamp())
+                    start_modulo = start_seconds % repeating_delay
+                if end is not None:
+                    end_seconds = int(end.timestamp())
+                    end_modulo = end_seconds % repeating_delay
+                    end_modulo = repeating_delay if not end_modulo else end_modulo
+                event_seconds = int(event.start.timestamp())
+                event_modulo = event_seconds % repeating_delay
+                if (
+                    (True if start is None else start_modulo <= event_modulo)
+                    and (True if end is None else event_modulo <= end_modulo)
+                    and event.author_id == author_id
+                    and event.deleted_at is None
+                ):
+                    events.append(event)
+            else:
+                if (
                     (True if start is None else start <= event.start)
                     and (True if end is None else event.start <= end)
-                )
-                or (
-                    start
-                    <= event.start
-                    + ceil(
-                        (start - event.start).total_seconds()
-                        / (
-                            datetime.now()
-                            - (
-                                datetime.now()
-                                - event.delay_string_to_timedelta(event.repeating_delay)
-                            )
-                        ).total_seconds()
-                    )
-                    * event.delay_string_to_interval(event.repeating_delay)
-                    <= end
-                    and start - event.start > 0
-                )
-            )
-            and event.deleted_at is None
-        ]
+                    and event.author_id == author_id
+                    and event.deleted_at is None
+                ):
+                    events.append(event)
         events = (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
@@ -231,31 +236,35 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         """
         if start is not None and end is not None and start > end:
             raise WrongIntervalError("Request failed. Wrong time interval.")
-        events = [
-            event
-            for event in self._events
-            if (
-                (True if start is None else start <= event.start)
-                and (True if end is None else event.start <= end)
-            )
-            or (
-                start
-                <= event.start
-                + ceil(
-                    (start - event.start).total_seconds()
-                    / (
+        events = []
+        for event in self._events:
+            if event.repeating_delay is not None:
+                repeating_delay = (
+                    datetime.now()
+                    - (
                         datetime.now()
-                        - (
-                            datetime.now()
-                            - event.delay_string_to_timedelta(event.repeating_delay)
-                        )
-                    ).total_seconds()
-                )
-                * event.delay_string_to_interval(event.repeating_delay)
-                <= end
-                and start - event.start > 0
-            )
-        ]
+                        - event.delay_string_to_timedelta(event.repeating_delay)
+                    )
+                ).total_seconds()
+                start_modulo, end_modulo = None, None
+                if start is not None:
+                    start_seconds = int(start.timestamp())
+                    start_modulo = start_seconds % repeating_delay
+                if end is not None:
+                    end_seconds = int(end.timestamp())
+                    end_modulo = end_seconds % repeating_delay
+                    end_modulo = repeating_delay if not end_modulo else end_modulo
+                event_seconds = int(event.start.timestamp())
+                event_modulo = event_seconds % repeating_delay
+                if (True if start is None else start_modulo <= event_modulo) and (
+                    True if end is None else event_modulo <= end_modulo
+                ):
+                    events.append(event)
+            else:
+                if (True if start is None else start <= event.start) and (
+                    True if end is None else event.start <= end
+                ):
+                    events.append(event)
         events = (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
