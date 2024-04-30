@@ -17,6 +17,7 @@ grpc-interceptor = "0.15.4"
 requests = "^2.31.0"
 protoletariat = "^3.2.19"
 python-dateutil = "^2.9.0.post0"
+pytz = "^2024.1"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.1.0"

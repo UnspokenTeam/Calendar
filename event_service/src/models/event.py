@@ -8,6 +8,7 @@ from prisma.models import Event as PrismaEvent
 
 from dateutil.relativedelta import relativedelta
 from generated.event_service.event_service_pb2 import GrpcEvent, Interval
+from pytz import utc
 
 
 @dataclass
@@ -135,11 +136,11 @@ class Event:
             if self.repeating_delay is not None
             else None,
         )
-        event.start.FromDatetime(self.start)
-        event.end.FromDatetime(self.end)
-        event.created_at.FromDatetime(self.created_at)
+        event.start.FromDatetime(self.start.astimezone(utc))
+        event.end.FromDatetime(self.end.astimezone(utc))
+        event.created_at.FromDatetime(self.created_at.astimezone(utc))
         if self.deleted_at is not None:
-            event.deleted_at.FromDatetime(self.deleted_at)
+            event.deleted_at.FromDatetime(self.deleted_at.astimezone(utc))
         return event
 
     def to_dict(self, exclude: Optional[List[str]] = None) -> Dict[str, Any]:
@@ -230,7 +231,15 @@ class Event:
                 if not (
                     delay := " ".join(
                         f"{value} {name.upper()}"
-                        for name in ("years", "months", "weeks", "days", "hours", "minutes", "seconds")
+                        for name in (
+                            "years",
+                            "months",
+                            "weeks",
+                            "days",
+                            "hours",
+                            "minutes",
+                            "seconds",
+                        )
                         if (value := getattr(grpc_event.repeating_delay, name)) != 0
                     )
                 )
