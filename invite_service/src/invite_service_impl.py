@@ -287,7 +287,7 @@ class InviteServiceImpl(GrpcServicer):
         return Empty()
 
     async def create_multiple_invites(
-            self, request: proto.InvitesRequest, context: grpc.ServicerContext
+            self, request: proto.InvitesRequest, _: grpc.ServicerContext
     ) -> Empty:
         """
         Create multiple invites.
@@ -296,7 +296,7 @@ class InviteServiceImpl(GrpcServicer):
         ----------
         request : proto.InvitesRequest
             Request data containing GrpcInvites.
-        context : grpc.ServicerContext
+        _ : grpc.ServicerContext
             Request context.
 
         Returns
