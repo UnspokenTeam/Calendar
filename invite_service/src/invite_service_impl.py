@@ -299,6 +299,11 @@ class InviteServiceImpl(GrpcServicer):
 
         """
         invite = Invite.from_grpc_invite(request.invite)
+        if (
+            request.requesting_user.id != invite.author_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
         await self._invite_repository.update_invite(invite=invite)
         context.set_code(grpc.StatusCode.OK)
         return Empty()
@@ -389,6 +394,11 @@ class InviteServiceImpl(GrpcServicer):
             Empty response object.
 
         """
+        if (
+            request.requesting_user.id != request.author_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
         await self._invite_repository.delete_invites_by_author_id(
             author_id=request.author_id
         )
@@ -416,6 +426,11 @@ class InviteServiceImpl(GrpcServicer):
             Empty response object.
 
         """
+        if (
+            request.requesting_user.id != request.invitee_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
         await self._invite_repository.delete_invites_by_invitee_id(
             invitee_id=request.invitee_id
         )

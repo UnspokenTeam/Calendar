@@ -94,14 +94,17 @@ message DeleteInviteByIdRequest {
 
 message DeleteInvitesByEventIdRequest {
   string event_id = 1;
+  GrpcUser requesting_user = 2;
 }
 
 message DeleteInvitesByAuthorIdRequest {
   string author_id = 1;
+  GrpcUser requesting_user = 2;
 }
 
 message DeleteInvitesByInviteeIdRequest {
   string invitee_id = 1;
+  GrpcUser requesting_user = 2;
 }
 
 message GetInvitesByInviteeIdRequest {

@@ -1,5 +1,5 @@
 # mypy: ignore-errors
-"""Interceptor decorator"""
+"""Interceptor"""
 from typing import Any, Callable
 import logging
 

@@ -53,9 +53,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
     def __init__(self) -> None:
         self._invites = []
 
-    async def get_invites_by_event_id(
-            self, event_id: str, status: Optional[InviteStatus]
-    ) -> List[Invite]:
+    async def get_invites_by_event_id(self, event_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]) -> List[Invite]:
         """
         Get invites by event id.
 
@@ -63,6 +61,10 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         ----------
         event_id : str
             Event id.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
         status : Optional[InviteStatus]
             Optional invite status. If present will filter the events by status
 
@@ -72,7 +74,18 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             Invites with matching event id.
 
         """
-        return [invite for invite in self._invites if invite.event_id == event_id and (True if status is None else invite.status == status) and invite.deleted_at is not None]
+        invites = [
+            invite
+            for invite in self._invites
+            if invite.event_id == event_id
+            and (True if status is None else invite.status == status)
+            and invite.deleted_at is not None
+        ]
+        if items_per_page != -1:
+            invites = invites[
+                items_per_page * (page_number - 1) : items_per_page * page_number
+            ]
+        return invites
 
     async def get_invite_by_invite_id(self, invite_id: str) -> Invite:
         """
