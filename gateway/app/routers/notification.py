@@ -2,27 +2,39 @@
 from datetime import datetime
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, Security
-from pydantic import Field
-
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     EventRequestByEventId as GrpcGetEventByEventIdRequest,
 )
 from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationByIdRequest as GrpcDeleteNotificationByIdRequest,
-    NotificationRequest as GrpcNotificationRequest,
-    NotificationRequestByNotificationId as GrpcGetNotificationByNotificationIdRequest,
-    NotificationResponse as GrpcNotificationResponse,
-    NotificationsRequestByAuthorId as GrpcGetNotificationsByAuthorIdRequest,
-    NotificationsResponse as GrpcNotificationsResponse,
+)
+from app.generated.notification_service.notification_service_pb2 import (
     GetAllNotificationsRequest as GrpcGetAllNotificationsRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    NotificationRequest as GrpcNotificationRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    NotificationRequestByNotificationId as GrpcGetNotificationByNotificationIdRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    NotificationResponse as GrpcNotificationResponse,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    NotificationsRequestByAuthorId as GrpcGetNotificationsByAuthorIdRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    NotificationsResponse as GrpcNotificationsResponse,
 )
 from app.generated.user.user_pb2 import GrpcUser
 from app.middleware import auth
 from app.models import Notification, UserType
 from app.params import GrpcClientParams
 from app.validators import str_special_characters_validator
+
+from fastapi import APIRouter, Depends, Security
+from pydantic import Field
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
@@ -37,6 +49,7 @@ async def get_notification_by_id(
 ) -> Notification:
     """
     \f
+
     Fast api route to get notification by id
 
     Parameters
@@ -77,6 +90,7 @@ async def get_all_notifications(
 ) -> List[Notification]:
     """
     \f
+
     Fast api route to get all notifications
 
     Parameters
@@ -122,6 +136,7 @@ async def get_my_notifications(
 ) -> List[Notification]:
     """
     \f
+
     Fast api route to get all user's notifications
     Parameters
     ----------
@@ -168,6 +183,7 @@ async def create_notification(
 ) -> None:
     """
     \f
+
     Fast api route to create notification
 
     Parameters
@@ -180,7 +196,6 @@ async def create_notification(
         Grpc clients which are injected by DI
 
     """
-
     _ = grpc_clients.event_service_client.request().get_event_by_event_id(
         GrpcGetEventByEventIdRequest(
             event_id=event_id,
@@ -212,6 +227,7 @@ async def update_notification_as_author(
 ) -> None:
     """
     \f
+
     Fast api route to update notification as author of notification
 
     Parameters
@@ -267,6 +283,7 @@ async def update_notification(
 ) -> None:
     """
     \f
+
     Fast api route to update notification as admin
 
     Parameters
@@ -311,6 +328,7 @@ async def delete_notification(
 ) -> None:
     """
     \f
+
     Fast api route to delete notification
 
     Parameters

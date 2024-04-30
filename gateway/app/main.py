@@ -1,5 +1,5 @@
 from .params import GrpcClientParams
-from .routers import Events, Users, Notifications
+from .routers import Events, Notifications, Users
 from fastapi import Depends, FastAPI
 
 app = FastAPI(dependencies=[Depends(GrpcClientParams)])

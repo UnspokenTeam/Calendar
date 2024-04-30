@@ -4,7 +4,6 @@ from typing import Optional, Self
 
 from app.generated.notification_service.notification_service_pb2 import GrpcNotification
 
-from google.protobuf.timestamp_pb2 import Timestamp
 from pydantic import BaseModel
 
 
