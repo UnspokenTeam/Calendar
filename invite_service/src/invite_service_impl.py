@@ -53,7 +53,7 @@ class InviteServiceImpl(GrpcServicer):
         self._invite_repository = invite_repository
 
     async def get_invites_by_event_id(
-            self, request: proto.InvitesByEventIdRequest, context: grpc.ServicerContext
+        self, request: proto.InvitesByEventIdRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
         Get all invites by event id.
@@ -75,14 +75,19 @@ class InviteServiceImpl(GrpcServicer):
             event_id=request.event_id,
             status=InviteStatus.from_proto(request.invite_status)
             if request.WhichOneof("optional_invite_status") is not None
-            else None
+            else None,
+            page_number=request.page_number,
+            items_per_page=request.items_per_page,
         )
         context.set_code(grpc.StatusCode.OK)
         return proto.InvitesResponse(
-            invites=proto.ListOfInvites(invites=[invite.to_grpc_invite() for invite in invites]))
+            invites=proto.ListOfInvites(
+                invites=[invite.to_grpc_invite() for invite in invites]
+            )
+        )
 
     async def get_invites_by_author_id(
-            self, request: proto.InvitesByAuthorIdRequest, context: grpc.ServicerContext
+        self, request: proto.InvitesByAuthorIdRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
         Get all invites by author id.
@@ -126,7 +131,7 @@ class InviteServiceImpl(GrpcServicer):
         )
 
     async def get_all_invites(
-            self, request: GrpcGetAllInvitesRequest, context: grpc.ServicerContext
+        self, request: GrpcGetAllInvitesRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
         Get all invites.
@@ -166,7 +171,7 @@ class InviteServiceImpl(GrpcServicer):
         )
 
     async def get_invite_by_invite_id(
-            self, request: proto.InviteRequestByInviteId, context: grpc.ServicerContext
+        self, request: proto.InviteRequestByInviteId, context: grpc.ServicerContext
     ) -> proto.InviteResponse:
         """
         Get invite by invite id.
@@ -202,7 +207,7 @@ class InviteServiceImpl(GrpcServicer):
         return proto.InviteResponse(invite=invite.to_grpc_invite())
 
     async def get_invites_by_invitee_id(
-            self, request: proto.GetInvitesByInviteeIdRequest, context: grpc.ServicerContext
+        self, request: proto.GetInvitesByInviteeIdRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
         Get all invites by invitee id.
