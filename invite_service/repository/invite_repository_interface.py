@@ -226,6 +226,7 @@ class InviteRepositoryInterface(ABC):
         """
         pass
 
+    @abstractmethod
     async def create_multiple_invites(self, invites: List[Invite]) -> None:
         """
         Create multiple invites.

@@ -288,7 +288,7 @@ class InviteServiceImpl(GrpcServicer):
 
     async def create_multiple_invites(
             self, request: proto.InvitesRequest, context: grpc.ServicerContext
-    ) -> proto.BaseResponse:
+    ) -> Empty:
         """
         Create multiple invites.
 
@@ -305,16 +305,10 @@ class InviteServiceImpl(GrpcServicer):
             Object containing status code and message if the response status is not 200.
 
         """
-        try:
-            if any([invite.author_id != request.requesting_user.id for invite in request.invites.invites]):
-                raise PermissionDeniedError("Permission denied")
-            await self._invite_repository.create_multiple_invites(invites=[Invite.from_grpc_invite(invite) for invite in request.invites.invites])
-        except UniqueError:
-            context.set_code(grpc.StatusCode.ALREADY_EXISTS)
-            return proto.BaseResponse(status_code=400, message="Invite already exists")
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return proto.BaseResponse(status_code=500, message="Internal server error")
+        if any([invite.author_id != request.requesting_user.id for invite in request.invites.invites]):
+            raise PermissionDeniedError("Permission denied")
+        await self._invite_repository.create_multiple_invites(invites=[Invite.from_grpc_invite(invite) for invite in request.invites.invites])
+        return Empty()
 
     async def update_invite(
         self, request: proto.InviteRequest, context: grpc.ServicerContext
