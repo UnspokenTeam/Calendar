@@ -3,6 +3,7 @@ syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 import "user/user.proto";
 import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
 
 service InviteService {
   rpc get_invites_by_event_id(InvitesByEventIdRequest) returns (InvitesResponse) {}
@@ -10,13 +11,13 @@ service InviteService {
   rpc get_all_invites(GetAllInvitesRequest) returns (InvitesResponse){}
   rpc get_invites_by_author_id(InvitesByAuthorIdRequest) returns (InvitesResponse){}
   rpc get_invites_by_invitee_id(GetInvitesByInviteeIdRequest) returns (InvitesResponse){}
-  rpc create_invite(InviteRequest) returns (BaseResponse){}
-  rpc create_multiple_invites(InvitesRequest) returns (BaseResponse){}
-  rpc update_invite(InviteRequest) returns (BaseResponse){}
-  rpc delete_invite_by_id(DeleteInviteByIdRequest) returns (BaseResponse){}
-  rpc delete_invites_by_author_id(DeleteInvitesByAuthorIdRequest) returns (BaseResponse){}
-  rpc delete_invites_by_event_id(DeleteInvitesByEventIdRequest) returns (BaseResponse){}
-  rpc delete_invites_by_invitee_id(DeleteInvitesByInviteeIdRequest) returns (BaseResponse){}
+  rpc create_invite(InviteRequest) returns (google.protobuf.Empty){}
+  rpc create_multiple_invites(InvitesRequest) returns (google.protobuf.Empty){}
+  rpc update_invite(InviteRequest) returns (google.protobuf.Empty){}
+  rpc delete_invite_by_id(DeleteInviteByIdRequest) returns (google.protobuf.Empty){}
+  rpc delete_invites_by_author_id(DeleteInvitesByAuthorIdRequest) returns (google.protobuf.Empty){}
+  rpc delete_invites_by_event_id(DeleteInvitesByEventIdRequest) returns (google.protobuf.Empty){}
+  rpc delete_invites_by_invitee_id(DeleteInvitesByInviteeIdRequest) returns (google.protobuf.Empty){}
 }
 
 message InvitesByEventIdRequest {
@@ -25,6 +26,8 @@ message InvitesByEventIdRequest {
     google.protobuf.NullValue invite_status_null = 2;
     InviteStatus invite_status = 3;
   }
+  uint64 page_number = 4;
+  int64 items_per_page = 5;
 }
 
 message InvitesRequest {
@@ -92,11 +95,6 @@ message InvitesResponse{
   optional string message = 3;
 }
 
-message BaseResponse {
-  int32 status_code = 1;
-  optional string message = 2;
-}
-
 message DeleteInviteByIdRequest {
   string invite_id = 1;
   GrpcUser requesting_user = 2;
@@ -104,14 +102,17 @@ message DeleteInviteByIdRequest {
 
 message DeleteInvitesByEventIdRequest {
   string event_id = 1;
+  GrpcUser requesting_user = 2;
 }
 
 message DeleteInvitesByAuthorIdRequest {
   string author_id = 1;
+  GrpcUser requesting_user = 2;
 }
 
 message DeleteInvitesByInviteeIdRequest {
   string invitee_id = 1;
+  GrpcUser requesting_user = 2;
 }
 
 message GetInvitesByInviteeIdRequest {

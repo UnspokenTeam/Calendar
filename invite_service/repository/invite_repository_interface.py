@@ -40,7 +40,13 @@ class InviteRepositoryInterface(ABC):
     """
 
     @abstractmethod
-    async def get_invites_by_event_id(self, event_id: str, status: Optional[InviteStatus]) -> List[Invite]:
+    async def get_invites_by_event_id(
+        self,
+        event_id: str,
+        page_number: int,
+        items_per_page: int,
+        status: Optional[InviteStatus],
+    ) -> List[Invite]:
         """
         Returns invites that have matching event id.
 
@@ -48,6 +54,10 @@ class InviteRepositoryInterface(ABC):
         ----------
         event_id : str
             Event id.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
         status : Optional[InviteStatus]
             Optional invite status. If present will filter the events by status
 
@@ -64,10 +74,15 @@ class InviteRepositoryInterface(ABC):
             No invites were found for given event id.
 
         """
+        pass
 
     @abstractmethod
     async def get_invites_by_author_id(
-        self, author_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+        self,
+        author_id: str,
+        page_number: int,
+        items_per_page: int,
+        status: Optional[InviteStatus],
     ) -> List[Invite]:
         """
         Get invites by author id.
@@ -156,7 +171,11 @@ class InviteRepositoryInterface(ABC):
 
     @abstractmethod
     async def get_invites_by_invitee_id(
-        self, invitee_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+        self,
+        invitee_id: str,
+        page_number: int,
+        items_per_page: int,
+        status: Optional[InviteStatus],
     ) -> List[Invite]:
         """
         Get invites by invitee id.

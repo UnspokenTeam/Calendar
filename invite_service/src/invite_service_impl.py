@@ -2,11 +2,7 @@
 
 import grpc
 
-import prisma.errors
-
 from errors.permission_denied import PermissionDeniedError
-from errors.unique_error import UniqueError
-from errors.value_not_found_error import ValueNotFoundError
 from src.models.invite import Invite, InviteStatus
 
 from generated.invite_service.invite_service_pb2 import (
@@ -16,6 +12,7 @@ from generated.invite_service.invite_service_pb2_grpc import (
     InviteServiceServicer as GrpcServicer,
 )
 from generated.user.user_pb2 import GrpcUserType
+from google.protobuf.empty_pb2 import Empty
 from repository.invite_repository_interface import InviteRepositoryInterface
 import generated.invite_service.invite_service_pb2 as proto
 
@@ -58,7 +55,7 @@ class InviteServiceImpl(GrpcServicer):
         self._invite_repository = invite_repository
 
     async def get_invites_by_event_id(
-            self, request: proto.InvitesByEventIdRequest, context: grpc.ServicerContext
+        self, request: proto.InvitesByEventIdRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
         Get all invites by event id.
@@ -76,26 +73,23 @@ class InviteServiceImpl(GrpcServicer):
             Invites list.
 
         """
-        try:
-            invites = await self._invite_repository.get_invites_by_event_id(
-                event_id=request.event_id,
-                status=InviteStatus.from_proto(request.invite_status)
-                if request.WhichOneof("optional_invite_status") is not None
-                else None
+        invites = await self._invite_repository.get_invites_by_event_id(
+            event_id=request.event_id,
+            status=InviteStatus.from_proto(request.invite_status)
+            if request.WhichOneof("optional_invite_status") is not None
+            else None,
+            page_number=request.page_number,
+            items_per_page=request.items_per_page,
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return proto.InvitesResponse(
+            invites=proto.ListOfInvites(
+                invites=[invite.to_grpc_invite() for invite in invites]
             )
-            return proto.InvitesResponse(
-                invites=proto.ListOfInvites(invites=[invite.to_grpc_invite() for invite in invites]))
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return proto.InvitesResponse(status_code=404, message="Invites not found")
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return proto.InvitesResponse(
-                status_code=500, message="Internal server error"
-            )
+        )
 
     async def get_invites_by_author_id(
-            self, request: proto.InvitesByAuthorIdRequest, context: grpc.ServicerContext
+        self, request: proto.InvitesByAuthorIdRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
         Get all invites by author id.
@@ -118,41 +112,28 @@ class InviteServiceImpl(GrpcServicer):
             Raises when user dont has enough access.
 
         """
-        try:
-            if (
-                    request.requesting_user != request.author_id
-                    and request.requesting_user.type != GrpcUserType.ADMIN
-            ):
-                raise PermissionDeniedError("Permission denied")
-            invites = await self._invite_repository.get_invites_by_author_id(
-                author_id=request.author_id,
-                status=InviteStatus.from_proto(request.invite_status)
-                if request.WhichOneof("optional_invite_status") is not None
-                else None,
-                page_number=request.page_number,
-                items_per_page=request.items_per_page,
-            )
-            context.set_code(grpc.StatusCode.OK)
-            return proto.InvitesResponse(
-                status_code=200,
-                invites=proto.ListOfInvites(
-                    invites=[invite.to_grpc_invite() for invite in invites]
-                ),
-            )
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return proto.InvitesResponse(status_code=404, message="Invites not found")
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return proto.InvitesResponse(
-                status_code=500, message="Internal server error"
-            )
-        except PermissionDeniedError:
-            context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.InvitesResponse(status_code=403, message="Permission denied")
+        if (
+            request.requesting_user != request.author_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
+        invites = await self._invite_repository.get_invites_by_author_id(
+            author_id=request.author_id,
+            status=InviteStatus.from_proto(request.invite_status)
+            if request.WhichOneof("optional_invite_status") is not None
+            else None,
+            page_number=request.page_number,
+            items_per_page=request.items_per_page,
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return proto.InvitesResponse(
+            invites=proto.ListOfInvites(
+                invites=[invite.to_grpc_invite() for invite in invites]
+            ),
+        )
 
     async def get_all_invites(
-            self, request: GrpcGetAllInvitesRequest, context: grpc.ServicerContext
+        self, request: GrpcGetAllInvitesRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
         Get all invites.
@@ -175,37 +156,24 @@ class InviteServiceImpl(GrpcServicer):
             Raises when user dont has enough access.
 
         """
-        try:
-            if request.requesting_user.type != GrpcUserType.ADMIN:
-                raise PermissionDeniedError("Permission denied")
-            invites = await self._invite_repository.get_all_invites(
-                status=InviteStatus.from_proto(request.invite_status)
-                if request.WhichOneof("optional_invite_status") is not None
-                else None,
-                page_number=request.page_number,
-                items_per_page=request.items_per_page
-            )
-            context.set_code(grpc.StatusCode.OK)
-            return proto.InvitesResponse(
-                status_code=200,
-                invites=proto.ListOfInvites(
-                    invites=[invite.to_grpc_invite() for invite in invites]
-                ),
-            )
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return proto.InvitesResponse(status_code=404, message="Invites not found")
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return proto.InvitesResponse(
-                status_code=500, message="Internal server error"
-            )
-        except PermissionDeniedError:
-            context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.InvitesResponse(status_code=403, message="Permission denied")
+        if request.requesting_user.type != GrpcUserType.ADMIN:
+            raise PermissionDeniedError("Permission denied")
+        invites = await self._invite_repository.get_all_invites(
+            status=InviteStatus.from_proto(request.invite_status)
+            if request.WhichOneof("optional_invite_status") is not None
+            else None,
+            page_number=request.page_number,
+            items_per_page=request.items_per_page,
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return proto.InvitesResponse(
+            invites=proto.ListOfInvites(
+                invites=[invite.to_grpc_invite() for invite in invites]
+            ),
+        )
 
     async def get_invite_by_invite_id(
-            self, request: proto.InviteRequestByInviteId, context: grpc.ServicerContext
+        self, request: proto.InviteRequestByInviteId, context: grpc.ServicerContext
     ) -> proto.InviteResponse:
         """
         Get invite by invite id.
@@ -228,32 +196,20 @@ class InviteServiceImpl(GrpcServicer):
             Raises when user dont has enough access.
 
         """
-        try:
-            invite = await self._invite_repository.get_invite_by_invite_id(
-                invite_id=request.invite_id
-            )
-            if (
-                    request.requesting_user.id != invite.author_id
-                    and request.requesting_user.id != invite.invitee_id
-                    and request.requesting_user.type != GrpcUserType.ADMIN
-            ):
-                raise PermissionDeniedError("Permission denied")
-            context.set_code(grpc.StatusCode.OK)
-            return proto.InviteResponse(status_code=200, invite=invite.to_grpc_invite())
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return proto.InviteResponse(status_code=404, message="Invite not found")
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return proto.InviteResponse(
-                status_code=500, message="Internal server error"
-            )
-        except PermissionDeniedError:
-            context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.InviteResponse(status_code=403, message="Permission denied")
+        invite = await self._invite_repository.get_invite_by_invite_id(
+            invite_id=request.invite_id
+        )
+        if (
+            request.requesting_user.id != invite.author_id
+            and request.requesting_user.id != invite.invitee_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
+        context.set_code(grpc.StatusCode.OK)
+        return proto.InviteResponse(invite=invite.to_grpc_invite())
 
     async def get_invites_by_invitee_id(
-            self, request: proto.GetInvitesByInviteeIdRequest, context: grpc.ServicerContext
+        self, request: proto.GetInvitesByInviteeIdRequest, context: grpc.ServicerContext
     ) -> proto.InvitesResponse:
         """
         Get all invites by invitee id.
@@ -276,42 +232,29 @@ class InviteServiceImpl(GrpcServicer):
             Raises when user dont has enough access.
 
         """
-        try:
-            if (
-                    request.requesting_user.id != request.invitee_id
-                    and request.requesting_user.type != GrpcUserType.ADMIN
-            ):
-                raise PermissionDeniedError("Permission denied")
-            invites = await self._invite_repository.get_invites_by_invitee_id(
-                invitee_id=request.invitee_id,
-                status=InviteStatus.from_proto(request.invite_status)
-                if request.WhichOneof("optional_invite_status") is not None
-                else None,
-                page_number=request.page_number,
-                items_per_page=request.items_per_page,
-            )
-            context.set_code(grpc.StatusCode.OK)
-            return proto.InvitesResponse(
-                status_code=200,
-                invites=proto.ListOfInvites(
-                    invites=[invite.to_grpc_invite() for invite in invites]
-                ),
-            )
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return proto.InvitesResponse(status_code=404, message="Invites not found")
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return proto.InvitesResponse(
-                status_code=500, message="Internal server error"
-            )
-        except PermissionDeniedError:
-            context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.InvitesResponse(status_code=403, message="Permission denied")
+        if (
+            request.requesting_user.id != request.invitee_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
+        invites = await self._invite_repository.get_invites_by_invitee_id(
+            invitee_id=request.invitee_id,
+            status=InviteStatus.from_proto(request.invite_status)
+            if request.WhichOneof("optional_invite_status") is not None
+            else None,
+            page_number=request.page_number,
+            items_per_page=request.items_per_page,
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return proto.InvitesResponse(
+            invites=proto.ListOfInvites(
+                invites=[invite.to_grpc_invite() for invite in invites]
+            ),
+        )
 
     async def create_invite(
-            self, request: proto.InviteRequest, context: grpc.ServicerContext
-    ) -> proto.BaseResponse:
+        self, request: proto.InviteRequest, context: grpc.ServicerContext
+    ) -> Empty:
         """
         Create invite.
 
@@ -324,8 +267,8 @@ class InviteServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.BaseResponse
-            Object containing status code and message if the response status is not 200.
+        Empty
+            Empty response object.
 
         Raises
         ------
@@ -333,25 +276,15 @@ class InviteServiceImpl(GrpcServicer):
             Raises when user dont has enough access.
 
         """
-        try:
-            invite = Invite.from_grpc_invite(request.invite)
-            if (
-                    request.requesting_user.id != invite.author_id
-                    and request.requesting_user.type != GrpcUserType.ADMIN
-            ):
-                raise PermissionDeniedError("Permission denied")
-            await self._invite_repository.create_invite(invite=invite)
-            context.set_code(grpc.StatusCode.OK)
-            return proto.BaseResponse(status_code=200)
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return proto.BaseResponse(status_code=500, message="Internal server error")
-        except PermissionDeniedError:
-            context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.BaseResponse(status_code=403, message="Permission denied")
-        except UniqueError:
-            context.set_code(grpc.StatusCode.ALREADY_EXISTS)
-            return proto.BaseResponse(status_code=400, message="Invite already exists")
+        invite = Invite.from_grpc_invite(request.invite)
+        if (
+            request.requesting_user.id != invite.author_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
+        await self._invite_repository.create_invite(invite=invite)
+        context.set_code(grpc.StatusCode.OK)
+        return Empty()
 
     async def create_multiple_invites(
             self, request: proto.InvitesRequest, context: grpc.ServicerContext
@@ -384,8 +317,8 @@ class InviteServiceImpl(GrpcServicer):
             return proto.BaseResponse(status_code=500, message="Internal server error")
 
     async def update_invite(
-            self, request: proto.InviteRequest, context: grpc.ServicerContext
-    ) -> proto.BaseResponse:
+        self, request: proto.InviteRequest, context: grpc.ServicerContext
+    ) -> Empty:
         """
         Update invite.
 
@@ -398,25 +331,24 @@ class InviteServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.BaseResponse
-            Object containing status code and message if the response status is not 200.
+        Empty
+            Empty response object.
 
         """
-        try:
-            invite = Invite.from_grpc_invite(request.invite)
-            await self._invite_repository.update_invite(invite=invite)
-            context.set_code(grpc.StatusCode.OK)
-            return proto.BaseResponse(status_code=200)
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return proto.BaseResponse(status_code=404, message="Invite not found")
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return proto.BaseResponse(status_code=500, message="Internal server error")
+        invite = Invite.from_grpc_invite(request.invite)
+        if (
+            request.requesting_user.id != invite.author_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+            and request.requesting_user.id != invite.invitee_id
+        ):
+            raise PermissionDeniedError("Permission denied")
+        await self._invite_repository.update_invite(invite=invite)
+        context.set_code(grpc.StatusCode.OK)
+        return Empty()
 
     async def delete_invite_by_id(
-            self, request: proto.DeleteInviteByIdRequest, context: grpc.ServicerContext
-    ) -> proto.BaseResponse:
+        self, request: proto.DeleteInviteByIdRequest, context: grpc.ServicerContext
+    ) -> Empty:
         """
         Delete invite by invite id.
 
@@ -429,8 +361,8 @@ class InviteServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.BaseResponse
-            Object containing status code and message if the response status is not 200.
+        Empty
+            Empty response object.
 
         Raises
         ------
@@ -438,35 +370,25 @@ class InviteServiceImpl(GrpcServicer):
             Raises when user dont has enough access.
 
         """
-        try:
-            invite = await self._invite_repository.get_invite_by_invite_id(
-                request.invite_id
-            )
-            if (
-                    request.requesting_user.id != invite.author_id
-                    and request.requesting_user.type != GrpcUserType.ADMIN
-            ):
-                raise PermissionDeniedError("Permission denied")
-            await self._invite_repository.delete_invite_by_invite_id(
-                invite_id=request.invite_id
-            )
-            context.set_code(grpc.StatusCode.OK)
-            return proto.BaseResponse(status_code=200)
-        except ValueNotFoundError:
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-            return proto.BaseResponse(status_code=404, message="Invite not found")
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return proto.BaseResponse(status_code=500, message="Internal server error")
-        except PermissionDeniedError:
-            context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            return proto.BaseResponse(status_code=403, message="Permission denied")
+        invite = await self._invite_repository.get_invite_by_invite_id(
+            request.invite_id
+        )
+        if (
+            request.requesting_user.id != invite.author_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
+        await self._invite_repository.delete_invite_by_invite_id(
+            invite_id=request.invite_id
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return Empty()
 
     async def delete_invites_by_event_id(
-            self,
-            request: proto.DeleteInvitesByEventIdRequest,
-            context: grpc.ServicerContext,
-    ) -> proto.BaseResponse:
+        self,
+        request: proto.DeleteInvitesByEventIdRequest,
+        context: grpc.ServicerContext,
+    ) -> Empty:
         """
         Delete invite by event id.
 
@@ -479,26 +401,26 @@ class InviteServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.BaseResponse
-            Object containing status code and message if the response status is not 200.
+        Empty
+            Empty response object.
 
         """
-        try:
-            await self._invite_repository.delete_invites_by_event_id(
-                event_id=request.event_id
-            )
-            return proto.BaseResponse(status_code=200)
-        except ValueNotFoundError:
-            return proto.BaseResponse(status_code=404, message="No invites found")
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return proto.BaseResponse(status_code=500, message="Internal server error")
+        if (
+            request.requesting_user.id != request.event_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
+        await self._invite_repository.delete_invites_by_event_id(
+            event_id=request.event_id
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return Empty()
 
     async def delete_invites_by_author_id(
-            self,
-            request: proto.DeleteInvitesByAuthorIdRequest,
-            context: grpc.ServicerContext,
-    ) -> proto.BaseResponse:
+        self,
+        request: proto.DeleteInvitesByAuthorIdRequest,
+        context: grpc.ServicerContext,
+    ) -> Empty:
         """
         Delete invite by author id.
 
@@ -511,26 +433,26 @@ class InviteServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.BaseResponse
-            Object containing status code and message if the response status is not 200.
+        Empty
+            Empty response object.
 
         """
-        try:
-            await self._invite_repository.delete_invites_by_author_id(
-                author_id=request.author_id
-            )
-            return proto.BaseResponse(status_code=200)
-        except ValueNotFoundError:
-            return proto.BaseResponse(status_code=404, message="No invites found")
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return proto.BaseResponse(status_code=500, message="Internal server error")
+        if (
+            request.requesting_user.id != request.author_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
+        await self._invite_repository.delete_invites_by_author_id(
+            author_id=request.author_id
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return Empty()
 
     async def delete_invites_by_invitee_id(
-            self,
-            request: proto.DeleteInvitesByInviteeIdRequest,
-            context: grpc.ServicerContext,
-    ) -> proto.BaseResponse:
+        self,
+        request: proto.DeleteInvitesByInviteeIdRequest,
+        context: grpc.ServicerContext,
+    ) -> Empty:
         """
         Delete invite by invitee id.
 
@@ -543,17 +465,17 @@ class InviteServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.BaseResponse
-            Object containing status code and message if the response status is not 200.
+        Empty
+            Empty response object.
 
         """
-        try:
-            await self._invite_repository.delete_invites_by_invitee_id(
-                invitee_id=request.invitee_id
-            )
-            return proto.BaseResponse(status_code=200)
-        except ValueNotFoundError:
-            return proto.BaseResponse(status_code=404, message="No invites found")
-        except prisma.errors.PrismaError:
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return proto.BaseResponse(status_code=500, message="Internal server error")
+        if (
+            request.requesting_user.id != request.invitee_id
+            and request.requesting_user.type != GrpcUserType.ADMIN
+        ):
+            raise PermissionDeniedError("Permission denied")
+        await self._invite_repository.delete_invites_by_invitee_id(
+            invitee_id=request.invitee_id
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return Empty()
