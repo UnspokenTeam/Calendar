@@ -6,7 +6,6 @@ from enum import StrEnum
 from typing import Any, Dict, List, Optional, Self
 
 from prisma.models import Invite as PrismaInvite
-from pytz import utc
 
 from generated.invite_service.invite_service_pb2 import (
     GrpcInvite,
@@ -14,6 +13,7 @@ from generated.invite_service.invite_service_pb2 import (
 from generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
+from pytz import utc
 
 
 class InviteStatus(StrEnum):
