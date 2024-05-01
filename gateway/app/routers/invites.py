@@ -3,6 +3,7 @@ from typing import List, Annotated
 
 from fastapi import APIRouter, Security, Depends
 from grpc import RpcError
+from pydantic import Field
 
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
@@ -24,8 +25,9 @@ from app.generated.invite_service.invite_service_pb2 import (
     InviteRequest as GrpcInviteRequest,
     DeleteInviteByIdRequest as GrpcDeleteInviteByIdRequest,
     InviteStatus as GrpcInviteStatus,
+    GetAllInvitesRequest as GrpcGetAllInvitesRequest,
 )
-from app.generated.user.user_pb2 import GrpcUser
+from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware import auth
 from app.models import Invite, InviteStatus
 from app.params import GrpcClientParams
@@ -33,8 +35,50 @@ from app.params import GrpcClientParams
 router = APIRouter(prefix="/invites", tags=["invites"])
 
 
-@router.get("/my/invitee")
+@router.get("/all/")
+async def get_all_invites(
+        page: Annotated[int, Field(1, ge=1)],
+        items_per_page: Annotated[int, Field(-1, ge=-1)],
+        user: Annotated[GrpcUser, Security(auth)],
+        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+) -> List[Invite]:
+    """
+    Fast api route to get all invites
+
+    Parameters
+    ----------
+    page : int
+        Page number
+    items_per_page : int
+        Number of items per page
+    user : Annotated[GrpcUser, Security(auth)]
+        Authorized user's data in proto format
+    grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+        Grpc clients injected by DI
+
+    Returns
+    -------
+    List[Invite]
+        List of all invites
+
+    """
+    if user.type != GrpcUserType.ADMIN:
+        raise PermissionDeniedError("Permission denied")
+
+    invites_response: GrpcInvitesResponse = grpc_clients.invite_service_client.request().get_all_invites(
+        GrpcGetAllInvitesRequest(
+            page_number=page,
+            items_per_page=items_per_page,
+            requesting_user=user,
+        )
+    )
+    return [Invite.from_proto(invite) for invite in invites_response.invites.invites]
+
+
+@router.get("/my/invitee/")
 async def get_users_invitee_invites(
+        page: Annotated[int, Field(1, ge=1)],
+        items_per_page: Annotated[int, Field(-1, ge=-1)],
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
 ) -> List[Invite]:
@@ -43,6 +87,10 @@ async def get_users_invitee_invites(
 
     Parameters
     ----------
+    page : int
+        Page number
+    items_per_page : int
+        Number of items to return per page
     user : Annotated[GrpcUser, Security(auth)]
         Authorized user's data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
@@ -57,14 +105,18 @@ async def get_users_invitee_invites(
     invites_request: GrpcInvitesResponse = grpc_clients.invite_service_client.request().get_invites_by_invitee_id(
         GrpcGetInvitesByInviteeIdRequest(
             invitee_id=user.id,
-            requesting_user=user
+            requesting_user=user,
+            page_number=page,
+            items_per_page=items_per_page
         )
     )
     return [Invite.from_proto(invite) for invite in invites_request.invites.invites]
 
 
-@router.get("/my/author")
+@router.get("/my/author/")
 async def get_users_author_invites(
+        page: Annotated[int, Field(1, ge=1)],
+        items_per_page: Annotated[int, Field(-1, ge=-1)],
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
 ) -> List[Invite]:
@@ -73,6 +125,10 @@ async def get_users_author_invites(
 
     Parameters
     ----------
+    page : int
+        Page number
+    items_per_page : int
+        Number of items to return per page
     user : Annotated[GrpcUser, Security(auth)]
         Authorized user's data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
@@ -88,6 +144,8 @@ async def get_users_author_invites(
         GrpcGetInvitesByAuthorIdRequest(
             author_id=user.id,
             requesting_user=user,
+            page_number=page,
+            items_per_page=items_per_page
         )
     )
 
