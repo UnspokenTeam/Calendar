@@ -1,7 +1,7 @@
 """Invite routes"""
 from datetime import datetime
 from typing import Annotated, List
-from uuid import UUID
+from uuid import UUID, uuid4
 import logging
 
 from grpc import RpcError
@@ -275,13 +275,13 @@ async def create_invite(
         raise ValueError("Invitee and author cannot be the same person")
 
     await check_permission_for_event(
-        requesting_user=user, event_id=str(event_id), grpc_clients=grpc_clients
+        requesting_user=user, event_id=event_id, grpc_clients=grpc_clients
     )
 
-    await check_user_existence(user_id=str(invitee_id), grpc_clients=grpc_clients)
+    await check_user_existence(user_id=invitee_id, grpc_clients=grpc_clients)
 
     invite = Invite(
-        id="id",
+        id=uuid4(),
         event_id=event_id,
         invitee_id=invitee_id,
         author_id=user.id,
@@ -399,14 +399,12 @@ async def update_invite(
     db_invite = Invite.from_proto(db_invite_response.invite)
 
     if db_invite.event_id != invite.event_id:
-        _ = grpc_clients.event_service_client.request().get_event_by_event_id(
-            GrpcGetEventByEventIdRequest(event_id=str(invite.event_id), requesting_user=user)
+        await check_permission_for_event(
+            requesting_user=user, event_id=invite.event_id, grpc_clients=grpc_clients
         )
 
     if db_invite.invitee_id != invite.invitee_id:
-        _ = grpc_clients.identity_service_client.request().get_user_by_id(
-            GrpcGetUserByIdRequest(user_id=str(invite.invitee_id))
-        )
+        await check_user_existence(user_id=invite.invitee_id, grpc_clients=grpc_clients)
 
     invite.created_at = db_invite.created_at
     invite.deleted_at = db_invite.deleted_at
@@ -421,7 +419,7 @@ async def update_invite(
 
 @router.delete("/")
 async def delete_invite(
-    invite_id: str,
+    invite_id: UUID,
     user: Annotated[GrpcUser, Security(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
@@ -432,7 +430,7 @@ async def delete_invite(
 
     Parameters
     ----------
-    invite_id : str
+    invite_id : UUID
         Delete invite
     user : Annotated[GrpcUser, Security(auth)]
         Authorized user's data in proto format
@@ -442,14 +440,14 @@ async def delete_invite(
     """
     invite_response: GrpcInviteResponse = (
         grpc_clients.invite_service_client.request().get_invite_by_invite_id(
-            GrpcGetInviteByInviteIdRequest(invite_id=invite_id, requesting_user=user)
+            GrpcGetInviteByInviteIdRequest(invite_id=str(invite_id), requesting_user=user)
         )
     )
 
     invite = Invite.from_proto(invite_response.invite)
 
     grpc_clients.invite_service_client.request().delete_invite_by_id(
-        GrpcDeleteInviteByIdRequest(invite_id=invite_id, requesting_user=user)
+        GrpcDeleteInviteByIdRequest(invite_id=str(invite_id), requesting_user=user)
     )
 
     try:
@@ -465,7 +463,7 @@ async def delete_invite(
 
 
 async def check_permission_for_event(
-    requesting_user: GrpcUser, event_id: str, grpc_clients: GrpcClientParams
+    requesting_user: GrpcUser, event_id: UUID, grpc_clients: GrpcClientParams
 ) -> None:
     """
     \f
@@ -476,7 +474,7 @@ async def check_permission_for_event(
     ----------
     requesting_user : GrpcUser
         User's data
-    event_id : str
+    event_id : UUID
         Event id
     grpc_clients: GrpcClientParams
         Grpc clients
@@ -490,7 +488,7 @@ async def check_permission_for_event(
     try:
         _ = grpc_clients.event_service_client.request().get_event_by_event_id(
             GrpcGetEventByEventIdRequest(
-                event_id=event_id,
+                event_id=str(event_id),
                 requesting_user=requesting_user,
             )
         )
@@ -511,7 +509,7 @@ async def check_permission_for_event(
             raise PermissionDeniedError("Permission denied")
 
 
-async def check_user_existence(user_id: str, grpc_clients: GrpcClientParams) -> None:
+async def check_user_existence(user_id: UUID, grpc_clients: GrpcClientParams) -> None:
     """
     \f
 
@@ -519,12 +517,12 @@ async def check_user_existence(user_id: str, grpc_clients: GrpcClientParams) -> 
 
     Parameters
     ----------
-    user_id : str
+    user_id : UUID
         User's id
     grpc_clients : GrpcClientParams
         Grpc clients
 
     """
     _ = grpc_clients.identity_service_client.request().get_user_by_id(
-        GrpcGetUserByIdRequest(user_id=user_id)
+        GrpcGetUserByIdRequest(user_id=str(user_id))
     )
