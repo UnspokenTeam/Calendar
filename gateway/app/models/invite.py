@@ -1,14 +1,16 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional, Self
+from typing import Optional, Self, Annotated
 
-from google.protobuf.timestamp_pb2 import Timestamp
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, AfterValidator
+from pytz import utc
 
 from app.generated.invite_service.invite_service_pb2 import (
     GrpcInvite,
     InviteStatus as GrpcInviteStatus
 )
+
+from app.validators import str_special_characters_validator
 
 
 class InviteStatus(StrEnum):
@@ -108,11 +110,11 @@ class Invite(BaseModel):
 
 
     """
-    id: str
-    event_id: str
-    author_id: str
-    invitee_id: str
-    status: InviteStatus
+    id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
+    event_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
+    author_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
+    invitee_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
+    status: InviteStatus = InviteStatus.PENDING
     created_at: datetime
     deleted_at: Optional[datetime] = None
 
@@ -164,9 +166,9 @@ class Invite(BaseModel):
             status=self.status.to_proto(),
         )
 
-        invite.created_at.FromDatetime(self.created_at),
+        invite.created_at.FromDatetime(self.created_at.astimezone(utc)),
 
         if self.deleted_at is not None:
-            invite.deleted_at.FromDatetime(self.deleted_at)
+            invite.deleted_at.FromDatetime(self.deleted_at.astimezone(utc))
 
         return invite

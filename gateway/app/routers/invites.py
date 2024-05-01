@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List, Annotated
 
 from fastapi import APIRouter, Security, Depends
+from grpc import RpcError
 
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
@@ -9,6 +10,10 @@ from app.generated.event_service.event_service_pb2 import (
 )
 from app.generated.identity_service.get_user_pb2 import (
     UserByIdRequest as GrpcGetUserByIdRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    DeleteNotificationsByEventsAndAuthorIdsRequest as GrpcDeleteNotificationsByEventsAndAuthorIdsRequest,
+    ListOfIds as GrpcListOfIds,
 )
 from app.generated.invite_service.invite_service_pb2 import (
     GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
@@ -18,8 +23,9 @@ from app.generated.invite_service.invite_service_pb2 import (
     InviteResponse as GrpcInviteResponse,
     InviteRequest as GrpcInviteRequest,
     DeleteInviteByIdRequest as GrpcDeleteInviteByIdRequest,
+    InviteStatus as GrpcInviteStatus,
 )
-from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
+from app.generated.user.user_pb2 import GrpcUser
 from app.middleware import auth
 from app.models import Invite, InviteStatus
 from app.params import GrpcClientParams
@@ -144,18 +150,9 @@ async def create_invite(
         Grpc clients injected by DI
 
     """
-    _ = grpc_clients.event_service_client.request().get_event_by_event_id(
-        GrpcGetEventByEventIdRequest(
-            event_id=event_id,
-            requesting_user=user
-        )
-    )
+    await check_permission_for_event(requesting_user=user, event_id=event_id, grpc_clients=grpc_clients)
 
-    _ = grpc_clients.identity_service_client.request().get_user_by_id(
-        GrpcGetUserByIdRequest(
-            user_id=invitee_id
-        )
-    )
+    await check_user_existence(user_id=invitee_id, grpc_clients=grpc_clients)
 
     invite = Invite(
         id="",
@@ -197,18 +194,31 @@ async def update_invite(
     if invite.author_id != user.id and invite.invitee_id != user.id:
         raise PermissionDeniedError
 
-    _ = grpc_clients.event_service_client.request().get_event_by_event_id(
-        GrpcGetEventByEventIdRequest(
-            event_id=invite.event_id,
+    db_invite_response: GrpcInviteResponse = grpc_clients.invite_service_client.request().get_invite_by_invite_id(
+        GrpcGetInviteByInviteIdRequest(
+            invite_id=invite.invite_id,
             requesting_user=user
         )
     )
+    db_invite = Invite.from_proto(db_invite_response.invite)
 
-    _ = grpc_clients.identity_service_client.request().get_user_by_id(
-        GrpcGetUserByIdRequest(
-            user_id=invite.invitee_id
+    if db_invite.event_id != invite.event_id:
+        _ = grpc_clients.event_service_client.request().get_event_by_event_id(
+            GrpcGetEventByEventIdRequest(
+                event_id=invite.event_id,
+                requesting_user=user
+            )
         )
-    )
+
+    if db_invite.invite.invitee_id != invite.invitee_id:
+        _ = grpc_clients.identity_service_client.request().get_user_by_id(
+            GrpcGetUserByIdRequest(
+                user_id=invite.invitee_id
+            )
+        )
+
+    invite.created_at = db_invite.created_at
+    invite.deleted_at = db_invite.deleted_at
 
     grpc_clients.invite_service_client.request().update_invite(
         GrpcInviteRequest(
@@ -237,9 +247,89 @@ async def delete_invite(
         Grpc clients injected by DI
 
     """
+    invite_response: GrpcInviteResponse = grpc_clients.invite_service_client.request().get_invite_by_invite_id(
+        GrpcGetInviteByInviteIdRequest(
+            invite_id=invite_id,
+            requesting_user=user
+        )
+    )
+
+    invite = Invite.from_proto(invite_response.invite)
+
     grpc_clients.invite_service_client.request().delete_invite_by_id(
         GrpcDeleteInviteByIdRequest(
             invite_id=invite_id,
             requesting_user=user
+        )
+    )
+
+    try:
+        grpc_clients.notification_service_client.request().delete_notifications_by_events_and_author_ids(
+            GrpcDeleteNotificationsByEventsAndAuthorIdsRequest(
+                event_ids=GrpcListOfIds(ids=[invite.event_id]),
+                author_id=user.id,
+                requesting_user=user
+            )
+        )
+    except RpcError:
+        pass
+
+
+async def check_permission_for_event(
+        requesting_user: GrpcUser, event_id: str, grpc_clients: GrpcClientParams
+) -> None:
+    """
+    Check if user can access event.
+    Parameters
+    ----------
+    requesting_user : GrpcUser
+        User's data
+    event_id : str
+        Event id
+    grpc_clients: GrpcClientParams
+        Grpc clients
+    Raises
+    ------
+    PermissionDeniedError
+        Permission denied
+    """
+    try:
+        _ = grpc_clients.event_service_client.request().get_event_by_event_id(
+            GrpcGetEventByEventIdRequest(
+                event_id=event_id,
+                requesting_user=requesting_user
+            )
+        )
+    except RpcError:
+        invites: GrpcInvitesResponse = grpc_clients.invite_service_client.request().get_invites_by_invitee_id(
+            GrpcGetInvitesByInviteeIdRequest(
+                invitee_id=requesting_user.id,
+                invite_status=GrpcInviteStatus.ACCEPTED,
+                requesting_user=requesting_user,
+                page_number=1,
+                items_per_page=-1
+            )
+        )
+        if not any([invite for invite in invites.invites.invites]):
+            raise PermissionDeniedError("Permission denied")
+
+
+async def check_user_existence(
+        user_id: str, grpc_clients: GrpcClientParams
+) -> None:
+    """
+    Check if user with given id exists
+
+    Parameters
+    ----------
+    user_id : str
+        User's id
+    grpc_clients : GrpcClientParams
+        Grpc clients
+
+    """
+    _ = grpc_clients.identity_service_client.request().get_user_by_id(
+        GrpcGetUserByIdRequest(
+            user_id=user_id
         )
     )
