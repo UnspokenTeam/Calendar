@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import List, Annotated
 
@@ -216,9 +217,9 @@ async def create_invite(
     if user.id == invitee_id:
         raise ValueError("Invitee and author cannot be the same person")
 
-    # await check_permission_for_event(requesting_user=user, event_id=event_id, grpc_clients=grpc_clients)
+    await check_permission_for_event(requesting_user=user, event_id=event_id, grpc_clients=grpc_clients)
 
-    # await check_user_existence(user_id=invitee_id, grpc_clients=grpc_clients)
+    await check_user_existence(user_id=invitee_id, grpc_clients=grpc_clients)
 
     invite = Invite(
         id="id",
@@ -227,7 +228,6 @@ async def create_invite(
         author_id=user.id,
         status=InviteStatus.PENDING,
         created_at=datetime.now(),
-        deleted_at=None
     )
 
     grpc_clients.invite_service_client.request().create_invite(
@@ -369,10 +369,11 @@ async def check_permission_for_event(
         _ = grpc_clients.event_service_client.request().get_event_by_event_id(
             GrpcGetEventByEventIdRequest(
                 event_id=event_id,
-                requesting_user=requesting_user
+                requesting_user=requesting_user,
             )
         )
-    except RpcError:
+    except RpcError as e:
+        logging.error(e.details())
         invites: GrpcInvitesResponse = grpc_clients.invite_service_client.request().get_invites_by_invitee_id(
             GrpcGetInvitesByInviteeIdRequest(
                 invitee_id=requesting_user.id,
