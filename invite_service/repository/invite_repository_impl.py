@@ -38,6 +38,8 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         Returns invites that have matches with given invitee id.
     async create_invite(invite)
         Creates new invite if does not exist or update the existing one.
+    async create_multiple_invites(invites)
+        Create multiple invites.
     async update_invite(invite)
         Updates invite that has the same id as provided invite object inside db.
     async delete_invite_by_invite_id(invite_id)
@@ -57,7 +59,11 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         self._db_client = PostgresClient()
 
     async def get_invites_by_event_id(
-            self, event_id: str, status: Optional[InviteStatus]
+        self,
+        event_id: str,
+        page_number: int,
+        items_per_page: int,
+        status: Optional[InviteStatus],
     ) -> List[Invite]:
         """
         Get invites with matching event id
@@ -66,6 +72,10 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         ----------
         event_id : str
             Event id.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
         status : Optional[InviteStatus]
             Optional invite status. If present will filter the events by status
 
@@ -85,18 +95,24 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         invites: Optional[
             List[PrismaInvite]
         ] = await self._db_client.db.invite.find_many(
-            where=
-            {
+            where={
                 "event_id": event_id,
                 "deleted_at": None,
-            } | ({"status": str(status)} if status is not None else {}),
+            }
+            | ({"status": str(status)} if status is not None else {}),
+            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
+            take=items_per_page if items_per_page != -1 else None,
         )
         if invites is None or len(invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return invites
 
     async def get_invites_by_author_id(
-        self, author_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+        self,
+        author_id: str,
+        page_number: int,
+        items_per_page: int,
+        status: Optional[InviteStatus],
     ) -> List[Invite]:
         """
         Get invites by author id.
@@ -128,11 +144,11 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         db_invites: Optional[
             List[PrismaInvite]
         ] = await self._db_client.db.invite.find_many(
-            where=
-            {
+            where={
                 "author_id": author_id,
                 "deleted_at": None,
-            } | ({"status": str(status)} if status is not None else {}),
+            }
+            | ({"status": str(status)} if status is not None else {}),
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
@@ -173,7 +189,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         return Invite.from_prisma_invite(prisma_invite=db_invite)
 
     async def get_all_invites(
-        self, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+            self, page_number: int, items_per_page: int, status: Optional[InviteStatus]
     ) -> List[Invite]:
         """
         Get all invites.
@@ -215,7 +231,11 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         ]
 
     async def get_invites_by_invitee_id(
-        self, invitee_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+        self,
+        invitee_id: str,
+        page_number: int,
+        items_per_page: int,
+        status: Optional[InviteStatus],
     ) -> List[Invite]:
         """
         Get invites by invitee id.
@@ -247,11 +267,11 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         db_invites: Optional[
             List[PrismaInvite]
         ] = await self._db_client.db.invite.find_many(
-            where=
-            {
+            where={
                 "invitee_id": invitee_id,
                 "deleted_at": None,
-            } | ({"status": str(status)} if status is not None else {}),
+            }
+            | ({"status": str(status)} if status is not None else {}),
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
@@ -297,6 +317,46 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         db_invite.deleted_at = None
         db_invite.status = InviteStatus.PENDING
         await self.update_invite(db_invite)
+
+    async def create_multiple_invites(self, invites: List[Invite]) -> None:
+        """
+        Create multiple invites with matching data if not exist.
+
+        Parameters
+        ----------
+        invites : List[Invite]
+            List of invites to create.
+
+        Raises
+        -------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+        UniqueError
+            Some invites already exist.
+
+        """
+        db_invites = await self._db_client.db.invite.find_many(
+            where={"id": {"in": [invite.id for invite in invites]}}
+        )
+
+        if db_invites is not None and len(db_invites) > 0:
+            if any([db_invite.status == InviteStatus.PENDING for db_invite in db_invites]):
+                raise UniqueError("Some invites already exist")
+
+            ids = [db_invite.id for db_invite in db_invites]
+            invites = [invite for invite in invites if invite.id not in ids]
+
+            await self._db_client.db.invite.update_many(
+                where={"id": {"in": [db_invite.id for db_invite in db_invites]}},
+                data={
+                    "deleted_at": None,
+                    "status": InviteStatus.PENDING,
+                }
+            )
+
+        await self._db_client.db.invite.create_many(
+            data=[invite.to_dict() for invite in invites]
+        )
 
     async def update_invite(self, invite: Invite) -> None:
         """
