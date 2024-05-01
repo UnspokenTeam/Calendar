@@ -53,7 +53,7 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
             return JSONResponse(
                 status_code=403, content={"message": "Permission denied"}
             )
-        except ValueError as e:
-            return JSONResponse(
-                status_code=422, content={"message": f"Bad Request {e}"}
-            )
+        # except ValueError as e:
+        #     return JSONResponse(
+        #         status_code=422, content={"message": f"Bad Request {e}"}
+        #     )

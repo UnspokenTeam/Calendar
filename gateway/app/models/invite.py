@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import Annotated, Optional, Self
+from typing import Optional, Self
+from uuid import UUID
 
 from app.generated.invite_service.invite_service_pb2 import (
     GrpcInvite,
@@ -8,9 +9,8 @@ from app.generated.invite_service.invite_service_pb2 import (
 from app.generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
-from app.validators import str_special_characters_validator
 
-from pydantic import AfterValidator, BaseModel, Field
+from pydantic import BaseModel
 from pytz import utc
 
 
@@ -87,13 +87,13 @@ class Invite(BaseModel):
 
     Attributes
     ----------
-    id : str
+    id : UUID
         Id of the invite
-    event_id : str
+    event_id : UUID
         Id of the related event
-    author_id : str
+    author_id : UUID
         Id of the author of the invite
-    invitee_id : str
+    invitee_id : UUID
         Id of the invitee
     status : InviteStatus
         Invite status
@@ -112,18 +112,10 @@ class Invite(BaseModel):
 
     """
 
-    id: Annotated[
-        str, Field("", min_length=1), AfterValidator(str_special_characters_validator)
-    ]
-    event_id: Annotated[
-        str, Field("", min_length=1), AfterValidator(str_special_characters_validator)
-    ]
-    author_id: Annotated[
-        str, Field("", min_length=1), AfterValidator(str_special_characters_validator)
-    ]
-    invitee_id: Annotated[
-        str, Field("", min_length=1), AfterValidator(str_special_characters_validator)
-    ]
+    id: UUID
+    event_id: UUID
+    author_id: UUID
+    invitee_id: UUID
     status: InviteStatus = InviteStatus.PENDING
     created_at: datetime
     deleted_at: Optional[datetime] = None
@@ -171,10 +163,10 @@ class Invite(BaseModel):
 
         """
         invite = GrpcInvite(
-            id=self.id,
-            event_id=self.event_id,
-            author_id=self.author_id,
-            invitee_id=self.invitee_id,
+            id=str(self.id),
+            event_id=str(self.event_id),
+            author_id=str(self.author_id),
+            invitee_id=str(self.invitee_id),
             status=self.status.to_proto(),
         )
 
