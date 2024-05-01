@@ -379,13 +379,13 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             Can't delete event with provided data.
 
         """
-        try:
-            index = next(
-                i
-                for i in range(len(self._events))
-                if self._events[i].author_id == author_id
-                and self._events[i].deleted_at is None
-            )
+        indexes = tuple(
+            i
+            for i in range(len(self._events))
+            if self._events[i].author_id == author_id
+            and self._events[i].deleted_at is None
+        )
+        if len(indexes) == 0:
+            raise ValueNotFoundError("Events not found")
+        for index in indexes:
             self._events[index].deleted_at = datetime.now()
-        except StopIteration:
-            raise ValueNotFoundError("Event not found")
