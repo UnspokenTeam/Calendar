@@ -2,30 +2,25 @@
 from datetime import datetime
 from typing import Annotated, List
 
+from grpc import RpcError
+
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     EventRequestByEventId as GrpcGetEventByEventIdRequest,
 )
 from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationByIdRequest as GrpcDeleteNotificationByIdRequest,
-)
-from app.generated.notification_service.notification_service_pb2 import (
     GetAllNotificationsRequest as GrpcGetAllNotificationsRequest,
-)
-from app.generated.notification_service.notification_service_pb2 import (
     NotificationRequest as GrpcNotificationRequest,
-)
-from app.generated.notification_service.notification_service_pb2 import (
     NotificationRequestByNotificationId as GrpcGetNotificationByNotificationIdRequest,
-)
-from app.generated.notification_service.notification_service_pb2 import (
     NotificationResponse as GrpcNotificationResponse,
-)
-from app.generated.notification_service.notification_service_pb2 import (
     NotificationsRequestByAuthorId as GrpcGetNotificationsByAuthorIdRequest,
-)
-from app.generated.notification_service.notification_service_pb2 import (
     NotificationsResponse as GrpcNotificationsResponse,
+)
+from app.generated.invite_service.invite_service_pb2 import (
+    GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
+    InvitesResponse as GrpcInvitesResponse,
+    InviteStatus as GrpcInviteStatus,
 )
 from app.generated.user.user_pb2 import GrpcUser
 from app.middleware import auth
@@ -197,12 +192,7 @@ async def create_notification(
         Grpc clients which are injected by DI
 
     """
-    _ = grpc_clients.event_service_client.request().get_event_by_event_id(
-        GrpcGetEventByEventIdRequest(
-            event_id=event_id,
-            requesting_user=user
-        )
-    )
+    await check_permission_for_event(grpc_user=user, event_id=event_id, grpc_clients=grpc_clients)
 
     notification = Notification(
         id="id",
@@ -259,12 +249,8 @@ async def update_notification_as_author(
     )
     stored_notification = Notification.from_proto(stored_notification_response.notification)
 
-    _ = grpc_clients.event_service_client.request().get_event_by_event_id(
-        GrpcGetEventByEventIdRequest(
-            event_id=notification.event_id,
-            requesting_user=user
-        )
-    )
+    if notification.event_id != stored_notification.event_id:
+        await check_permission_for_event(grpc_user=user, event_id=notification.event_id, grpc_clients=grpc_clients)
 
     notification.created_at = stored_notification.created_at
     notification.deleted_at = stored_notification.deleted_at
@@ -347,3 +333,45 @@ async def delete_notification(
             notification_id=notification_id, requesting_user=user
         )
     )
+
+
+async def check_permission_for_event(
+        grpc_user: GrpcUser, event_id: str, grpc_clients: GrpcClientParams
+) -> None:
+    """
+    Check if user can access event.
+
+    Parameters
+    ----------
+    grpc_user : GrpcUser
+        User's data
+    event_id : str
+        Event id
+    grpc_clients: GrpcClientParams
+        Grpc clients
+
+    Raises
+    ------
+    PermissionDeniedError
+        Permission denied
+
+    """
+    try:
+        _ = grpc_clients.event_service_client.request().get_event_by_event_id(
+            GrpcGetEventByEventIdRequest(
+                event_id=event_id,
+                requesting_user=grpc_user
+            )
+        )
+    except RpcError:
+        invites: GrpcInvitesResponse = grpc_clients.invite_service_client.request().get_invites_by_invitee_id(
+            GrpcGetInvitesByInviteeIdRequest(
+                invitee_id=grpc_user.id,
+                invite_status=GrpcInviteStatus.ACCEPTED,
+                requesting_user=grpc_user,
+                page_number=1,
+                items_per_page=-1
+            )
+        )
+        if not any([invite for invite in invites.invites.invites]):
+            raise PermissionDeniedError("Permission denied")
