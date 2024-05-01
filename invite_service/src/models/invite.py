@@ -6,6 +6,7 @@ from enum import StrEnum
 from typing import Any, Dict, List, Optional, Self
 
 from prisma.models import Invite as PrismaInvite
+from pytz import utc
 
 from generated.invite_service.invite_service_pb2 import (
     GrpcInvite,
@@ -141,9 +142,9 @@ class Invite:
             invitee_id=self.invitee_id,
             status=self.status.to_proto(),
         )
-        invite.created_at.FromDatetime(dt=self.created_at)
+        invite.created_at.FromDatetime(dt=self.created_at.astimezone(utc))
         if self.deleted_at is not None:
-            invite.deleted_at.FromDatetime(self.deleted_at)
+            invite.deleted_at.FromDatetime(self.deleted_at.astimezone(utc))
 
         return invite
 
