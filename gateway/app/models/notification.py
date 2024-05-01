@@ -2,6 +2,8 @@
 from datetime import datetime
 from typing import Annotated, Optional, Self
 
+from pytz import utc
+
 from app.generated.notification_service.notification_service_pb2 import GrpcNotification
 from app.validators import str_special_characters_validator
 
@@ -33,7 +35,7 @@ class Notification(BaseModel):
     id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
     event_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
     author_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
-    enabled: bool
+    enabled: Annotated[bool, Field(True)]
     created_at: datetime
     deleted_at: Optional[datetime] = None
 
@@ -85,8 +87,8 @@ class Notification(BaseModel):
             enabled=self.enabled,
         )
 
-        notification.created_at.FromDatetime(self.created_at)
+        notification.created_at.FromDatetime(self.created_at.astimezone(utc))
         if self.deleted_at is not None:
-            notification.deleted_at.FromDatetime(self.deleted_at)
+            notification.deleted_at.FromDatetime(self.deleted_at.astimezone(utc))
 
         return notification
