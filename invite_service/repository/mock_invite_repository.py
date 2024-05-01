@@ -245,7 +245,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         invites = [
             invite
             for invite in self._invites
-            if invite.id == invitee_id
+            if invite.invitee_id == invitee_id
             and invite.deleted_at is None
             and (invite.status == status if status is not None else True)
         ]
