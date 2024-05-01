@@ -18,7 +18,7 @@ def str_special_characters_validator(value: str) -> str:
     Raises
     ------
     ValueError
-        Raised if string contains special characters.
+        Raised if string contains special characters or if value is not instance of string.
 
     """
     if not isinstance(value, str):

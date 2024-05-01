@@ -41,13 +41,5 @@ class GrpcClient(Generic[T]):
         self._stub = stub(self._channel)
 
     def request(self) -> T:
-        # """
-        # Get request client
-        #
-        # Returns
-        # -------
-        # T
-        #     Request client
-        #
-        # """
+        """Get request client"""
         return self._stub
