@@ -113,7 +113,7 @@ class InviteServiceImpl(GrpcServicer):
 
         """
         if (
-            request.requesting_user != request.author_id
+            request.requesting_user.id != request.author_id
             and request.requesting_user.type != GrpcUserType.ADMIN
         ):
             raise PermissionDeniedError("Permission denied")

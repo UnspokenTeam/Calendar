@@ -372,7 +372,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             )
         except StopIteration:
             raise ValueNotFoundError("Invite not found")
-        self._invites[index].deleted_at = datetime.now
+        self._invites[index].deleted_at = datetime.now()
 
     async def delete_invites_by_event_id(self, event_id: str) -> None:
         """
