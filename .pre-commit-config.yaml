@@ -16,7 +16,7 @@ repos:
           - --namespace-packages
         additional_dependencies:
           - fastapi
-          - pytz
+          - types-pytz
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.3.4
