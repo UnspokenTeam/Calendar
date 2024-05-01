@@ -211,6 +211,31 @@ class IdentityServiceImpl(GrpcServicer):
             access_token=access_token
         )
 
+    async def get_user_by_email(
+        self,
+        request: get_user_proto.GetUserByEmailRequest,
+        context: grpc.ServicerContext,
+    ) -> get_user_proto.UserResponse:
+        """
+        Gets user by email
+
+        Parameters
+        ----------
+        request : get_user_proto.GetUserByEmailRequest
+            User's email
+        context : grpc.ServicerContext
+            Request context
+
+        Returns
+        -------
+        get_user_proto.UserResponse
+            Response object with user data
+
+        """
+        user = await self._user_repository.get_user_by_email(request.email)
+        context.set_code(grpc.StatusCode.OK)
+        return get_user_proto.UserResponse(user=user.to_grpc_user())
+
     async def get_user_by_id(
         self, request: get_user_proto.UserByIdRequest, context: grpc.ServicerContext
     ) -> get_user_proto.UserResponse:

@@ -35,6 +35,8 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         Returns invites that have matches with given invitee id.
     async create_invite(invite)
         Creates new invite if it does not exist or update the existing one.
+    async create_multiple_invites(invites)
+        Create multiple invites.
     async update_invite(invite)
         Updates invite that has the same id as provided invite object.
     async delete_invite_by_invite_id(invite_id)
@@ -54,7 +56,11 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         self._invites = []
 
     async def get_invites_by_event_id(
-            self, event_id: str, status: Optional[InviteStatus]
+        self,
+        event_id: str,
+        page_number: int,
+        items_per_page: int,
+        status: Optional[InviteStatus],
     ) -> List[Invite]:
         """
         Get invites by event id.
@@ -63,6 +69,10 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         ----------
         event_id : str
             Event id.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
         status : Optional[InviteStatus]
             Optional invite status. If present will filter the events by status
 
@@ -72,7 +82,18 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             Invites with matching event id.
 
         """
-        return [invite for invite in self._invites if invite.event_id == event_id and (True if status is None else invite.status == status) and invite.deleted_at is not None]
+        invites = [
+            invite
+            for invite in self._invites
+            if invite.event_id == event_id
+            and (True if status is None else invite.status == status)
+            and invite.deleted_at is not None
+        ]
+        if items_per_page != -1:
+            invites = invites[
+                items_per_page * (page_number - 1) : items_per_page * page_number
+            ]
+        return invites
 
     async def get_invite_by_invite_id(self, invite_id: str) -> Invite:
         """
@@ -104,7 +125,11 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             raise ValueNotFoundError("Invite does not exist")
 
     async def get_invites_by_author_id(
-            self, author_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+        self,
+        author_id: str,
+        page_number: int,
+        items_per_page: int,
+        status: Optional[InviteStatus],
     ) -> List[Invite]:
         """
         Get invites by author id.
@@ -135,20 +160,19 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invite
             for invite in self._invites
             if invite.author_id == author_id
-               and invite.deleted_at is None
-               and (invite.status == status if status is not None else True)
+            and invite.deleted_at is None
+            and (invite.status == status if status is not None else True)
         ]
-        invites = (
-            invites[items_per_page * (page_number - 1): items_per_page * page_number]
-            if items_per_page != -1
-            else invites
-        )
+        if items_per_page != -1:
+            invites = invites[
+                items_per_page * (page_number - 1) : items_per_page * page_number
+            ]
         if invites is None or len(invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return invites
 
     async def get_all_invites(
-            self, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+        self, page_number: int, items_per_page: int, status: Optional[InviteStatus]
     ) -> List[Invite]:
         """
         Get all invites.
@@ -174,18 +198,24 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
         """
         result = [
-                     invite
-                     for invite in self._invites
-                     if status is None or invite.status == status
-                 ][
-                 items_per_page * (page_number - 1): items_per_page * page_number
-                 ]
+            invite
+            for invite in self._invites
+            if status is None or invite.status == status
+        ]
+        if items_per_page != -1:
+            result = result[
+                items_per_page * (page_number - 1) : items_per_page * page_number
+            ]
         if len(result) != 0:
             return result
         raise ValueNotFoundError("Invites not found")
 
     async def get_invites_by_invitee_id(
-            self, invitee_id: str, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+        self,
+        invitee_id: str,
+        page_number: int,
+        items_per_page: int,
+        status: Optional[InviteStatus],
     ) -> List[Invite]:
         """
         Get invites by invitee id.
@@ -216,14 +246,13 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invite
             for invite in self._invites
             if invite.id == invitee_id
-               and invite.deleted_at is None
-               and (invite.status == status if status is not None else True)
+            and invite.deleted_at is None
+            and (invite.status == status if status is not None else True)
         ]
-        invites = (
-            invites[items_per_page * (page_number - 1): items_per_page * page_number]
-            if items_per_page != -1
-            else invites
-        )
+        if items_per_page != -1:
+            invites = invites[
+                items_per_page * (page_number - 1) : items_per_page * page_number
+            ]
         if invites is None or len(invites) == 0:
             raise ValueNotFoundError("Invites not found")
         return invites
@@ -247,7 +276,8 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             old_invite_index = next(
                 i
                 for i in range(len(self._invites))
-                if self._invites[i].author_id == invite.author_id and self._invites[i].invitee_id == invite.invitee_id
+                if self._invites[i].author_id == invite.author_id
+                and self._invites[i].invitee_id == invite.invitee_id
             )
 
             if self._invites[old_invite_index].status == InviteStatus.PENDING:
@@ -258,6 +288,39 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invite.id = str(uuid4())
             invite.created_at = datetime.now()
             invite.deleted_at = None
+            self._invites.append(invite)
+
+    async def create_multiple_invites(self, invites: List[Invite]) -> None:
+        """
+        Create multiple invites or modify existing ones
+
+        Parameters
+        ----------
+        invites : List[Invite]
+            List of invites to create
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+        UniqueError
+            Some invites already exists.
+
+        """
+        invite_ids = [invite.id for invite in invites]
+        db_invites = [(self._invites[i], i) for i in range(len(self._invites)) if self._invites[i].id in invite_ids]
+
+        for invite, index in db_invites:
+            if any([invite == InviteStatus.PENDING for invite, _ in db_invites]):
+                raise UniqueError("Some invites already exist")
+
+            self._invites[index].deleted_at = None
+            self._invites[index].status = InviteStatus.PENDING
+
+        ids = [db_invite.id for db_invite, _ in db_invites]
+        invites = [invite for invite in invites if invite.id not in ids]
+
+        for invite in invites:
             self._invites.append(invite)
 
     async def update_invite(self, invite: Invite) -> None:
@@ -309,7 +372,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             )
         except StopIteration:
             raise ValueNotFoundError("Invite not found")
-        self._invites[index].deleted_at = datetime.now
+        self._invites[index].deleted_at = datetime.now()
 
     async def delete_invites_by_event_id(self, event_id: str) -> None:
         """

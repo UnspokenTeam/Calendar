@@ -28,6 +28,8 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
     -------
     async get_notifications_by_author_id(author_id, page_number, items_per_page)
         Returns page with notifications that have matches with given author id.
+    async get_notification_by_event_and_author_ids(event_id, author_id)
+        Returns notification that has matches with given event and author ids.
     async get_notification_by_notification_id(notification_id)
         Returns notification that has matches with given notification id.
     async get_notifications_by_notifications_ids(notifications_ids, page_number, items_per_page)
@@ -40,8 +42,6 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         Updates notification that has the same id as provided notification object inside db or throws an exception.
     async delete_notification_by_id(notification_id)
         Deletes notification that has matching id from database or throws an exception.
-    async delete_notification_by_event_and_author_ids(event_id, author_id)
-        Deletes notification that has matching event id and author id from database or throws an exception.
     async delete_notifications_by_events_and_author_ids(event_ids, author_id)
         Deletes notifications that have matching event ids and author id from database or throws an exception.
     async delete_notifications_by_event_id(event_id)
@@ -97,6 +97,41 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             Notification.from_prisma_notification(prisma_notification=db_notification)
             for db_notification in db_notifications
         ]
+
+    async def get_notification_by_event_and_author_ids(
+        self, event_id: str, author_id: str
+    ) -> Notification:
+        """
+        Get notification by event and author ids.
+
+        Parameters
+        ----------
+        event_id : str
+            Event's id.
+        author_id : str
+            Author's id.
+
+        Returns
+        -------
+        Notification
+            Notification that matches by event and author ids.
+
+        Raises
+        ------
+        ValueNotFoundError
+            No notification was found for given event and author ids.
+
+        """
+        db_notification: Optional[
+            PrismaNotification
+        ] = await self._db_client.db.notification.find_first(
+            where={"event_id": event_id, "author_id": author_id, "deleted_at": None}
+        )
+        if db_notification is None:
+            raise ValueNotFoundError("Notification not found")
+        return Notification.from_prisma_notification(
+            prisma_notification=db_notification
+        )
 
     async def get_notification_by_notification_id(
         self, notification_id: str
@@ -260,7 +295,9 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
                 )
         else:
             await self._db_client.db.notification.create(
-                data=notification.to_dict(exclude=["enabled", "created_at", "deleted_at"])
+                data=notification.to_dict(
+                    exclude=["enabled", "created_at", "deleted_at"]
+                )
             )
 
     async def update_notification(self, notification: Notification) -> None:
@@ -299,30 +336,6 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         """
         await self._db_client.db.notification.update_many(
             where={"id": notification_id, "deleted_at": None},
-            data={"enabled": False, "deleted_at": datetime.now()},
-        )
-
-    async def delete_notification_by_event_and_author_ids(
-        self, event_id: str, author_id: str
-    ) -> None:
-        """
-        Delete the notification by event and author ids.
-
-        Parameters
-        ----------
-        event_id : str
-            Event id.
-        author_id : str
-            Author id.
-
-        Raises
-        ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
-
-        """
-        await self._db_client.db.notification.update_many(
-            where={"event_id": event_id, "author_id": author_id, "deleted_at": None},
             data={"enabled": False, "deleted_at": datetime.now()},
         )
 
