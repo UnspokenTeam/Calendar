@@ -2,12 +2,11 @@
 from datetime import datetime
 from typing import Annotated, Optional, Self
 
-from pytz import utc
-
 from app.generated.notification_service.notification_service_pb2 import GrpcNotification
 from app.validators import str_special_characters_validator
 
 from pydantic import AfterValidator, BaseModel, Field
+from pytz import utc
 
 
 class Notification(BaseModel):
