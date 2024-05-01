@@ -12,6 +12,7 @@ service InviteService {
   rpc get_invites_by_author_id(InvitesByAuthorIdRequest) returns (InvitesResponse){}
   rpc get_invites_by_invitee_id(GetInvitesByInviteeIdRequest) returns (InvitesResponse){}
   rpc create_invite(InviteRequest) returns (google.protobuf.Empty){}
+  rpc create_multiple_invites(InvitesRequest) returns (google.protobuf.Empty){}
   rpc update_invite(InviteRequest) returns (google.protobuf.Empty){}
   rpc delete_invite_by_id(DeleteInviteByIdRequest) returns (google.protobuf.Empty){}
   rpc delete_invites_by_author_id(DeleteInvitesByAuthorIdRequest) returns (google.protobuf.Empty){}
@@ -27,6 +28,11 @@ message InvitesByEventIdRequest {
   }
   uint64 page_number = 4;
   int64 items_per_page = 5;
+}
+
+message InvitesRequest {
+  GrpcUser requesting_user = 1;
+  ListOfInvites invites = 2;
 }
 
 message GetAllInvitesRequest {

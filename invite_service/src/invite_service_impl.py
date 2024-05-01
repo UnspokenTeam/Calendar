@@ -39,7 +39,9 @@ class InviteServiceImpl(GrpcServicer):
     async get_invites_by_invitee_id(request, context)
         Function that need to be bind to the server that returns invites list by invitee id.
     async create_invite(request, context)
-        Function that need to be bind to the server that creates the invite.
+        Function that need to be bind to the server that creates the invite or updates the existing one.
+    async create_multiple_invites(request, context)
+        Function that need to be bind to the server that creates multiple invites or updates the existing ones.
     async update_invite(request, context)
         Function that need to be bind to the server that updates the invite.
     async delete_invite(request, context)
@@ -282,6 +284,30 @@ class InviteServiceImpl(GrpcServicer):
             raise PermissionDeniedError("Permission denied")
         await self._invite_repository.create_invite(invite=invite)
         context.set_code(grpc.StatusCode.OK)
+        return Empty()
+
+    async def create_multiple_invites(
+            self, request: proto.InvitesRequest, _: grpc.ServicerContext
+    ) -> Empty:
+        """
+        Create multiple invites.
+
+        Parameters
+        ----------
+        request : proto.InvitesRequest
+            Request data containing GrpcInvites.
+        _ : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        proto.BaseResponse
+            Object containing status code and message if the response status is not 200.
+
+        """
+        if any([invite.author_id != request.requesting_user.id for invite in request.invites.invites]):
+            raise PermissionDeniedError("Permission denied")
+        await self._invite_repository.create_multiple_invites(invites=[Invite.from_grpc_invite(invite) for invite in request.invites.invites])
         return Empty()
 
     async def update_invite(
