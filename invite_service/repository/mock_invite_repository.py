@@ -280,7 +280,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
                 and self._invites[i].invitee_id == invite.invitee_id
             )
 
-            if self._invites[old_invite_index].status == InviteStatus.PENDING:
+            if self._invites[old_invite_index].status == InviteStatus.PENDING and self._invites[old_invite_index].deleted_at is None:
                 raise UniqueError("Invite already exists")
 
             self._invites[old_invite_index] = invite
@@ -311,7 +311,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         db_invites = [(self._invites[i], i) for i in range(len(self._invites)) if self._invites[i].id in invite_ids]
 
         for invite, index in db_invites:
-            if any([invite == InviteStatus.PENDING for invite, _ in db_invites]):
+            if any([invite == InviteStatus.PENDING and invite.deleted_at is None for invite, _ in db_invites]):
                 raise UniqueError("Some invites already exist")
 
             self._invites[index].deleted_at = None
