@@ -62,7 +62,6 @@ message InviteRequestByInviteId {
 }
 
 message InviteResponse {
-  int32 status_code = 1;
   optional GrpcInvite invite = 2;
   optional string message = 3;
 }
@@ -90,7 +89,6 @@ message ListOfInvites {
 }
 
 message InvitesResponse{
-  int32 status_code = 1;
   optional ListOfInvites invites = 2;
   optional string message = 3;
 }
