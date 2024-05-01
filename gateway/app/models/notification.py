@@ -1,11 +1,11 @@
 """User model"""
 from datetime import datetime
-from typing import Optional, Self, Annotated
+from typing import Annotated, Optional, Self
 
 from app.generated.notification_service.notification_service_pb2 import GrpcNotification
 from app.validators import str_special_characters_validator
 
-from pydantic import BaseModel, Field, AfterValidator
+from pydantic import AfterValidator, BaseModel, Field
 
 
 class Notification(BaseModel):

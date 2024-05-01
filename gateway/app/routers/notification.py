@@ -2,9 +2,6 @@
 from datetime import datetime
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, Security
-from pydantic import Field, AfterValidator
-
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     EventRequestByEventId as GrpcGetEventByEventIdRequest,
@@ -36,6 +33,9 @@ from app.models import Notification, UserType
 from app.params import GrpcClientParams
 from app.validators import str_special_characters_validator
 from app.validators.int_validators import int_not_equal_zero_validator
+
+from fastapi import APIRouter, Depends, Security
+from pydantic import AfterValidator, Field
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
