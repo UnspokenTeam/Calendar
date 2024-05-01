@@ -1,8 +1,11 @@
 """Notification route"""
 from datetime import datetime
 from typing import Annotated, List
+from uuid import UUID, uuid4
 
+from fastapi import APIRouter, Depends, Security
 from grpc import RpcError
+from pydantic import AfterValidator, Field
 
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
@@ -12,10 +15,10 @@ from app.generated.invite_service.invite_service_pb2 import (
     GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
 )
 from app.generated.invite_service.invite_service_pb2 import (
-    InvitesResponse as GrpcInvitesResponse,
+    InviteStatus as GrpcInviteStatus,
 )
 from app.generated.invite_service.invite_service_pb2 import (
-    InviteStatus as GrpcInviteStatus,
+    InvitesResponse as GrpcInvitesResponse,
 )
 from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationByIdRequest as GrpcDeleteNotificationByIdRequest,
@@ -42,20 +45,14 @@ from app.generated.user.user_pb2 import GrpcUser
 from app.middleware import auth
 from app.models import Notification, UserType
 from app.params import GrpcClientParams
-from app.validators import str_special_characters_validator
 from app.validators.int_validators import int_not_equal_zero_validator
-
-from fastapi import APIRouter, Depends, Security
-from pydantic import AfterValidator, Field
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 
 @router.get("/{notification_id}")
 async def get_notification_by_id(
-        notification_id: Annotated[
-            str, Field("", min_length=1), AfterValidator(str_special_characters_validator)
-        ],
+        notification_id: UUID,
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Notification:
@@ -66,7 +63,7 @@ async def get_notification_by_id(
 
     Parameters
     ----------
-    notification_id : str
+    notification_id : UUID
         Notification id
     user : Annotated[GrpcUser, Security(auth)]
         Authenticated user data in proto format
@@ -85,7 +82,7 @@ async def get_notification_by_id(
         .request()
         .get_notification_by_notification_id(
             GrpcGetNotificationByNotificationIdRequest(
-                notification_id=notification_id, requesting_user=user
+                notification_id=str(notification_id), requesting_user=user
             )
         )
     )
@@ -189,7 +186,7 @@ async def get_my_notifications(
 
 @router.post("/")
 async def create_notification(
-        event_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)],
+        event_id: UUID,
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
@@ -200,7 +197,7 @@ async def create_notification(
 
     Parameters
     ----------
-    event_id : str
+    event_id : UUID
         Event id
     user : Annotated[GrpcUser, Security(auth)]
         Authenticated user data in proto format
@@ -211,7 +208,7 @@ async def create_notification(
     await check_permission_for_event(grpc_user=user, event_id=event_id, grpc_clients=grpc_clients)
 
     notification = Notification(
-        id="id",
+        id=uuid4(),
         event_id=event_id,
         author_id=user.id,
         created_at=datetime.now(),
@@ -258,7 +255,7 @@ async def update_notification_as_author(
     stored_notification_response: GrpcNotificationResponse = (
         grpc_clients.notification_service_client.request().get_notification_by_notification_id(
             GrpcGetNotificationByNotificationIdRequest(
-                notification_id=notification.id,
+                notification_id=str(notification.id),
                 requesting_user=user,
             )
         )
@@ -309,7 +306,7 @@ async def update_notification(
 
     _ = grpc_clients.event_service_client.request().get_event_by_event_id(
         GrpcGetEventByEventIdRequest(
-            event_id=notification.event_id,
+            event_id=str(notification.event_id),
             requesting_user=user
         )
     )
@@ -323,9 +320,7 @@ async def update_notification(
 
 @router.delete("/")
 async def delete_notification(
-        notification_id: Annotated[
-            str, Field("", min_length=1), AfterValidator(str_special_characters_validator)
-        ],
+        notification_id: UUID,
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
@@ -336,7 +331,7 @@ async def delete_notification(
 
     Parameters
     ----------
-    notification_id : str
+    notification_id : UUID
         Notification id
     user : Annotated[GrpcUser, Security(auth)]
         Authenticated user data in proto format
@@ -346,13 +341,13 @@ async def delete_notification(
     """
     grpc_clients.notification_service_client.request().delete_notification_by_id(
         GrpcDeleteNotificationByIdRequest(
-            notification_id=notification_id, requesting_user=user
+            notification_id=str(notification_id), requesting_user=user
         )
     )
 
 
 async def check_permission_for_event(
-        grpc_user: GrpcUser, event_id: str, grpc_clients: GrpcClientParams
+        grpc_user: GrpcUser, event_id: UUID, grpc_clients: GrpcClientParams
 ) -> None:
     """
     Check if user can access event.
@@ -361,7 +356,7 @@ async def check_permission_for_event(
     ----------
     grpc_user : GrpcUser
         User's data
-    event_id : str
+    event_id : UUID
         Event id
     grpc_clients: GrpcClientParams
         Grpc clients
@@ -375,7 +370,7 @@ async def check_permission_for_event(
     try:
         _ = grpc_clients.event_service_client.request().get_event_by_event_id(
             GrpcGetEventByEventIdRequest(
-                event_id=event_id,
+                event_id=str(event_id),
                 requesting_user=grpc_user
             )
         )

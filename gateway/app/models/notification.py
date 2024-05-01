@@ -1,6 +1,7 @@
 """User model"""
 from datetime import datetime
 from typing import Annotated, Optional, Self
+from uuid import UUID
 
 from app.generated.notification_service.notification_service_pb2 import GrpcNotification
 from app.validators import str_special_characters_validator
@@ -15,9 +16,9 @@ class Notification(BaseModel):
 
     Attributes
     ----------
-    id : str
-    event_id : str
-    author_id : str
+    id : UUID
+    event_id : UUID
+    author_id : UUID
     enabled : bool
     created_at : datetime
     deleted_at : Optional[datetime]
@@ -31,9 +32,9 @@ class Notification(BaseModel):
 
     """
 
-    id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
-    event_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
-    author_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
+    id: UUID
+    event_id: UUID
+    author_id: UUID
     enabled: Annotated[bool, Field(True)]
     created_at: datetime
     deleted_at: Optional[datetime] = None
@@ -80,9 +81,9 @@ class Notification(BaseModel):
 
         """
         notification = GrpcNotification(
-            id=self.id,
-            event_id=self.event_id,
-            author_id=self.author_id,
+            id=str(self.id),
+            event_id=str(self.event_id),
+            author_id=str(self.author_id),
             enabled=self.enabled,
         )
 
