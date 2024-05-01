@@ -120,8 +120,8 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                     events.append(event)
             else:
                 if (
-                    (True if start is None else start <= event.start)
-                    and (True if end is None else event.start <= end)
+                    (start <= event.start if start is not None else True)
+                    and (event.start <= end if end is not None else True)
                     and event.author_id == author_id
                     and event.deleted_at is None
                 ):
@@ -270,8 +270,8 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                 ):
                     events.append(event)
             else:
-                if (True if start is None else start <= event.start) and (
-                    True if end is None else event.start <= end
+                if (start <= event.start if start is not None else True) and (
+                    event.start <= end if end is not None else True
                 ):
                     events.append(event)
         events = (

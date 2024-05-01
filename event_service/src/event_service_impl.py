@@ -117,6 +117,11 @@ class EventServiceImpl(GrpcServicer):
         event = await self._event_repository.get_event_by_event_id(
             event_id=request.event_id
         )
+        if (
+            request.requesting_user.type != GrpcUserType.USER
+            and request.requesting_user.id != event.author_id
+        ):
+            raise PermissionDeniedError("Permission denied.")
         context.set_code(grpc.StatusCode.OK)
         return proto.EventResponse(event=event.to_grpc_event())
 
