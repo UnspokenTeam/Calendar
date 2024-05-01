@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, Self
 from prisma.models import Notification as PrismaNotification
 
 from generated.notification_service.notification_service_pb2 import GrpcNotification
+from pytz import utc
 
 
 @dataclass
@@ -65,9 +66,9 @@ class Notification:
             author_id=self.author_id,
             enabled=self.enabled,
         )
-        notification.created_at.FromDatetime(self.created_at)
+        notification.created_at.FromDatetime(self.created_at.astimezone(utc))
         if self.deleted_at is not None:
-            notification.deleted_at.FromDatetime(self.deleted_at)
+            notification.deleted_at.FromDatetime(self.deleted_at.astimezone(utc))
 
         return notification
 
