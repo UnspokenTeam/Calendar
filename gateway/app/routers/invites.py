@@ -33,7 +33,7 @@ from app.generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
     GetAllInvitesRequest as GrpcGetAllInvitesRequest,
     InvitesRequest as GrpcInvitesRequest,
-    ListOfInvites as GrpcListOfInvites
+    ListOfInvites as GrpcListOfInvites,
 )
 from app.validators import str_special_characters_validator
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
@@ -45,16 +45,20 @@ router = APIRouter(prefix="/invites", tags=["invites"])
 
 
 class CreateInviteData(BaseModel):
-    invitee_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
-    event_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
+    invitee_id: Annotated[
+        str, Field("", min_length=1), AfterValidator(str_special_characters_validator)
+    ]
+    event_id: Annotated[
+        str, Field("", min_length=1), AfterValidator(str_special_characters_validator)
+    ]
 
 
 @router.get("/all/")
 async def get_all_invites(
-        page: Annotated[int, Field(1, ge=1)],
-        items_per_page: Annotated[int, Field(-1, ge=-1)],
-        user: Annotated[GrpcUser, Security(auth)],
-        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+    page: Annotated[int, Field(1, ge=1)],
+    items_per_page: Annotated[int, Field(-1, ge=-1)],
+    user: Annotated[GrpcUser, Security(auth)],
+    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> List[Invite]:
     """
     \f
@@ -80,11 +84,13 @@ async def get_all_invites(
     if user.type != GrpcUserType.ADMIN:
         raise PermissionDeniedError("Permission denied")
 
-    invites_response: GrpcInvitesResponse = grpc_clients.invite_service_client.request().get_all_invites(
-        GrpcGetAllInvitesRequest(
-            page_number=page,
-            items_per_page=items_per_page,
-            requesting_user=user,
+    invites_response: GrpcInvitesResponse = (
+        grpc_clients.invite_service_client.request().get_all_invites(
+            GrpcGetAllInvitesRequest(
+                page_number=page,
+                items_per_page=items_per_page,
+                requesting_user=user,
+            )
         )
     )
     return [Invite.from_proto(invite) for invite in invites_response.invites.invites]
@@ -92,10 +98,10 @@ async def get_all_invites(
 
 @router.get("/my/invitee/")
 async def get_users_invitee_invites(
-        page: Annotated[int, Field(1, ge=1)],
-        items_per_page: Annotated[int, Field(-1, ge=-1)],
-        user: Annotated[GrpcUser, Security(auth)],
-        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+    page: Annotated[int, Field(1, ge=1)],
+    items_per_page: Annotated[int, Field(-1, ge=-1)],
+    user: Annotated[GrpcUser, Security(auth)],
+    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> List[Invite]:
     """
     \f
@@ -118,12 +124,14 @@ async def get_users_invitee_invites(
         Invites where user is an invitee
 
     """
-    invites_request: GrpcInvitesResponse = grpc_clients.invite_service_client.request().get_invites_by_invitee_id(
-        GrpcGetInvitesByInviteeIdRequest(
-            invitee_id=user.id,
-            requesting_user=user,
-            page_number=page,
-            items_per_page=items_per_page
+    invites_request: GrpcInvitesResponse = (
+        grpc_clients.invite_service_client.request().get_invites_by_invitee_id(
+            GrpcGetInvitesByInviteeIdRequest(
+                invitee_id=user.id,
+                requesting_user=user,
+                page_number=page,
+                items_per_page=items_per_page,
+            )
         )
     )
     return [Invite.from_proto(invite) for invite in invites_request.invites.invites]
@@ -131,10 +139,10 @@ async def get_users_invitee_invites(
 
 @router.get("/my/author/")
 async def get_users_author_invites(
-        page: Annotated[int, Field(1, ge=1)],
-        items_per_page: Annotated[int, Field(-1, ge=-1)],
-        user: Annotated[GrpcUser, Security(auth)],
-        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+    page: Annotated[int, Field(1, ge=1)],
+    items_per_page: Annotated[int, Field(-1, ge=-1)],
+    user: Annotated[GrpcUser, Security(auth)],
+    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> List[Invite]:
     """
     \f
@@ -157,12 +165,14 @@ async def get_users_author_invites(
         Invites where user is an author
 
     """
-    invites_request: GrpcInvitesResponse = grpc_clients.invite_service_client.request().get_invites_by_author_id(
-        GrpcGetInvitesByAuthorIdRequest(
-            author_id=user.id,
-            requesting_user=user,
-            page_number=page,
-            items_per_page=items_per_page
+    invites_request: GrpcInvitesResponse = (
+        grpc_clients.invite_service_client.request().get_invites_by_author_id(
+            GrpcGetInvitesByAuthorIdRequest(
+                author_id=user.id,
+                requesting_user=user,
+                page_number=page,
+                items_per_page=items_per_page,
+            )
         )
     )
 
@@ -171,9 +181,9 @@ async def get_users_author_invites(
 
 @router.get("/{invite_id}")
 async def get_invite_by_invite_id(
-        invite_id: str,
-        user: Annotated[GrpcUser, Security(auth)],
-        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+    invite_id: str,
+    user: Annotated[GrpcUser, Security(auth)],
+    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Invite:
     """
     \f
@@ -194,10 +204,9 @@ async def get_invite_by_invite_id(
         Invite instance
 
     """
-    invite_request: GrpcInviteResponse = grpc_clients.invite_service_client.request().get_invite_by_invite_id(
-        GrpcGetInviteByInviteIdRequest(
-            invite_id=invite_id,
-            requesting_user=user
+    invite_request: GrpcInviteResponse = (
+        grpc_clients.invite_service_client.request().get_invite_by_invite_id(
+            GrpcGetInviteByInviteIdRequest(invite_id=invite_id, requesting_user=user)
         )
     )
 
@@ -206,10 +215,10 @@ async def get_invite_by_invite_id(
 
 @router.post("/")
 async def create_invite(
-        invitee_id: str,
-        event_id: str,
-        user: Annotated[GrpcUser, Security(auth)],
-        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+    invitee_id: str,
+    event_id: str,
+    user: Annotated[GrpcUser, Security(auth)],
+    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
     \f
@@ -230,7 +239,9 @@ async def create_invite(
     if user.id == invitee_id:
         raise ValueError("Invitee and author cannot be the same person")
 
-    await check_permission_for_event(requesting_user=user, event_id=event_id, grpc_clients=grpc_clients)
+    await check_permission_for_event(
+        requesting_user=user, event_id=event_id, grpc_clients=grpc_clients
+    )
 
     await check_user_existence(user_id=invitee_id, grpc_clients=grpc_clients)
 
@@ -244,18 +255,15 @@ async def create_invite(
     )
 
     grpc_clients.invite_service_client.request().create_invite(
-        GrpcInviteRequest(
-            invite=invite.to_proto(),
-            requesting_user=user
-        )
+        GrpcInviteRequest(invite=invite.to_proto(), requesting_user=user)
     )
 
 
 @router.post("/multiple/")
 async def create_multiple_invites(
-        invites: List[CreateInviteData],
-        user: Annotated[GrpcUser, Security(auth)],
-        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+    invites: List[CreateInviteData],
+    user: Annotated[GrpcUser, Security(auth)],
+    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
     \f
@@ -275,24 +283,30 @@ async def create_multiple_invites(
         If some users or events does not exist or user does not have permission to them
 
     """
-    users: GrpcUsersResponse = await grpc_clients.identity_service_client.request().get_users_by_id(
-        GrpcGetUsersByIdRequest(
-            page=1,
-            items_per_page=-1,
-            id=[invite.invitee_id for invite in invites]
+    users: GrpcUsersResponse = (
+        await grpc_clients.identity_service_client.request().get_users_by_id(
+            GrpcGetUsersByIdRequest(
+                page=1, items_per_page=-1, id=[invite.invitee_id for invite in invites]
+            )
         )
     )
     if len(users.users.users) != len(invites):
         raise ValueError("Some users do not exist")
 
-    events: GrpcEventsResponse = await grpc_clients.event_service_client.request().get_events_by_events_ids(
-        GrpcGetEventsByEventIdsRequest(
-            page_number=1,
-            items_per_page=-1,
-            events_ids=GrpcListOfEventsIds(ids=[invite.event_id for invite in invites])
+    events: GrpcEventsResponse = (
+        await grpc_clients.event_service_client.request().get_events_by_events_ids(
+            GrpcGetEventsByEventIdsRequest(
+                page_number=1,
+                items_per_page=-1,
+                events_ids=GrpcListOfEventsIds(
+                    ids=[invite.event_id for invite in invites]
+                ),
+            )
         )
     )
-    if len(events.events.events) != len(invites) and all([event.author_id == user.id for event in events.events.events]):
+    if len(events.events.events) != len(invites) and all(
+        [event.author_id == user.id for event in events.events.events]
+    ):
         raise ValueError("Some events do not exist")
 
     await grpc_clients.invite_service_client.request().create_multiple_invites(
@@ -316,9 +330,9 @@ async def create_multiple_invites(
 
 @router.put("/")
 async def update_invite(
-        invite: Invite,
-        user: Annotated[GrpcUser, Security(auth)],
-        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+    invite: Invite,
+    user: Annotated[GrpcUser, Security(auth)],
+    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
     \f
@@ -340,27 +354,21 @@ async def update_invite(
     if invite.author_id == invite.invitee_id:
         raise ValueError("Invitee and author cannot be the same person")
 
-    db_invite_response: GrpcInviteResponse = grpc_clients.invite_service_client.request().get_invite_by_invite_id(
-        GrpcGetInviteByInviteIdRequest(
-            invite_id=invite.id,
-            requesting_user=user
+    db_invite_response: GrpcInviteResponse = (
+        grpc_clients.invite_service_client.request().get_invite_by_invite_id(
+            GrpcGetInviteByInviteIdRequest(invite_id=invite.id, requesting_user=user)
         )
     )
     db_invite = Invite.from_proto(db_invite_response.invite)
 
     if db_invite.event_id != invite.event_id:
         _ = grpc_clients.event_service_client.request().get_event_by_event_id(
-            GrpcGetEventByEventIdRequest(
-                event_id=invite.event_id,
-                requesting_user=user
-            )
+            GrpcGetEventByEventIdRequest(event_id=invite.event_id, requesting_user=user)
         )
 
     if db_invite.invitee_id != invite.invitee_id:
         _ = grpc_clients.identity_service_client.request().get_user_by_id(
-            GrpcGetUserByIdRequest(
-                user_id=invite.invitee_id
-            )
+            GrpcGetUserByIdRequest(user_id=invite.invitee_id)
         )
 
     invite.created_at = db_invite.created_at
@@ -376,9 +384,9 @@ async def update_invite(
 
 @router.delete("/")
 async def delete_invite(
-        invite_id: str,
-        user: Annotated[GrpcUser, Security(auth)],
-        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+    invite_id: str,
+    user: Annotated[GrpcUser, Security(auth)],
+    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
     \f
@@ -394,20 +402,16 @@ async def delete_invite(
         Grpc clients injected by DI
 
     """
-    invite_response: GrpcInviteResponse = grpc_clients.invite_service_client.request().get_invite_by_invite_id(
-        GrpcGetInviteByInviteIdRequest(
-            invite_id=invite_id,
-            requesting_user=user
+    invite_response: GrpcInviteResponse = (
+        grpc_clients.invite_service_client.request().get_invite_by_invite_id(
+            GrpcGetInviteByInviteIdRequest(invite_id=invite_id, requesting_user=user)
         )
     )
 
     invite = Invite.from_proto(invite_response.invite)
 
     grpc_clients.invite_service_client.request().delete_invite_by_id(
-        GrpcDeleteInviteByIdRequest(
-            invite_id=invite_id,
-            requesting_user=user
-        )
+        GrpcDeleteInviteByIdRequest(invite_id=invite_id, requesting_user=user)
     )
 
     try:
@@ -415,7 +419,7 @@ async def delete_invite(
             GrpcDeleteNotificationsByEventsAndAuthorIdsRequest(
                 event_ids=GrpcListOfNotificationIds(ids=[invite.event_id]),
                 author_id=user.id,
-                requesting_user=user
+                requesting_user=user,
             )
         )
     except RpcError:
@@ -423,11 +427,12 @@ async def delete_invite(
 
 
 async def check_permission_for_event(
-        requesting_user: GrpcUser, event_id: str, grpc_clients: GrpcClientParams
+    requesting_user: GrpcUser, event_id: str, grpc_clients: GrpcClientParams
 ) -> None:
     """
     \f
     Check if user can access event.
+
     Parameters
     ----------
     requesting_user : GrpcUser
@@ -436,10 +441,12 @@ async def check_permission_for_event(
         Event id
     grpc_clients: GrpcClientParams
         Grpc clients
+
     Raises
     ------
     PermissionDeniedError
         Permission denied
+
     """
     try:
         _ = grpc_clients.event_service_client.request().get_event_by_event_id(
@@ -450,22 +457,22 @@ async def check_permission_for_event(
         )
     except RpcError as e:
         logging.error(e.details())
-        invites: GrpcInvitesResponse = grpc_clients.invite_service_client.request().get_invites_by_invitee_id(
-            GrpcGetInvitesByInviteeIdRequest(
-                invitee_id=requesting_user.id,
-                invite_status=GrpcInviteStatus.ACCEPTED,
-                requesting_user=requesting_user,
-                page_number=1,
-                items_per_page=-1
+        invites: GrpcInvitesResponse = (
+            grpc_clients.invite_service_client.request().get_invites_by_invitee_id(
+                GrpcGetInvitesByInviteeIdRequest(
+                    invitee_id=requesting_user.id,
+                    invite_status=GrpcInviteStatus.ACCEPTED,
+                    requesting_user=requesting_user,
+                    page_number=1,
+                    items_per_page=-1,
+                )
             )
         )
         if not any([invite.event_id == event_id for invite in invites.invites.invites]):
             raise PermissionDeniedError("Permission denied")
 
 
-async def check_user_existence(
-        user_id: str, grpc_clients: GrpcClientParams
-) -> None:
+async def check_user_existence(user_id: str, grpc_clients: GrpcClientParams) -> None:
     """
     \f
     Check if user with given id exists
@@ -479,7 +486,5 @@ async def check_user_existence(
 
     """
     _ = grpc_clients.identity_service_client.request().get_user_by_id(
-        GrpcGetUserByIdRequest(
-            user_id=user_id
-        )
+        GrpcGetUserByIdRequest(user_id=user_id)
     )

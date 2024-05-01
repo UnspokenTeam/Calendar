@@ -7,7 +7,7 @@ from pytz import utc
 
 from app.generated.invite_service.invite_service_pb2 import (
     GrpcInvite,
-    InviteStatus as GrpcInviteStatus
+    InviteStatus as GrpcInviteStatus,
 )
 
 from app.validators import str_special_characters_validator
@@ -93,7 +93,7 @@ class Invite(BaseModel):
     author_id : str
         Id of the author of the invite
     invitee_id : str
-        Id of the invitee 
+        Id of the invitee
     status : InviteStatus
         Invite status
     created_at : datetime
@@ -110,10 +110,19 @@ class Invite(BaseModel):
 
 
     """
-    id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
-    event_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
-    author_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
-    invitee_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
+
+    id: Annotated[
+        str, Field("", min_length=1), AfterValidator(str_special_characters_validator)
+    ]
+    event_id: Annotated[
+        str, Field("", min_length=1), AfterValidator(str_special_characters_validator)
+    ]
+    author_id: Annotated[
+        str, Field("", min_length=1), AfterValidator(str_special_characters_validator)
+    ]
+    invitee_id: Annotated[
+        str, Field("", min_length=1), AfterValidator(str_special_characters_validator)
+    ]
     status: InviteStatus = InviteStatus.PENDING
     created_at: datetime
     deleted_at: Optional[datetime] = None
@@ -145,7 +154,9 @@ class Invite(BaseModel):
             ),
             deleted_at=datetime.fromtimestamp(
                 proto.deleted_at.seconds + proto.deleted_at.nanos / 1e9
-            ) if proto.WhichOneof("optional_deleted_at") is not None else None
+            )
+            if proto.WhichOneof("optional_deleted_at") is not None
+            else None,
         )
 
     def to_proto(self) -> GrpcInvite:
