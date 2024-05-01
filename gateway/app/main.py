@@ -1,6 +1,6 @@
 from .middleware import InterceptorMiddleware
 from .params import GrpcClientParams
-from .routers import Events, Users, Invites
+from .routers import Events, Invites, Users
 from fastapi import Depends, FastAPI
 
 app = FastAPI(dependencies=[Depends(GrpcClientParams)])

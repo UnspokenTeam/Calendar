@@ -1,16 +1,17 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional, Self, Annotated
-
-from pydantic import BaseModel, Field, AfterValidator
-from pytz import utc
+from typing import Annotated, Optional, Self
 
 from app.generated.invite_service.invite_service_pb2 import (
     GrpcInvite,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
-
 from app.validators import str_special_characters_validator
+
+from pydantic import AfterValidator, BaseModel, Field
+from pytz import utc
 
 
 class InviteStatus(StrEnum):
@@ -34,7 +35,7 @@ class InviteStatus(StrEnum):
     """Invite rejected"""
 
     @classmethod
-    def from_proto(cls, proto: GrpcInviteStatus):
+    def from_proto(cls, proto: GrpcInviteStatus) -> Self:
         """
         Get invite status instance from proto invite status
 

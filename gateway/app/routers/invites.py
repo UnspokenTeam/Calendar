@@ -1,45 +1,78 @@
-import logging
 from datetime import datetime
-from typing import List, Annotated
+from typing import Annotated, List
+import logging
 
-from fastapi import APIRouter, Security, Depends
 from grpc import RpcError
-from pydantic import Field, BaseModel, AfterValidator
 
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     EventRequestByEventId as GrpcGetEventByEventIdRequest,
-    EventsResponse as GrpcEventsResponse,
-    ListOfEventsIds as GrpcListOfEventsIds,
+)
+from app.generated.event_service.event_service_pb2 import (
     EventsRequestByEventsIds as GrpcGetEventsByEventIdsRequest,
+)
+from app.generated.event_service.event_service_pb2 import (
+    EventsResponse as GrpcEventsResponse,
+)
+from app.generated.event_service.event_service_pb2 import (
+    ListOfEventsIds as GrpcListOfEventsIds,
 )
 from app.generated.identity_service.get_user_pb2 import (
     UserByIdRequest as GrpcGetUserByIdRequest,
+)
+from app.generated.identity_service.get_user_pb2 import (
     UsersByIdRequest as GrpcGetUsersByIdRequest,
+)
+from app.generated.identity_service.get_user_pb2 import (
     UsersResponse as GrpcUsersResponse,
 )
-from app.generated.notification_service.notification_service_pb2 import (
-    DeleteNotificationsByEventsAndAuthorIdsRequest as GrpcDeleteNotificationsByEventsAndAuthorIdsRequest,
-    ListOfIds as GrpcListOfNotificationIds,
+from app.generated.invite_service.invite_service_pb2 import (
+    DeleteInviteByIdRequest as GrpcDeleteInviteByIdRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
+    GetAllInvitesRequest as GrpcGetAllInvitesRequest,
 )
 from app.generated.invite_service.invite_service_pb2 import (
     GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
-    InvitesResponse as GrpcInvitesResponse,
-    InvitesByAuthorIdRequest as GrpcGetInvitesByAuthorIdRequest,
-    InviteRequestByInviteId as GrpcGetInviteByInviteIdRequest,
-    InviteResponse as GrpcInviteResponse,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     InviteRequest as GrpcInviteRequest,
-    DeleteInviteByIdRequest as GrpcDeleteInviteByIdRequest,
-    InviteStatus as GrpcInviteStatus,
-    GetAllInvitesRequest as GrpcGetAllInvitesRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
+    InviteRequestByInviteId as GrpcGetInviteByInviteIdRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
+    InviteResponse as GrpcInviteResponse,
+)
+from app.generated.invite_service.invite_service_pb2 import (
+    InvitesByAuthorIdRequest as GrpcGetInvitesByAuthorIdRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     InvitesRequest as GrpcInvitesRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
+    InvitesResponse as GrpcInvitesResponse,
+)
+from app.generated.invite_service.invite_service_pb2 import (
+    InviteStatus as GrpcInviteStatus,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     ListOfInvites as GrpcListOfInvites,
 )
-from app.validators import str_special_characters_validator
+from app.generated.notification_service.notification_service_pb2 import (
+    DeleteNotificationsByEventsAndAuthorIdsRequest as GrpcDeleteNotificationsByEventsAndAuthorIdsRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    ListOfIds as GrpcListOfNotificationIds,
+)
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware import auth
 from app.models import Invite, InviteStatus
 from app.params import GrpcClientParams
+from app.validators import str_special_characters_validator
+
+from fastapi import APIRouter, Depends, Security
+from pydantic import AfterValidator, BaseModel, Field
 
 router = APIRouter(prefix="/invites", tags=["invites"])
 
@@ -62,6 +95,7 @@ async def get_all_invites(
 ) -> List[Invite]:
     """
     \f
+
     Fast api route to get all invites
 
     Parameters
@@ -105,6 +139,7 @@ async def get_users_invitee_invites(
 ) -> List[Invite]:
     """
     \f
+
     Fast api route to get all invites where current user is invitee
 
     Parameters
@@ -146,6 +181,7 @@ async def get_users_author_invites(
 ) -> List[Invite]:
     """
     \f
+
     Fast api route to get invites where user is an author
 
     Parameters
@@ -187,6 +223,7 @@ async def get_invite_by_invite_id(
 ) -> Invite:
     """
     \f
+
     Fast api route to get information about the invite
 
     Parameters
@@ -222,6 +259,7 @@ async def create_invite(
 ) -> None:
     """
     \f
+
     Fast api route to create an invite
 
     Parameters
@@ -267,6 +305,7 @@ async def create_multiple_invites(
 ) -> None:
     """
     \f
+
     Fast api route to create multiple invites
 
     Parameters
@@ -336,6 +375,7 @@ async def update_invite(
 ) -> None:
     """
     \f
+
     Fast api route to update invite data
 
     Parameters
@@ -390,6 +430,7 @@ async def delete_invite(
 ) -> None:
     """
     \f
+
     Fast api route to delete invite
 
     Parameters
@@ -431,6 +472,7 @@ async def check_permission_for_event(
 ) -> None:
     """
     \f
+
     Check if user can access event.
 
     Parameters
@@ -475,6 +517,7 @@ async def check_permission_for_event(
 async def check_user_existence(user_id: str, grpc_clients: GrpcClientParams) -> None:
     """
     \f
+
     Check if user with given id exists
 
     Parameters
