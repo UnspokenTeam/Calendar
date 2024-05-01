@@ -1,3 +1,4 @@
+"""Invite routes"""
 from datetime import datetime
 from typing import Annotated, List
 import logging
