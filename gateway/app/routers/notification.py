@@ -8,19 +8,35 @@ from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     EventRequestByEventId as GrpcGetEventByEventIdRequest,
 )
-from app.generated.notification_service.notification_service_pb2 import (
-    DeleteNotificationByIdRequest as GrpcDeleteNotificationByIdRequest,
-    GetAllNotificationsRequest as GrpcGetAllNotificationsRequest,
-    NotificationRequest as GrpcNotificationRequest,
-    NotificationRequestByNotificationId as GrpcGetNotificationByNotificationIdRequest,
-    NotificationResponse as GrpcNotificationResponse,
-    NotificationsRequestByAuthorId as GrpcGetNotificationsByAuthorIdRequest,
-    NotificationsResponse as GrpcNotificationsResponse,
-)
 from app.generated.invite_service.invite_service_pb2 import (
     GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     InvitesResponse as GrpcInvitesResponse,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    DeleteNotificationByIdRequest as GrpcDeleteNotificationByIdRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    GetAllNotificationsRequest as GrpcGetAllNotificationsRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    NotificationRequest as GrpcNotificationRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    NotificationRequestByNotificationId as GrpcGetNotificationByNotificationIdRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    NotificationResponse as GrpcNotificationResponse,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    NotificationsRequestByAuthorId as GrpcGetNotificationsByAuthorIdRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    NotificationsResponse as GrpcNotificationsResponse,
 )
 from app.generated.user.user_pb2 import GrpcUser
 from app.middleware import auth
