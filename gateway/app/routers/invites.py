@@ -7,31 +7,62 @@ from grpc import RpcError
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     EventRequestByEventId as GrpcGetEventByEventIdRequest,
-    EventsResponse as GrpcEventsResponse,
+)
+from app.generated.event_service.event_service_pb2 import (
     EventsRequestByEventsIds as GrpcGetEventsByEventIdsRequest,
+)
+from app.generated.event_service.event_service_pb2 import (
+    EventsResponse as GrpcEventsResponse,
+)
+from app.generated.event_service.event_service_pb2 import (
     ListOfEventsIds as GrpcListOfEventsIds,
 )
 from app.generated.identity_service.get_user_pb2 import (
     UserByIdRequest as GrpcGetUserByIdRequest,
+)
+from app.generated.identity_service.get_user_pb2 import (
     UsersByIdRequest as GrpcGetUsersByIdRequest,
+)
+from app.generated.identity_service.get_user_pb2 import (
     UsersResponse as GrpcUsersResponse,
 )
 from app.generated.invite_service.invite_service_pb2 import (
     DeleteInviteByIdRequest as GrpcDeleteInviteByIdRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     GetAllInvitesRequest as GrpcGetAllInvitesRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     InviteRequest as GrpcInviteRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     InviteRequestByInviteId as GrpcGetInviteByInviteIdRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     InviteResponse as GrpcInviteResponse,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     InvitesByAuthorIdRequest as GrpcGetInvitesByAuthorIdRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     InvitesRequest as GrpcInvitesRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     InvitesResponse as GrpcInvitesResponse,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     ListOfInvites as GrpcListOfInvites,
 )
-
 from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationsByEventsAndAuthorIdsRequest as GrpcDeleteNotificationsByEventsAndAuthorIdsRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
     ListOfIds as GrpcListOfNotificationIds,
 )
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
