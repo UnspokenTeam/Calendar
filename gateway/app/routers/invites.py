@@ -216,12 +216,12 @@ async def create_invite(
     if user.id == invitee_id:
         raise ValueError("Invitee and author cannot be the same person")
 
-    await check_permission_for_event(requesting_user=user, event_id=event_id, grpc_clients=grpc_clients)
+    # await check_permission_for_event(requesting_user=user, event_id=event_id, grpc_clients=grpc_clients)
 
-    await check_user_existence(user_id=invitee_id, grpc_clients=grpc_clients)
+    # await check_user_existence(user_id=invitee_id, grpc_clients=grpc_clients)
 
     invite = Invite(
-        id="",
+        id="id",
         event_id=event_id,
         invitee_id=invitee_id,
         author_id=user.id,
@@ -266,7 +266,7 @@ async def update_invite(
 
     db_invite_response: GrpcInviteResponse = grpc_clients.invite_service_client.request().get_invite_by_invite_id(
         GrpcGetInviteByInviteIdRequest(
-            invite_id=invite.invite_id,
+            invite_id=invite.id,
             requesting_user=user
         )
     )
