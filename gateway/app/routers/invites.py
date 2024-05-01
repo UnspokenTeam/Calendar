@@ -280,7 +280,7 @@ async def update_invite(
             )
         )
 
-    if db_invite.invite.invitee_id != invite.invitee_id:
+    if db_invite.invitee_id != invite.invitee_id:
         _ = grpc_clients.identity_service_client.request().get_user_by_id(
             GrpcGetUserByIdRequest(
                 user_id=invite.invitee_id
