@@ -292,7 +292,7 @@ async def create_multiple_invites(
             events_ids=GrpcListOfEventsIds(ids=[invite.event_id for invite in invites])
         )
     )
-    if len(events.events.events) != len(invites):
+    if len(events.events.events) != len(invites) and all([event.author_id == user.id for event in events.events.events]):
         raise ValueError("Some events do not exist")
 
     await grpc_clients.invite_service_client.request().create_multiple_invites(
@@ -459,7 +459,7 @@ async def check_permission_for_event(
                 items_per_page=-1
             )
         )
-        if not any([invite for invite in invites.invites.invites]):
+        if not any([invite.event_id == event_id for invite in invites.invites.invites]):
             raise PermissionDeniedError("Permission denied")
 
 
