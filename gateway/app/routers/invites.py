@@ -43,6 +43,7 @@ async def get_all_invites(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
 ) -> List[Invite]:
     """
+    \f
     Fast api route to get all invites
 
     Parameters
@@ -83,6 +84,7 @@ async def get_users_invitee_invites(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
 ) -> List[Invite]:
     """
+    \f
     Fast api route to get all invites where current user is invitee
 
     Parameters
@@ -121,6 +123,7 @@ async def get_users_author_invites(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
 ) -> List[Invite]:
     """
+    \f
     Fast api route to get invites where user is an author
 
     Parameters
@@ -159,6 +162,7 @@ async def get_invite_by_invite_id(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
 ) -> Invite:
     """
+    \f
     Fast api route to get information about the invite
 
     Parameters
@@ -194,6 +198,7 @@ async def create_invite(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
 ) -> None:
     """
+    \f
     Fast api route to create an invite
 
     Parameters
@@ -208,6 +213,9 @@ async def create_invite(
         Grpc clients injected by DI
 
     """
+    if user.id == invitee_id:
+        raise ValueError("Invitee and author cannot be the same person")
+
     await check_permission_for_event(requesting_user=user, event_id=event_id, grpc_clients=grpc_clients)
 
     await check_user_existence(user_id=invitee_id, grpc_clients=grpc_clients)
@@ -237,6 +245,7 @@ async def update_invite(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
 ) -> None:
     """
+    \f
     Fast api route to update invite data
 
     Parameters
@@ -251,6 +260,9 @@ async def update_invite(
     """
     if invite.author_id != user.id and invite.invitee_id != user.id:
         raise PermissionDeniedError
+
+    if invite.author_id == invite.invitee_id:
+        raise ValueError("Invitee and author cannot be the same person")
 
     db_invite_response: GrpcInviteResponse = grpc_clients.invite_service_client.request().get_invite_by_invite_id(
         GrpcGetInviteByInviteIdRequest(
@@ -293,6 +305,7 @@ async def delete_invite(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
 ) -> None:
     """
+    \f
     Fast api route to delete invite
 
     Parameters
@@ -337,6 +350,7 @@ async def check_permission_for_event(
         requesting_user: GrpcUser, event_id: str, grpc_clients: GrpcClientParams
 ) -> None:
     """
+    \f
     Check if user can access event.
     Parameters
     ----------
@@ -376,6 +390,7 @@ async def check_user_existence(
         user_id: str, grpc_clients: GrpcClientParams
 ) -> None:
     """
+    \f
     Check if user with given id exists
 
     Parameters
