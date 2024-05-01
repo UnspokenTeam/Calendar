@@ -2,6 +2,9 @@
 from datetime import datetime
 from typing import Annotated, List
 
+from fastapi import APIRouter, Depends, Security
+from pydantic import Field, AfterValidator
+
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     EventRequestByEventId as GrpcGetEventByEventIdRequest,
@@ -32,9 +35,7 @@ from app.middleware import auth
 from app.models import Notification, UserType
 from app.params import GrpcClientParams
 from app.validators import str_special_characters_validator
-
-from fastapi import APIRouter, Depends, Security
-from pydantic import Field
+from app.validators.int_validators import int_not_equal_zero_validator
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
@@ -42,7 +43,7 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 @router.get("/{notification_id}")
 async def get_notification_by_id(
         notification_id: Annotated[
-            str, Field("", min_length=1), str_special_characters_validator
+            str, Field("", min_length=1), AfterValidator(str_special_characters_validator)
         ],
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
@@ -83,8 +84,8 @@ async def get_notification_by_id(
 
 @router.get("/admin/all/")
 async def get_all_notifications(
-        page: int,
-        items_per_page: int,
+        page: Annotated[int, Field(1, ge=1)],
+        items_per_page: Annotated[int, Field(-1, ge=-1), AfterValidator(int_not_equal_zero_validator)],
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> List[Notification]:
@@ -129,8 +130,8 @@ async def get_all_notifications(
 
 @router.get("/my/")
 async def get_my_notifications(
-        page: int,
-        items_per_page: int,
+        page: Annotated[int, Field(1, ge=1)],
+        items_per_page: Annotated[int, Field(-1, ge=-1), AfterValidator(int_not_equal_zero_validator)],
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> List[Notification]:
@@ -177,7 +178,7 @@ async def get_my_notifications(
 
 @router.post("/")
 async def create_notification(
-        event_id: Annotated[str, Field("", min_length=1), str_special_characters_validator],
+        event_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)],
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
@@ -204,7 +205,7 @@ async def create_notification(
     )
 
     notification = Notification(
-        id="",
+        id="id",
         event_id=event_id,
         author_id=user.id,
         created_at=datetime.now(),
@@ -321,7 +322,7 @@ async def update_notification(
 @router.delete("/")
 async def delete_notification(
         notification_id: Annotated[
-            str, Field("", min_length=1), str_special_characters_validator
+            str, Field("", min_length=1), AfterValidator(str_special_characters_validator)
         ],
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],

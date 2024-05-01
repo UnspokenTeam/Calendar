@@ -1,10 +1,11 @@
 """User model"""
 from datetime import datetime
-from typing import Optional, Self
+from typing import Optional, Self, Annotated
 
 from app.generated.notification_service.notification_service_pb2 import GrpcNotification
+from app.validators import str_special_characters_validator
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, AfterValidator
 
 
 class Notification(BaseModel):
@@ -29,9 +30,9 @@ class Notification(BaseModel):
 
     """
 
-    id: str
-    event_id: str
-    author_id: str
+    id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
+    event_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
+    author_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
     enabled: bool
     created_at: datetime
     deleted_at: Optional[datetime] = None
