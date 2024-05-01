@@ -3,9 +3,7 @@ from datetime import datetime
 from typing import Annotated, List
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, Security
 from grpc import RpcError
-from pydantic import AfterValidator, Field
 
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
@@ -15,10 +13,10 @@ from app.generated.invite_service.invite_service_pb2 import (
     GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
 )
 from app.generated.invite_service.invite_service_pb2 import (
-    InviteStatus as GrpcInviteStatus,
+    InvitesResponse as GrpcInvitesResponse,
 )
 from app.generated.invite_service.invite_service_pb2 import (
-    InvitesResponse as GrpcInvitesResponse,
+    InviteStatus as GrpcInviteStatus,
 )
 from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationByIdRequest as GrpcDeleteNotificationByIdRequest,
@@ -46,6 +44,9 @@ from app.middleware import auth
 from app.models import Notification, UserType
 from app.params import GrpcClientParams
 from app.validators.int_validators import int_not_equal_zero_validator
+
+from fastapi import APIRouter, Depends, Security
+from pydantic import AfterValidator, Field
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 

@@ -4,9 +4,8 @@ from typing import Annotated, Optional, Self
 from uuid import UUID
 
 from app.generated.notification_service.notification_service_pb2 import GrpcNotification
-from app.validators import str_special_characters_validator
 
-from pydantic import AfterValidator, BaseModel, Field
+from pydantic import BaseModel, Field
 from pytz import utc
 
 
