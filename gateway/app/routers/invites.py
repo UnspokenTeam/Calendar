@@ -4,18 +4,23 @@ from typing import List, Annotated
 
 from fastapi import APIRouter, Security, Depends
 from grpc import RpcError
-from pydantic import Field
+from pydantic import Field, BaseModel, AfterValidator
 
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     EventRequestByEventId as GrpcGetEventByEventIdRequest,
+    EventsResponse as GrpcEventsResponse,
+    ListOfEventsIds as GrpcListOfEventsIds,
+    EventsRequestByEventsIds as GrpcGetEventsByEventIdsRequest,
 )
 from app.generated.identity_service.get_user_pb2 import (
     UserByIdRequest as GrpcGetUserByIdRequest,
+    UsersByIdRequest as GrpcGetUsersByIdRequest,
+    UsersResponse as GrpcUsersResponse,
 )
 from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationsByEventsAndAuthorIdsRequest as GrpcDeleteNotificationsByEventsAndAuthorIdsRequest,
-    ListOfIds as GrpcListOfIds,
+    ListOfIds as GrpcListOfNotificationIds,
 )
 from app.generated.invite_service.invite_service_pb2 import (
     GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
@@ -27,13 +32,21 @@ from app.generated.invite_service.invite_service_pb2 import (
     DeleteInviteByIdRequest as GrpcDeleteInviteByIdRequest,
     InviteStatus as GrpcInviteStatus,
     GetAllInvitesRequest as GrpcGetAllInvitesRequest,
+    InvitesRequest as GrpcInvitesRequest,
+    ListOfInvites as GrpcListOfInvites
 )
+from app.validators import str_special_characters_validator
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware import auth
 from app.models import Invite, InviteStatus
 from app.params import GrpcClientParams
 
 router = APIRouter(prefix="/invites", tags=["invites"])
+
+
+class CreateInviteData(BaseModel):
+    invitee_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
+    event_id: Annotated[str, Field("", min_length=1), AfterValidator(str_special_characters_validator)]
 
 
 @router.get("/all/")
@@ -238,6 +251,69 @@ async def create_invite(
     )
 
 
+@router.post("/multiple/")
+async def create_multiple_invites(
+        invites: List[CreateInviteData],
+        user: Annotated[GrpcUser, Security(auth)],
+        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+) -> None:
+    """
+    \f
+    Fast api route to create multiple invites
+
+    Parameters
+    ----------
+    invites : List[CreateInviteData]
+    user : Annotated[GrpcUser, Security(auth)]
+        Authorized user's data in proto format
+    grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
+        Grpc clients injected by DI
+
+    Raises
+    ------
+    ValueError
+        If some users or events does not exist or user does not have permission to them
+
+    """
+    users: GrpcUsersResponse = await grpc_clients.identity_service_client.request().get_users_by_id(
+        GrpcGetUsersByIdRequest(
+            page=1,
+            items_per_page=-1,
+            id=[invite.invitee_id for invite in invites]
+        )
+    )
+    if len(users.users.users) != len(invites):
+        raise ValueError("Some users do not exist")
+
+    events: GrpcEventsResponse = await grpc_clients.event_service_client.request().get_events_by_events_ids(
+        GrpcGetEventsByEventIdsRequest(
+            page_number=1,
+            items_per_page=-1,
+            events_ids=GrpcListOfEventsIds(ids=[invite.event_id for invite in invites])
+        )
+    )
+    if len(events.events.events) != len(invites):
+        raise ValueError("Some events do not exist")
+
+    await grpc_clients.invite_service_client.request().create_multiple_invites(
+        GrpcInvitesRequest(
+            invites=GrpcListOfInvites(
+                invites=[
+                    Invite(
+                        id="id",
+                        event_id=invite_data.event_id,
+                        invitee_id=invite_data.invitee_id,
+                        author_id=user.id,
+                        status=InviteStatus.PENDING,
+                        created_at=datetime.now(),
+                    ).to_proto()
+                    for invite_data in invites
+                ]
+            )
+        )
+    )
+
+
 @router.put("/")
 async def update_invite(
         invite: Invite,
@@ -337,7 +413,7 @@ async def delete_invite(
     try:
         grpc_clients.notification_service_client.request().delete_notifications_by_events_and_author_ids(
             GrpcDeleteNotificationsByEventsAndAuthorIdsRequest(
-                event_ids=GrpcListOfIds(ids=[invite.event_id]),
+                event_ids=GrpcListOfNotificationIds(ids=[invite.event_id]),
                 author_id=user.id,
                 requesting_user=user
             )
