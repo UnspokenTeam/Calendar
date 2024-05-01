@@ -311,7 +311,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
 
         db_invite = Invite.from_prisma_invite(prisma_db_invite)
 
-        if db_invite.status == InviteStatus.PENDING:
+        if db_invite.status == InviteStatus.PENDING and db_invite.deleted_at is None:
             raise UniqueError("Invite already exists")
 
         db_invite.deleted_at = None
@@ -340,7 +340,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         )
 
         if db_invites is not None and len(db_invites) > 0:
-            if any([db_invite.status == InviteStatus.PENDING for db_invite in db_invites]):
+            if any([db_invite.status == InviteStatus.PENDING and db_invite.deleted_at is None for db_invite in db_invites]):
                 raise UniqueError("Some invites already exist")
 
             ids = [db_invite.id for db_invite in db_invites]
