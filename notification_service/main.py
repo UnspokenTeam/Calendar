@@ -30,7 +30,7 @@ async def serve() -> None:
     server.add_insecure_port("0.0.0.0:8083")
     await server.start()
     logging.info(
-        f"Server started on http://localhost:8083 with environment {os.environ['ENVIRONMENT']}"
+        "Server started on http://localhost:8083 with environment " + os.environ["ENVIRONMENT"]
     )
     await server.wait_for_termination()
 
