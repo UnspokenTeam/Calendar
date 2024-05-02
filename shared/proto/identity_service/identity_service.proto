@@ -13,6 +13,7 @@ service IdentityService {
   rpc login(LoginRequest) returns (CredentialsResponse){}
   rpc register(RegisterRequest) returns (CredentialsResponse){}
   rpc get_new_access_token(GetNewAccessTokenRequest) returns (GetNewAccessTokenResponse){}
+  rpc get_user_by_email(GetUserByEmailRequest) returns (UserResponse){}
   rpc get_user_by_id(UserByIdRequest) returns (UserResponse){}
   rpc get_users_by_id(UsersByIdRequest) returns (UsersResponse){}
   rpc get_all_users(GetAllUsersRequest) returns (UsersResponse){}

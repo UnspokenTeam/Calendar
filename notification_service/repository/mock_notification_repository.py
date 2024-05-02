@@ -26,6 +26,8 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
     -------
     async get_notifications_by_author_id(author_id, page_number, items_per_page)
         Returns page with notifications that have matches with given author id.
+    async get_notification_by_event_and_author_ids(event_id, author_id)
+        Returns notification that has matches with given event and author ids.
     async get_notification_by_notification_id(notification_id)
         Returns notification that has matches with given notification id.
     async get_notifications_by_notifications_ids(notifications_ids, page_number, items_per_page)
@@ -38,8 +40,6 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         Updates notification that has the same id as provided notification object inside db or throws an exception.
     async delete_notification_by_id(notification_id)
         Deletes notification that has matching id from database or throws an exception.
-    async delete_notification_by_event_and_author_ids(event_id, author_id)
-        Deletes notification that has matching event id and author id from database or throws an exception.
     async delete_notifications_by_events_and_author_ids(event_ids, author_id)
         Deletes notifications that have matching event ids and author id from database or throws an exception.
     async delete_notifications_by_event_id(event_id)
@@ -95,6 +95,41 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         if notifications is None or len(notifications) == 0:
             raise ValueNotFoundError("Notifications not found")
         return notifications
+
+    async def get_notification_by_event_and_author_ids(
+        self, event_id: str, author_id: str
+    ) -> Notification:
+        """
+        Get notification by event and author ids.
+
+        Parameters
+        ----------
+        event_id : str
+            Event's id.
+        author_id : str
+            Author's id.
+
+        Returns
+        -------
+        Notification
+            Notification that matches by event and author ids.
+
+        Raises
+        ------
+        ValueNotFoundError
+            No notification was found for given event and author ids.
+
+        """
+        try:
+            return next(
+                notification
+                for notification in self._notifications
+                if notification.author_id == author_id
+                and notification.event_id == event_id
+                and notification.deleted_at is None
+            )
+        except StopIteration:
+            raise ValueNotFoundError("Notification not found")
 
     async def get_notification_by_notification_id(
         self, notification_id: str
@@ -287,38 +322,6 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
                 i
                 for i in range(len(self._notifications))
                 if self._notifications[i].id == notification_id
-                and self._notifications[i].deleted_at is None
-            )
-            self._notifications[index].enabled = False
-            self._notifications[index].deleted_at = datetime.now()
-        except StopIteration:
-            raise ValueNotFoundError("Notification not found")
-
-    async def delete_notification_by_event_and_author_ids(
-        self, event_id: str, author_id: str
-    ) -> None:
-        """
-        Delete the notification by event and author ids.
-
-        Parameters
-        ----------
-        event_id : str
-            Event id.
-        author_id : str
-            Author id.
-
-        Raises
-        ------
-        ValueNotFoundError
-            Can't delete notification with provided data.
-
-        """
-        try:
-            index = next(
-                i
-                for i in range(len(self._notifications))
-                if self._notifications[i].event_id == event_id
-                and self._notifications[i].author_id == author_id
                 and self._notifications[i].deleted_at is None
             )
             self._notifications[index].enabled = False

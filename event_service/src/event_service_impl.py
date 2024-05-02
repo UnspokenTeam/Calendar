@@ -1,4 +1,6 @@
 """Event Service Controller."""
+from datetime import datetime
+
 import grpc
 
 from errors.permission_denied_error import PermissionDeniedError
@@ -37,8 +39,10 @@ class EventServiceImpl(GrpcServicer):
         Function that need to be bind to the server that creates the event.
     async update_event(request, context)
         Function that need to be bind to the server that updates the event.
-    async delete_event(request, context)
-        Function that need to be bind to the server that deletes the event.
+    async delete_event_by_id(request, context)
+        Function that need to be bind to the server that deletes the event that matches id.
+    async delete_events_by_author_id(request, context)
+        Function that need to be bind to the server that deletes events that match id.
     async generate_event_description(request, context)
         Function that need to be bind to the server that creates the event description.
 
@@ -75,6 +79,14 @@ class EventServiceImpl(GrpcServicer):
             author_id=request.author_id,
             page_number=request.page_number,
             items_per_page=request.items_per_page,
+            start=datetime.fromtimestamp(
+                request.start.seconds + request.start.nanos / 1e9
+            )
+            if request.WhichOneof("optional_start") is not None
+            else None,
+            end=datetime.fromtimestamp(request.end.seconds + request.end.nanos / 1e9)
+            if request.WhichOneof("optional_end") is not None
+            else None,
         )
         context.set_code(grpc.StatusCode.OK)
         return proto.EventsResponse(
@@ -105,6 +117,11 @@ class EventServiceImpl(GrpcServicer):
         event = await self._event_repository.get_event_by_event_id(
             event_id=request.event_id
         )
+        if (
+            request.requesting_user.type != GrpcUserType.USER
+            and request.requesting_user.id != event.author_id
+        ):
+            raise PermissionDeniedError("Permission denied.")
         context.set_code(grpc.StatusCode.OK)
         return proto.EventResponse(event=event.to_grpc_event())
 
@@ -166,7 +183,16 @@ class EventServiceImpl(GrpcServicer):
         if request.requesting_user.type != GrpcUserType.ADMIN:
             raise PermissionDeniedError("Permission denied")
         events = await self._event_repository.get_all_events(
-            page_number=request.page_number, items_per_page=request.items_per_page
+            page_number=request.page_number,
+            items_per_page=request.items_per_page,
+            start=datetime.fromtimestamp(
+                request.start.seconds + request.start.nanos / 1e9
+            )
+            if request.WhichOneof("optional_start") is not None
+            else None,
+            end=datetime.fromtimestamp(request.end.seconds + request.end.nanos / 1e9)
+            if request.WhichOneof("optional_end") is not None
+            else None,
         )
         context.set_code(grpc.StatusCode.OK)
         return proto.EventsResponse(
@@ -243,15 +269,15 @@ class EventServiceImpl(GrpcServicer):
         context.set_code(grpc.StatusCode.OK)
         return Empty()
 
-    async def delete_event(
-        self, request: proto.DeleteEventRequest, context: grpc.ServicerContext
+    async def delete_event_by_id(
+        self, request: proto.DeleteEventByIdRequest, context: grpc.ServicerContext
     ) -> Empty:
         """
         Delete event.
 
         Parameters
         ----------
-        request : proto.DeleteEventRequest
+        request : proto.DeleteEventByIdRequest
             Request data containing event ID.
         context : grpc.ServicerContext
             Request context.
@@ -273,7 +299,44 @@ class EventServiceImpl(GrpcServicer):
             and request.requesting_user.id != event.author_id
         ):
             raise PermissionDeniedError("Permission denied")
-        await self._event_repository.delete_event(event_id=request.event_id)
+        await self._event_repository.delete_event_by_id(event_id=request.event_id)
+        context.set_code(grpc.StatusCode.OK)
+        return Empty()
+
+    async def delete_events_by_author_id(
+        self,
+        request: proto.DeleteEventsByAuthorIdRequest,
+        context: grpc.ServicerContext,
+    ) -> Empty:
+        """
+        Delete events by author id.
+
+        Parameters
+        ----------
+        request : proto.DeleteEventByAuthorIdRequest
+            Request data containing author ID.
+        context : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        Empty
+            Empty response object.
+
+        Raises
+        ------
+        PermissionDeniedError
+            Raises when user dont has enough access.
+
+        """
+        if (
+            request.requesting_user.type != GrpcUserType.ADMIN
+            and request.requesting_user.id != request.author_id
+        ):
+            raise PermissionDeniedError("Permission denied")
+        await self._event_repository.delete_events_by_author_id(
+            author_id=request.author_id
+        )
         context.set_code(grpc.StatusCode.OK)
         return Empty()
 

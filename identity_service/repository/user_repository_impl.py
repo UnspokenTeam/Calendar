@@ -270,7 +270,7 @@ class UserRepositoryImpl(UserRepositoryInterface):
         """
         users = await self._db_client.db.user.find_many(
             skip=(page - 1) * items_per_page if items_per_page != -1 else None,
-            take=items_per_page if items_per_page != -1 else None
+            take=items_per_page if items_per_page != -1 else None,
         )
         if len(users) == 0:
             raise ValueNotFoundError("No users found")

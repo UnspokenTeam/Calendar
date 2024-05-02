@@ -15,7 +15,10 @@ repos:
         args:
           - --namespace-packages
         additional_dependencies:
+          - types-python-dateutil
+          - types-pytz
           - fastapi
+          - types-pytz
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.3.4

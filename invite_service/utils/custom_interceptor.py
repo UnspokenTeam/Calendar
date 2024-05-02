@@ -1,5 +1,5 @@
 # mypy: ignore-errors
-"""Interceptor decorator"""
+"""Interceptor"""
 from typing import Any, Callable
 import logging
 
@@ -7,10 +7,8 @@ import grpc
 
 from prisma.errors import PrismaError
 
-from errors.ai_response_error import AiResponseError
-from errors.permission_denied_error import PermissionDeniedError
+from errors.permission_denied import PermissionDeniedError
 from errors.value_not_found_error import ValueNotFoundError
-from errors.wrong_interval_error import WrongIntervalError
 
 from grpc_interceptor.server import AsyncServerInterceptor
 
@@ -65,12 +63,4 @@ class CustomInterceptor(AsyncServerInterceptor):
             logging.error(permission_denied_error)
             await context.abort(
                 grpc.StatusCode.PERMISSION_DENIED, str(permission_denied_error)
-            )
-        except AiResponseError as ai_response_error:
-            logging.error(ai_response_error)
-            await context.abort(grpc.StatusCode.CANCELLED, str(ai_response_error))
-        except WrongIntervalError as wrong_interval_error:
-            logging.error(wrong_interval_error)
-            await context.abort(
-                grpc.StatusCode.INVALID_ARGUMENT, str(wrong_interval_error)
             )
