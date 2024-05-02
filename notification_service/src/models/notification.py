@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Self
 
-from prisma.models import Notification as PrismaNotification
+from prisma.models import PrismaNotification
 
 from generated.notification_service.notification_service_pb2 import GrpcNotification
 from pytz import utc

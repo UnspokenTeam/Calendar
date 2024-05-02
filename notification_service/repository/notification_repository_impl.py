@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from prisma.models import Notification as PrismaNotification
+from prisma.models import PrismaNotification
 
 from db.postgres_client import PostgresClient
 from errors.unique_error import UniqueError
@@ -86,7 +86,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         """
         db_notifications: Optional[
             List[PrismaNotification]
-        ] = await self._db_client.db.notification.find_many(
+        ] = await self._db_client.db.prismanotification.find_many(
             where={"author_id": author_id, "deleted_at": None},
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
@@ -124,7 +124,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         """
         db_notification: Optional[
             PrismaNotification
-        ] = await self._db_client.db.notification.find_first(
+        ] = await self._db_client.db.prismanotification.find_first(
             where={"event_id": event_id, "author_id": author_id, "deleted_at": None}
         )
         if db_notification is None:
@@ -159,7 +159,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         """
         db_notification: Optional[
             PrismaNotification
-        ] = await self._db_client.db.notification.find_first(
+        ] = await self._db_client.db.prismanotification.find_first(
             where={"id": notification_id, "deleted_at": None}
         )
         if db_notification is None:
@@ -198,7 +198,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         """
         db_notifications: Optional[
             List[PrismaNotification]
-        ] = await self._db_client.db.notification.find_many(
+        ] = await self._db_client.db.prismanotification.find_many(
             where={
                 "id": {"in": notifications_ids},
                 "deleted_at": None,
@@ -241,7 +241,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         """
         db_notifications: Optional[
             List[PrismaNotification]
-        ] = await self._db_client.db.notification.find_many(
+        ] = await self._db_client.db.prismanotification.find_many(
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
@@ -269,7 +269,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             Raises if the notification already exists.
 
         """
-        db_notification = await self._db_client.db.notification.find_first(
+        db_notification = await self._db_client.db.prismanotification.find_first(
             where={
                 "event_id": notification.event_id,
                 "author_id": notification.author_id,
@@ -279,7 +279,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             if db_notification.enabled:
                 raise UniqueError("Notification already exists")
             async with self._db_client.db.tx() as transaction:
-                await transaction.notification.update_many(
+                await transaction.prismanotification.update_many(
                     where={
                         "event_id": notification.event_id,
                         "author_id": notification.author_id,
@@ -291,16 +291,20 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
                         else {}
                     ),
                 )
-                return await transaction.notification.find_first(
-                    where={
-                        "event_id": notification.event_id,
-                        "author_id": notification.author_id,
-                    },
+                return Notification.from_prisma_notification(
+                    await transaction.prismanotification.find_first(
+                        where={
+                            "event_id": notification.event_id,
+                            "author_id": notification.author_id,
+                        },
+                    )
                 )
         else:
-            return await self._db_client.db.notification.create(
-                data=notification.to_dict(
-                    exclude=["enabled", "created_at", "deleted_at"]
+            return Notification.from_prisma_notification(
+                await self._db_client.db.prismanotification.create(
+                    data=notification.to_dict(
+                        exclude=["enabled", "created_at", "deleted_at"]
+                    )
                 )
             )
 
@@ -319,8 +323,10 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        return await self._db_client.db.notification.update(
-            where={"id": notification.id}, data=notification.to_dict()
+        return Notification.from_prisma_notification(
+            await self._db_client.db.prismanotification.update(
+                where={"id": notification.id}, data=notification.to_dict()
+            )
         )
 
     async def delete_notification_by_id(self, notification_id: str) -> None:
@@ -338,7 +344,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.notification.update_many(
+        await self._db_client.db.prismanotification.update_many(
             where={"id": notification_id, "deleted_at": None},
             data={"enabled": False, "deleted_at": datetime.now()},
         )
@@ -362,7 +368,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.notification.update_many(
+        await self._db_client.db.prismanotification.update_many(
             where={
                 "event_id": {"in": event_ids},
                 "author_id": author_id,
@@ -386,7 +392,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.notification.update_many(
+        await self._db_client.db.prismanotification.update_many(
             where={"author_id": author_id, "deleted_at": None},
             data={"enabled": False, "deleted_at": datetime.now()},
         )
@@ -406,7 +412,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.notification.update_many(
+        await self._db_client.db.prismanotification.update_many(
             where={"event_id": event_id, "deleted_at": None},
             data={"enabled": False, "deleted_at": datetime.now()},
         )
