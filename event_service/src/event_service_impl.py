@@ -11,7 +11,6 @@ from generated.event_service.event_service_pb2_grpc import (
     EventServiceServicer as GrpcServicer,
 )
 from generated.user.user_pb2 import GrpcUserType
-from google.protobuf.empty_pb2 import Empty
 from repository.event_repository_interface import EventRepositoryInterface
 import generated.event_service.event_service_pb2 as proto
 
@@ -58,7 +57,7 @@ class EventServiceImpl(GrpcServicer):
 
     async def get_events_by_author_id(
         self, request: proto.EventsRequestByAuthorId, context: grpc.ServicerContext
-    ) -> proto.EventsResponse:
+    ) -> proto.ListOfEvents:
         """
         Get events by author id.
 
@@ -71,8 +70,8 @@ class EventServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.EventsResponse
-            Response object for event response.
+        proto.ListOfEvents
+            Response object for several events.
 
         """
         events = await self._event_repository.get_events_by_author_id(
@@ -89,15 +88,11 @@ class EventServiceImpl(GrpcServicer):
             else None,
         )
         context.set_code(grpc.StatusCode.OK)
-        return proto.EventsResponse(
-            events=proto.ListOfEvents(
-                events=[event.to_grpc_event() for event in events]
-            ),
-        )
+        return proto.ListOfEvents(events=[event.to_grpc_event() for event in events])
 
     async def get_event_by_event_id(
         self, request: proto.EventRequestByEventId, context: grpc.ServicerContext
-    ) -> proto.EventResponse:
+    ) -> proto.GrpcEvent:
         """
         Get event by event id.
 
@@ -110,8 +105,8 @@ class EventServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.EventResponse
-            Response object for event response.
+        proto.GrpcEvent
+            Response object for event.
 
         """
         event = await self._event_repository.get_event_by_event_id(
@@ -123,11 +118,11 @@ class EventServiceImpl(GrpcServicer):
         ):
             raise PermissionDeniedError("Permission denied.")
         context.set_code(grpc.StatusCode.OK)
-        return proto.EventResponse(event=event.to_grpc_event())
+        return event.to_grpc_event()
 
     async def get_events_by_events_ids(
         self, request: proto.EventsRequestByEventsIds, context: grpc.ServicerContext
-    ) -> proto.EventsResponse:
+    ) -> proto.ListOfEvents:
         """
         Get events by events ids.
 
@@ -140,8 +135,8 @@ class EventServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.EventsResponse
-            Response object for event response.
+        proto.ListOfEvents
+            Response object for several events.
 
         """
         events = await self._event_repository.get_events_by_events_ids(
@@ -150,15 +145,11 @@ class EventServiceImpl(GrpcServicer):
             items_per_page=request.items_per_page,
         )
         context.set_code(grpc.StatusCode.OK)
-        return proto.EventsResponse(
-            events=proto.ListOfEvents(
-                events=[event.to_grpc_event() for event in events]
-            ),
-        )
+        return proto.ListOfEvents(events=[event.to_grpc_event() for event in events])
 
     async def get_all_events(
         self, request: proto.GetAllEventsRequest, context: grpc.ServicerContext
-    ) -> proto.EventsResponse:
+    ) -> proto.ListOfEvents:
         """
         Get all events.
 
@@ -171,8 +162,8 @@ class EventServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.EventsResponse
-            Response object for event response.
+        proto.ListOfEvents
+            Response object for several events.
 
         Raises
         ------
@@ -195,15 +186,11 @@ class EventServiceImpl(GrpcServicer):
             else None,
         )
         context.set_code(grpc.StatusCode.OK)
-        return proto.EventsResponse(
-            events=proto.ListOfEvents(
-                events=[event.to_grpc_event() for event in events]
-            ),
-        )
+        return proto.ListOfEvents(events=[event.to_grpc_event() for event in events])
 
     async def create_event(
         self, request: proto.EventRequest, context: grpc.ServicerContext
-    ) -> Empty:
+    ) -> proto.GrpcEvent:
         """
         Create event.
 
@@ -216,8 +203,8 @@ class EventServiceImpl(GrpcServicer):
 
         Returns
         -------
-        Empty
-            Empty response object.
+        proto.GrpcEvent
+            Response object for event.
 
         Raises
         ------
@@ -233,11 +220,11 @@ class EventServiceImpl(GrpcServicer):
             raise PermissionDeniedError("Permission denied")
         await self._event_repository.create_event(event=event)
         context.set_code(grpc.StatusCode.OK)
-        return Empty()
+        return request.event
 
     async def update_event(
         self, request: proto.EventRequest, context: grpc.ServicerContext
-    ) -> Empty:
+    ) -> proto.GrpcEvent:
         """
         Update event.
 
@@ -250,8 +237,8 @@ class EventServiceImpl(GrpcServicer):
 
         Returns
         -------
-        Empty
-            Empty response object.
+        proto.GrpcEvent
+            Response object for event.
 
         Raises
         ------
@@ -267,11 +254,11 @@ class EventServiceImpl(GrpcServicer):
         event = Event.from_grpc_event(request.event)
         await self._event_repository.update_event(event=event)
         context.set_code(grpc.StatusCode.OK)
-        return Empty()
+        return request.event
 
     async def delete_event_by_id(
         self, request: proto.DeleteEventByIdRequest, context: grpc.ServicerContext
-    ) -> Empty:
+    ) -> proto.GrpcEvent:
         """
         Delete event.
 
@@ -284,8 +271,8 @@ class EventServiceImpl(GrpcServicer):
 
         Returns
         -------
-        Empty
-            Empty response object.
+        proto.GrpcEvent
+            Response object for event.
 
         Raises
         ------
@@ -301,13 +288,13 @@ class EventServiceImpl(GrpcServicer):
             raise PermissionDeniedError("Permission denied")
         await self._event_repository.delete_event_by_id(event_id=request.event_id)
         context.set_code(grpc.StatusCode.OK)
-        return Empty()
+        return event.to_grpc_event()
 
     async def delete_events_by_author_id(
         self,
         request: proto.DeleteEventsByAuthorIdRequest,
         context: grpc.ServicerContext,
-    ) -> Empty:
+    ) -> proto.ListOfEvents:
         """
         Delete events by author id.
 
@@ -320,8 +307,8 @@ class EventServiceImpl(GrpcServicer):
 
         Returns
         -------
-        Empty
-            Empty response object.
+        proto.ListOfEvents
+            Response object for several events.
 
         Raises
         ------
@@ -334,11 +321,14 @@ class EventServiceImpl(GrpcServicer):
             and request.requesting_user.id != request.author_id
         ):
             raise PermissionDeniedError("Permission denied")
+        events = await self._event_repository.get_events_by_author_id(
+            author_id=request.author_id, items_per_page=-1, page_number=1
+        )
         await self._event_repository.delete_events_by_author_id(
             author_id=request.author_id
         )
         context.set_code(grpc.StatusCode.OK)
-        return Empty()
+        return proto.ListOfEvents(events=[event.to_grpc_event() for event in events])
 
     async def generate_event_description(
         self, request: proto.GenerateDescriptionRequest, context: grpc.ServicerContext

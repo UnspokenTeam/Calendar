@@ -2,18 +2,17 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
-import "google/protobuf/empty.proto";
 import "user/user.proto";
 
 service EventService {
-  rpc get_event_by_event_id(EventRequestByEventId) returns (EventResponse){}
-  rpc get_events_by_events_ids(EventsRequestByEventsIds) returns (EventsResponse){}
-  rpc get_events_by_author_id(EventsRequestByAuthorId) returns (EventsResponse){}
-  rpc get_all_events(GetAllEventsRequest) returns (EventsResponse){}
-  rpc create_event(EventRequest) returns (google.protobuf.Empty){}
-  rpc update_event(EventRequest) returns (google.protobuf.Empty){}
-  rpc delete_event_by_id(DeleteEventByIdRequest) returns (google.protobuf.Empty){}
-  rpc delete_events_by_author_id(DeleteEventsByAuthorIdRequest) returns (google.protobuf.Empty){}
+  rpc get_event_by_event_id(EventRequestByEventId) returns (GrpcEvent){}
+  rpc get_events_by_events_ids(EventsRequestByEventsIds) returns (ListOfEvents){}
+  rpc get_events_by_author_id(EventsRequestByAuthorId) returns (ListOfEvents){}
+  rpc get_all_events(GetAllEventsRequest) returns (ListOfEvents){}
+  rpc create_event(EventRequest) returns (GrpcEvent){}
+  rpc update_event(EventRequest) returns (GrpcEvent){}
+  rpc delete_event_by_id(DeleteEventByIdRequest) returns (GrpcEvent){}
+  rpc delete_events_by_author_id(DeleteEventsByAuthorIdRequest) returns (ListOfEvents){}
   rpc generate_event_description(GenerateDescriptionRequest) returns (GenerateDescriptionResponse){}
 }
 
@@ -41,14 +40,6 @@ message EventsRequestByEventsIds {
   ListOfEventsIds events_ids = 1;
   uint64 page_number = 2;
   int64 items_per_page = 3;
-}
-
-message EventResponse {
-  GrpcEvent event = 1;
-}
-
-message EventsResponse {
-  ListOfEvents events = 1;
 }
 
 message GrpcEvent {

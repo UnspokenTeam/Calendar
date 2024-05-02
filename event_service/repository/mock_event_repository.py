@@ -283,17 +283,24 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             raise ValueNotFoundError("Events not found")
         return events
 
-    async def create_event(self, event: Event) -> None:
+    async def create_event(self, event: Event) -> Event:
         """
-        Creates event with matching data or throws an exception.
+        Create an event.
 
         Parameters
         ----------
         event : Event
-            Event data.
+            Event object.
+
+        Returns
+        -------
+        Event
+            Created event.
 
         Raises
         ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -306,20 +313,26 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         event.created_at = datetime.now()
         event.deleted_at = None
         self._events.append(event)
+        return event
 
-    async def update_event(self, event: Event) -> None:
+    async def update_event(self, event: Event) -> Event:
         """
-        Updates event with matching id or throws an exception.
+        Update event data.
 
         Parameters
         ----------
         event : Event
-            Event data.
+            Event object.
+
+        Returns
+        -------
+        Event
+            Event with updated data.
 
         Raises
         ------
-        ValueNotFoundError
-            Can't update event with provided data.
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -336,22 +349,28 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                 self._events[index] = event
             else:
                 raise ValueNotFoundError("Events authors must be same")
+            return event
         except StopIteration:
             raise ValueNotFoundError("Event not found")
 
-    async def delete_event_by_id(self, event_id: str) -> None:
+    async def delete_event_by_id(self, event_id: str) -> Event:
         """
-        Deletes event with matching id or throws an exception.
+        Delete the event.
 
         Parameters
         ----------
         event_id : str
-            Event's id.
+            Event id.
+
+        Returns
+        -------
+        Event
+            Event that was deleted.
 
         Raises
         ------
-        ValueNotFoundError
-            Can't delete event with provided data.
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
 
         """
         try:
@@ -360,23 +379,31 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                 for i in range(len(self._events))
                 if self._events[i].id == event_id and self._events[i].deleted_at is None
             )
+            deleted_event = await self.get_event_by_event_id(event_id)
             self._events[index].deleted_at = datetime.now()
+            return deleted_event
+
         except StopIteration:
             raise ValueNotFoundError("Event not found")
 
-    async def delete_events_by_author_id(self, author_id: str) -> None:
+    async def delete_events_by_author_id(self, author_id: str) -> List[Event]:
         """
-        Deletes events with matching author ids or throws an exception.
+        Delete events.
 
         Parameters
         ----------
         author_id : str
-            Author's id.
+            Event id.
+
+        Returns
+        -------
+        List[Event]
+            List of events that were deleted.
 
         Raises
         ------
-        ValueNotFoundError
-            Can't delete event with provided data.
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
 
         """
         indexes = tuple(
@@ -387,5 +414,9 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         )
         if len(indexes) == 0:
             raise ValueNotFoundError("Events not found")
+        events = await self.get_events_by_author_id(
+            author_id, page_number=1, items_per_page=-1
+        )
         for index in indexes:
             self._events[index].deleted_at = datetime.now()
+        return events

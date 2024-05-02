@@ -313,7 +313,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             Event.from_prisma_event(prisma_event=db_event) for db_event in db_events
         ]
 
-    async def create_event(self, event: Event) -> None:
+    async def create_event(self, event: Event) -> Event:
         """
         Create an event.
 
@@ -321,6 +321,11 @@ class EventRepositoryImpl(EventRepositoryInterface):
         ----------
         event : Event
             Event object.
+
+        Returns
+        -------
+        Event
+            Created event.
 
         Raises
         ------
@@ -337,8 +342,9 @@ class EventRepositoryImpl(EventRepositoryInterface):
         await self._db_client.db.event.create(
             data=event.to_dict(exclude=["created_at", "deleted_at"])
         )
+        return await self.get_event_by_event_id(event.id)
 
-    async def update_event(self, event: Event) -> None:
+    async def update_event(self, event: Event) -> Event:
         """
         Update event data.
 
@@ -346,6 +352,11 @@ class EventRepositoryImpl(EventRepositoryInterface):
         ----------
         event : Event
             Event object.
+
+        Returns
+        -------
+        Event
+            Event with updated data.
 
         Raises
         ------
@@ -362,8 +373,9 @@ class EventRepositoryImpl(EventRepositoryInterface):
         await self._db_client.db.event.update(
             where={"id": event.id}, data=event.to_dict()
         )
+        return await self.get_event_by_event_id(event.id)
 
-    async def delete_event_by_id(self, event_id: str) -> None:
+    async def delete_event_by_id(self, event_id: str) -> Event:
         """
         Delete the event.
 
@@ -372,25 +384,37 @@ class EventRepositoryImpl(EventRepositoryInterface):
         event_id : str
             Event id.
 
+        Returns
+        -------
+        Event
+            Event that was deleted.
+
         Raises
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
 
         """
+        event = await self.get_event_by_event_id(event_id)
         await self._db_client.db.event.update_many(
             where={"id": event_id, "deleted_at": None},
             data={"deleted_at": datetime.now()},
         )
+        return event
 
-    async def delete_events_by_author_id(self, author_id: str) -> None:
+    async def delete_events_by_author_id(self, author_id: str) -> List[Event]:
         """
-        Delete the event.
+        Delete events.
 
         Parameters
         ----------
         author_id : str
-            Author id.
+            Event id.
+
+        Returns
+        -------
+        List[Event]
+            List of events that were deleted.
 
         Raises
         ------
@@ -398,7 +422,11 @@ class EventRepositoryImpl(EventRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
+        events = await self.get_events_by_author_id(
+            author_id, page_number=1, items_per_page=-1
+        )
         await self._db_client.db.event.update_many(
             where={"author_id": author_id, "deleted_at": None},
             data={"deleted_at": datetime.now()},
         )
+        return events

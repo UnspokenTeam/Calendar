@@ -170,7 +170,7 @@ class EventRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def create_event(self, event: Event) -> None:
+    async def create_event(self, event: Event) -> Event:
         """
         Create an event.
 
@@ -179,6 +179,11 @@ class EventRepositoryInterface(ABC):
         event : Event
             Event object.
 
+        Returns
+        -------
+        Event
+            Created event.
+
         Raises
         ------
         prisma.errors.PrismaError
@@ -190,7 +195,7 @@ class EventRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def update_event(self, event: Event) -> None:
+    async def update_event(self, event: Event) -> Event:
         """
         Update event data.
 
@@ -199,6 +204,11 @@ class EventRepositoryInterface(ABC):
         event : Event
             Event object.
 
+        Returns
+        -------
+        Event
+            Event with updated data.
+
         Raises
         ------
         prisma.errors.PrismaError
@@ -210,7 +220,7 @@ class EventRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def delete_event_by_id(self, event_id: str) -> None:
+    async def delete_event_by_id(self, event_id: str) -> Event:
         """
         Delete the event.
 
@@ -218,6 +228,11 @@ class EventRepositoryInterface(ABC):
         ----------
         event_id : str
             Event id.
+
+        Returns
+        -------
+        Event
+            Event that was deleted.
 
         Raises
         ------
@@ -228,7 +243,7 @@ class EventRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def delete_events_by_author_id(self, author_id: str) -> None:
+    async def delete_events_by_author_id(self, author_id: str) -> List[Event]:
         """
         Delete events.
 
@@ -236,6 +251,11 @@ class EventRepositoryInterface(ABC):
         ----------
         author_id : str
             Event id.
+
+        Returns
+        -------
+        List[Event]
+            List of events that were deleted.
 
         Raises
         ------
