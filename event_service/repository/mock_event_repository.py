@@ -299,8 +299,6 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         Raises
         ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -331,8 +329,8 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         Raises
         ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
+        ValueNotFoundError
+            Can't update event with provided data.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -369,8 +367,8 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         Raises
         ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
+        ValueNotFoundError
+            Can't delete event with provided data.
 
         """
         try:
@@ -402,8 +400,8 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         Raises
         ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
+        ValueNotFoundError
+            Can't delete event with provided data.
 
         """
         indexes = tuple(
