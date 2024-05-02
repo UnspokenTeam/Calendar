@@ -46,14 +46,14 @@ from app.params import GrpcClientParams
 from app.validators.int_validators import int_not_equal_zero_validator
 
 from fastapi import APIRouter, Depends, Security
-from pydantic import AfterValidator, Field
+from pydantic import AfterValidator, Field, UUID4
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 
 @router.get("/{notification_id}")
 async def get_notification_by_id(
-        notification_id: UUID,
+        notification_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Notification:
@@ -64,7 +64,7 @@ async def get_notification_by_id(
 
     Parameters
     ----------
-    notification_id : UUID
+    notification_id : UUID4 | str
         Notification id
     user : Annotated[GrpcUser, Security(auth)]
         Authenticated user data in proto format
@@ -187,7 +187,7 @@ async def get_my_notifications(
 
 @router.post("/")
 async def create_notification(
-        event_id: UUID,
+        event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
@@ -198,7 +198,7 @@ async def create_notification(
 
     Parameters
     ----------
-    event_id : UUID
+    event_id : UUID4 | str
         Event id
     user : Annotated[GrpcUser, Security(auth)]
         Authenticated user data in proto format
@@ -321,7 +321,7 @@ async def update_notification(
 
 @router.delete("/")
 async def delete_notification(
-        notification_id: UUID,
+        notification_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
@@ -332,7 +332,7 @@ async def delete_notification(
 
     Parameters
     ----------
-    notification_id : UUID
+    notification_id : UUID4 | str
         Notification id
     user : Annotated[GrpcUser, Security(auth)]
         Authenticated user data in proto format
@@ -348,7 +348,9 @@ async def delete_notification(
 
 
 async def check_permission_for_event(
-        grpc_user: GrpcUser, event_id: UUID, grpc_clients: GrpcClientParams
+        grpc_user: GrpcUser,
+        event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
+        grpc_clients: GrpcClientParams
 ) -> None:
     """
     Check if user can access event.
@@ -357,7 +359,7 @@ async def check_permission_for_event(
     ----------
     grpc_user : GrpcUser
         User's data
-    event_id : UUID
+    event_id : UUID4 | str
         Event id
     grpc_clients: GrpcClientParams
         Grpc clients

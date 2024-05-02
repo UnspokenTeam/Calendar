@@ -73,14 +73,25 @@ from app.models import Invite, InviteStatus
 from app.params import GrpcClientParams
 
 from fastapi import APIRouter, Depends, Security
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, AfterValidator, UUID4
 
 router = APIRouter(prefix="/invites", tags=["invites"])
 
 
 class CreateInviteData(BaseModel):
-    invitee_id: UUID
-    event_id: UUID
+    """
+    Create invite dataclass
+
+    Attributes
+    ----------
+    invitee_id : UUID4 | str
+        Invitee id
+    event_id : UUID4 | str
+        Event id
+
+    """
+    invitee_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
+    event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
 
 
 @router.get("/all/")
@@ -214,7 +225,7 @@ async def get_users_author_invites(
 
 @router.get("/{invite_id}")
 async def get_invite_by_invite_id(
-    invite_id: UUID,
+    invite_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
     user: Annotated[GrpcUser, Security(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Invite:
@@ -225,7 +236,7 @@ async def get_invite_by_invite_id(
 
     Parameters
     ----------
-    invite_id : UUID
+    invite_id : UUID4 | str
         Invite id
     user : Annotated[GrpcUser, Security(auth)]
         Authorized user's data in proto format
@@ -249,8 +260,8 @@ async def get_invite_by_invite_id(
 
 @router.post("/")
 async def create_invite(
-    invitee_id: UUID,
-    event_id: UUID,
+    invitee_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
+    event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
     user: Annotated[GrpcUser, Security(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
@@ -261,9 +272,9 @@ async def create_invite(
 
     Parameters
     ----------
-    invitee_id : UUID
+    invitee_id : UUID4 | str
         Invitee user id
-    event_id : UUID
+    event_id : UUID4 | str
         Event id
     user : Annotated[GrpcUser, Security(auth)]
         Authorized user's data in proto format
@@ -419,7 +430,7 @@ async def update_invite(
 
 @router.delete("/")
 async def delete_invite(
-    invite_id: UUID,
+    invite_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
     user: Annotated[GrpcUser, Security(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
@@ -430,7 +441,7 @@ async def delete_invite(
 
     Parameters
     ----------
-    invite_id : UUID
+    invite_id : UUID4 | str
         Delete invite
     user : Annotated[GrpcUser, Security(auth)]
         Authorized user's data in proto format
@@ -463,7 +474,9 @@ async def delete_invite(
 
 
 async def check_permission_for_event(
-    requesting_user: GrpcUser, event_id: UUID, grpc_clients: GrpcClientParams
+        requesting_user: GrpcUser,
+        event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
+        grpc_clients: GrpcClientParams
 ) -> None:
     """
     \f
@@ -474,7 +487,7 @@ async def check_permission_for_event(
     ----------
     requesting_user : GrpcUser
         User's data
-    event_id : UUID
+    event_id : UUID4 | str
         Event id
     grpc_clients: GrpcClientParams
         Grpc clients
@@ -509,7 +522,7 @@ async def check_permission_for_event(
             raise PermissionDeniedError("Permission denied")
 
 
-async def check_user_existence(user_id: UUID, grpc_clients: GrpcClientParams) -> None:
+async def check_user_existence(user_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))], grpc_clients: GrpcClientParams) -> None:
     """
     \f
 
@@ -517,7 +530,7 @@ async def check_user_existence(user_id: UUID, grpc_clients: GrpcClientParams) ->
 
     Parameters
     ----------
-    user_id : UUID
+    user_id : UUID4 | str
         User's id
     grpc_clients : GrpcClientParams
         Grpc clients
