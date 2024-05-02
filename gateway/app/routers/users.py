@@ -23,6 +23,7 @@ from app.generated.identity_service.get_access_token_pb2 import (
 from app.generated.identity_service.get_user_pb2 import (
     GetAllUsersRequest as GrpcGetAllUsersRequest,
 )
+from app.generated.identity_service.get_user_pb2 import GetUserByEmailRequest as GrpcGetUserByEmailRequest
 from app.generated.identity_service.get_user_pb2 import (
     UserByIdRequest as GrpcGetUserByIdRequest,
 )
@@ -37,7 +38,6 @@ from app.generated.identity_service.update_user_pb2 import (
     UserToUpdate as GrpcUserToUpdate,
 )
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
-from app.generated.identity_service.get_user_pb2 import GetUserByEmailRequest as GrpcGetUserByEmailRequest
 from app.middleware.auth import api_key_header, auth
 from app.models import User, UserType
 from app.params import GrpcClientParams
