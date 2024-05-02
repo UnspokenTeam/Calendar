@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from prisma.models import Event as PrismaEvent
+from prisma.models import PrismaEvent
 
 from db.postgres_client import PostgresClient
 from errors.value_not_found_error import ValueNotFoundError
@@ -176,7 +176,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             No event was found for given event id.
 
         """
-        db_event: Optional[PrismaEvent] = await self._db_client.db.event.find_first(
+        db_event: Optional[PrismaEvent] = await self._db_client.db.prismaevent.find_first(
             where={"id": event_id, "deleted_at": None}
         )
         if db_event is None:
@@ -213,7 +213,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
         """
         db_events: Optional[
             List[PrismaEvent]
-        ] = await self._db_client.db.event.find_many(
+        ] = await self._db_client.db.prismaevent.find_many(
             where={
                 "id": {"in": events_ids},
                 "deleted_at": None,
@@ -362,8 +362,10 @@ class EventRepositoryImpl(EventRepositoryInterface):
             raise WrongIntervalError(
                 "Request failed. Can't create event with wrong time interval."
             )
-        return await self._db_client.db.event.create(
-            data=event.to_dict(exclude=["created_at", "deleted_at"])
+        return Event.from_prisma_event(
+            await self._db_client.db.prismaevent.create(
+                data=event.to_dict(exclude=["created_at", "deleted_at"])
+            )
         )
 
     async def update_event(self, event: Event) -> Event:
@@ -392,8 +394,10 @@ class EventRepositoryImpl(EventRepositoryInterface):
             raise WrongIntervalError(
                 "Request failed. Can't create event with wrong time interval."
             )
-        return await self._db_client.db.event.update(
-            where={"id": event.id}, data=event.to_dict()
+        return Event.from_prisma_event(
+            await self._db_client.db.prismaevent.update(
+                where={"id": event.id}, data=event.to_dict()
+            )
         )
 
     async def delete_event_by_id(self, event_id: str) -> None:
@@ -411,7 +415,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.event.update_many(
+        await self._db_client.db.prismaevent.update_many(
             where={"id": event_id, "deleted_at": None},
             data={"deleted_at": datetime.now()},
         )
@@ -431,7 +435,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.event.update_many(
+        await self._db_client.db.prismaevent.update_many(
             where={"author_id": author_id, "deleted_at": None},
             data={"deleted_at": datetime.now()},
         )
