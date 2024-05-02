@@ -22,6 +22,7 @@ import generated.identity_service.delete_user_pb2 as delete_user_proto
 import generated.identity_service.get_access_token_pb2 as get_access_token_proto
 import generated.identity_service.get_user_pb2 as get_user_proto
 import generated.identity_service.update_user_pb2 as update_user_proto
+import generated.user.user_pb2 as user_proto
 
 
 class IdentityServiceImpl(GrpcServicer):
@@ -88,7 +89,7 @@ class IdentityServiceImpl(GrpcServicer):
         Returns
         -------
         auth_proto.CredentialsResponse
-            Response object with credentials
+            Response object with credentials and user's data
 
         """
         user = await self._user_repository.get_user_by_email(request.email)
@@ -109,8 +110,10 @@ class IdentityServiceImpl(GrpcServicer):
         context.set_code(grpc.StatusCode.OK)
         return auth_proto.CredentialsResponse(
             data=auth_proto.LoginData(
-                access_token=access_token, refresh_token=refresh_token
+                access_token=access_token,
+                refresh_token=refresh_token,
             ),
+            user=user.to_grpc_user()
         )
 
     async def register(
@@ -129,7 +132,7 @@ class IdentityServiceImpl(GrpcServicer):
         Returns
         -------
         auth_proto.CredentialsResponse
-            Response object with credentials
+            Response object with credentials and user's data
 
         """
         user = User.from_register_request(request)
@@ -150,11 +153,12 @@ class IdentityServiceImpl(GrpcServicer):
             data=auth_proto.LoginData(
                 access_token=access_token, refresh_token=refresh_token
             ),
+            user=user.to_grpc_user()
         )
 
     async def auth(
         self, request: auth_proto.AccessToken, context: grpc.ServicerContext
-    ) -> get_user_proto.UserResponse:
+    ) -> user_proto.GrpcUser:
         """
         Authenticates user by his token and returns his ID
 
@@ -167,7 +171,7 @@ class IdentityServiceImpl(GrpcServicer):
 
         Returns
         -------
-        get_user_proto.UserResponse
+        user_proto.GrpcUser
             Response object with user object
 
         """
@@ -176,7 +180,7 @@ class IdentityServiceImpl(GrpcServicer):
         )
         user = await self._user_repository.get_user_by_session_id(session_id)
         context.set_code(grpc.StatusCode.OK)
-        return get_user_proto.UserResponse(user=user.to_grpc_user())
+        return user.to_grpc_user()
 
     async def get_new_access_token(
         self,
@@ -215,7 +219,7 @@ class IdentityServiceImpl(GrpcServicer):
         self,
         request: get_user_proto.GetUserByEmailRequest,
         context: grpc.ServicerContext,
-    ) -> get_user_proto.UserResponse:
+    ) -> user_proto.GrpcUser:
         """
         Gets user by email
 
@@ -228,17 +232,17 @@ class IdentityServiceImpl(GrpcServicer):
 
         Returns
         -------
-        get_user_proto.UserResponse
+        user_proto.GrpcUser
             Response object with user data
 
         """
         user = await self._user_repository.get_user_by_email(request.email)
         context.set_code(grpc.StatusCode.OK)
-        return get_user_proto.UserResponse(user=user.to_grpc_user())
+        return user.to_grpc_user()
 
     async def get_user_by_id(
         self, request: get_user_proto.UserByIdRequest, context: grpc.ServicerContext
-    ) -> get_user_proto.UserResponse:
+    ) -> user_proto.GrpcUser:
         """
         Gets user object that matches given ID
 
@@ -251,17 +255,17 @@ class IdentityServiceImpl(GrpcServicer):
 
         Returns
         -------
-        get_user_proto.UserResponse
+        user_proto.GrpcUser
             Response object with public user data
 
         """
         user = await self._user_repository.get_user_by_id(request.user_id)
         context.set_code(grpc.StatusCode.OK)
-        return get_user_proto.UserResponse(user=user.to_grpc_user())
+        return user.to_grpc_user()
 
     async def get_users_by_id(
         self, request: get_user_proto.UsersByIdRequest, context: grpc.ServicerContext
-    ) -> get_user_proto.UsersResponse:
+    ) -> get_user_proto.ListOfUser:
         """
         Gets user objects that matches given ids
 
@@ -274,7 +278,7 @@ class IdentityServiceImpl(GrpcServicer):
 
         Returns
         -------
-        get_user_proto.UsersResponse
+        get_user_proto.ListOfUser
             Response object with array of user data
 
         """
@@ -284,15 +288,13 @@ class IdentityServiceImpl(GrpcServicer):
             items_per_page=request.items_per_page,
         )
         context.set_code(grpc.StatusCode.OK)
-        return get_user_proto.UsersResponse(
-            users=get_user_proto.ListOfUser(
-                users=[user.to_grpc_user() for user in users]
-            ),
+        return get_user_proto.ListOfUser(
+            users=[user.to_grpc_user() for user in users]
         )
 
     async def get_all_users(
         self, request: get_user_proto.GetAllUsersRequest, context: grpc.ServicerContext
-    ) -> get_user_proto.UsersResponse:
+    ) -> get_user_proto.ListOfUser:
         """
         Get all existing users
 
@@ -305,7 +307,7 @@ class IdentityServiceImpl(GrpcServicer):
 
         Returns
         -------
-        get_user_proto.UsersResponse
+        get_user_proto.ListOfUser
             Response object with array of user data4
 
         Raises
@@ -321,10 +323,8 @@ class IdentityServiceImpl(GrpcServicer):
             page=request.page, items_per_page=request.items_per_page
         )
         context.set_code(grpc.StatusCode.OK)
-        return get_user_proto.UsersResponse(
-            users=get_user_proto.ListOfUser(
-                users=[user.to_grpc_user() for user in users]
-            )
+        return get_user_proto.ListOfUser(
+            users=[user.to_grpc_user() for user in users]
         )
 
     async def update_user(
@@ -365,7 +365,7 @@ class IdentityServiceImpl(GrpcServicer):
         else:
             user.password = self._encoder.encode(password=user.password)
 
-        await self._user_repository.update_user(user=user)
+        user = await self._user_repository.update_user(user=user)
         await self._token_repository.delete_all_refresh_tokens(user_id=user.id)
 
         session_id = str(uuid4())
@@ -381,6 +381,7 @@ class IdentityServiceImpl(GrpcServicer):
             data=auth_proto.LoginData(
                 access_token=access_token, refresh_token=refresh_token
             ),
+            user=user.to_grpc_user()
         )
 
     async def delete_user(

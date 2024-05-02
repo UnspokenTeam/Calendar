@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "user/user.proto";
+
 message AccessToken {
   string access_token = 1;
 }
@@ -11,6 +13,7 @@ message LoginRequest {
 
 message CredentialsResponse {
   LoginData data = 1;
+  GrpcUser user = 2;
 }
 
 message RegisterRequest {
