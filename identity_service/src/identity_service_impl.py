@@ -117,7 +117,7 @@ class IdentityServiceImpl(GrpcServicer):
         )
 
     async def register(
-        self, request: auth_proto.RegisterRequest, context: grpc.ServicerContext
+        self, request: update_user_proto.UserToModify, context: grpc.ServicerContext
     ) -> auth_proto.CredentialsResponse:
         """
         Creates user if user does not already exist
@@ -135,8 +135,9 @@ class IdentityServiceImpl(GrpcServicer):
             Response object with credentials and user's data
 
         """
-        user = User.from_register_request(request)
+        user = User.from_modify_grpc_user(request)
         user.password = self._encoder.encode(user.password)
+        user.id = str(uuid4())
 
         user = await self._user_repository.create_user(user=user)
 
@@ -353,11 +354,14 @@ class IdentityServiceImpl(GrpcServicer):
             Permission denied
 
         """
-        user = User.from_update_grpc_user(grpc_user=request.new_user)
+        user = User.from_modify_grpc_user(grpc_user=request.new_user)
         requesting_user = User.from_grpc_user(request.requesting_user)
-        db_user = await self._user_repository.get_user_by_id(user_id=requesting_user.id)
+        db_user = await self._user_repository.get_user_by_id(user_id=user.id)
 
         if requesting_user.type != UserType.ADMIN and user.id != requesting_user.id:
+            raise PermissionDeniedError("Permission denied")
+
+        if requesting_user.type != UserType.ADMIN and db_user.type != UserType.ADMIN and user.type == UserType.ADMIN:
             raise PermissionDeniedError("Permission denied")
 
         if self._encoder.compare(user.password, db_user.password):

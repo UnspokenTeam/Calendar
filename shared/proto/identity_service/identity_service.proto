@@ -12,7 +12,7 @@ service IdentityService {
   rpc logout(AccessToken) returns (google.protobuf.Empty){}
   rpc auth(AccessToken) returns (GrpcUser){}
   rpc login(LoginRequest) returns (CredentialsResponse){}
-  rpc register(RegisterRequest) returns (CredentialsResponse){}
+  rpc register(UserToModify) returns (CredentialsResponse){}
   rpc get_new_access_token(GetNewAccessTokenRequest) returns (GetNewAccessTokenResponse){}
   rpc get_user_by_email(GetUserByEmailRequest) returns (GrpcUser){}
   rpc get_user_by_id(UserByIdRequest) returns (GrpcUser){}

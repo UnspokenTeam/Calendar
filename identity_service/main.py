@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 
+import dotenv
 import grpc
 
 from db.postgres_client import PostgresClient
@@ -20,6 +21,7 @@ import generated.identity_service.identity_service_pb2_grpc as identity_service_
 async def serve() -> None:
     """Start an async server"""
     server = grpc.aio.server(interceptors=[CustomInterceptor()])
+    dotenv.load_dotenv()
     if os.environ["ENVIRONMENT"] == "PRODUCTION":
         await PostgresClient().connect()
     identity_service_grpc.add_IdentityServiceServicer_to_server(

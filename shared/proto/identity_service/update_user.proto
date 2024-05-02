@@ -5,11 +5,11 @@ import "user/user.proto";
 import "google/protobuf/struct.proto";
 
 message UpdateUserRequest {
-  UserToUpdate new_user = 1;
+  UserToModify new_user = 1;
   GrpcUser requesting_user = 2;
 }
 
-message UserToUpdate {
+message UserToModify {
   string id = 1;
   string username = 2;
   string email = 3;

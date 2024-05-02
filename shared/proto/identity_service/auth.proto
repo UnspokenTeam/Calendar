@@ -16,12 +16,6 @@ message CredentialsResponse {
   GrpcUser user = 2;
 }
 
-message RegisterRequest {
-  string username = 1;
-  string password = 2;
-  string email = 3;
-}
-
 message LoginData {
   string refresh_token = 1;
   string access_token = 2;
