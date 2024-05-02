@@ -24,6 +24,8 @@ from app.generated.notification_service.notification_service_pb2 import (
 from app.generated.notification_service.notification_service_pb2 import (
     GetAllNotificationsRequest as GrpcGetAllNotificationsRequest,
 )
+from app.generated.notification_service.notification_service_pb2 import GrpcNotification
+from app.generated.notification_service.notification_service_pb2 import ListOfNotifications as GrpcListOfNotifications
 from app.generated.notification_service.notification_service_pb2 import (
     NotificationRequest as GrpcNotificationRequest,
 )
@@ -31,13 +33,7 @@ from app.generated.notification_service.notification_service_pb2 import (
     NotificationRequestByNotificationId as GrpcGetNotificationByNotificationIdRequest,
 )
 from app.generated.notification_service.notification_service_pb2 import (
-    NotificationResponse as GrpcNotificationResponse,
-)
-from app.generated.notification_service.notification_service_pb2 import (
     NotificationsRequestByAuthorId as GrpcGetNotificationsByAuthorIdRequest,
-)
-from app.generated.notification_service.notification_service_pb2 import (
-    NotificationsResponse as GrpcNotificationsResponse,
 )
 from app.generated.user.user_pb2 import GrpcUser
 from app.middleware import auth
@@ -77,7 +73,7 @@ async def get_notification_by_id(
         Notification object
 
     """
-    notification_request: GrpcNotificationResponse = (
+    notification_request: GrpcNotification = (
         grpc_clients
         .notification_service_client
         .request()
@@ -88,7 +84,7 @@ async def get_notification_by_id(
         )
     )
 
-    return Notification.from_proto(notification_request.notification)
+    return Notification.from_proto(notification_request)
 
 
 @router.get("/admin/all/")
@@ -123,7 +119,7 @@ async def get_all_notifications(
     if user.type != UserType.ADMIN:
         raise PermissionDeniedError("Permission denied")
 
-    notifications_response: GrpcNotificationsResponse = await (
+    notifications_response: GrpcListOfNotifications = await (
         grpc_clients.notification_service_client.request().get_all_notifications(
             GrpcGetAllNotificationsRequest(
                 page_number=page,
@@ -134,7 +130,7 @@ async def get_all_notifications(
     )
 
     return [Notification.from_proto(notification) for notification in
-            notifications_response.notifications.notifications]
+            notifications_response.notifications]
 
 
 @router.get("/my/")
@@ -165,7 +161,7 @@ async def get_my_notifications(
         User's notifications
 
     """
-    notifications_request: GrpcNotificationsResponse = (
+    notifications_request: GrpcListOfNotifications = (
         grpc_clients
         .notification_service_client
         .request()
@@ -181,7 +177,7 @@ async def get_my_notifications(
 
     return [
         Notification.from_proto(notification)
-        for notification in notifications_request.notifications.notifications
+        for notification in notifications_request.notifications
     ]
 
 
@@ -253,7 +249,7 @@ async def update_notification_as_author(
     if notification.author_id != user.id:
         raise PermissionDeniedError
 
-    stored_notification_response: GrpcNotificationResponse = (
+    stored_notification_response: GrpcNotification = (
         grpc_clients.notification_service_client.request().get_notification_by_notification_id(
             GrpcGetNotificationByNotificationIdRequest(
                 notification_id=str(notification.id),
@@ -261,7 +257,7 @@ async def update_notification_as_author(
             )
         )
     )
-    stored_notification = Notification.from_proto(stored_notification_response.notification)
+    stored_notification = Notification.from_proto(stored_notification_response)
 
     if notification.event_id != stored_notification.event_id:
         await check_permission_for_event(grpc_user=user, event_id=notification.event_id, grpc_clients=grpc_clients)

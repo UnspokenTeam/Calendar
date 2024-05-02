@@ -25,6 +25,7 @@ from app.generated.identity_service.get_access_token_pb2 import (
 from app.generated.identity_service.get_user_pb2 import (
     GetAllUsersRequest as GrpcGetAllUsersRequest,
 )
+from app.generated.identity_service.get_user_pb2 import GetUserByEmailRequest as GrpcGetUserByEmailRequest
 from app.generated.identity_service.get_user_pb2 import ListOfUser as GrpcListOfUser
 from app.generated.identity_service.get_user_pb2 import (
     UserByIdRequest as GrpcGetUserByIdRequest,
@@ -235,12 +236,12 @@ async def get_user_by_email(
         User object
 
     """
-    user_request: GrpcUserResponse = grpc_clients.identity_service_client.request().get_user_by_email(
+    user_request: GrpcUser = grpc_clients.identity_service_client.request().get_user_by_email(
         GrpcGetUserByEmailRequest(
             email=email
         )
     )
-    return User.from_proto(user_request.user)
+    return User.from_proto(user_request)
 
 
 @router.post("/register")
@@ -414,7 +415,7 @@ async def update_user(
     response: GrpcCredentialsResponse = grpc_clients.identity_service_client.request().update_user(
         GrpcUpdateUserRequest(
             requesting_user=grpc_user,
-            new_user=user_to_update.to_update_proto(),
+            new_user=user_to_update.to_modify_proto(),
         )
     )
 

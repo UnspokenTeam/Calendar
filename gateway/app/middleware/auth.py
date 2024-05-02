@@ -1,3 +1,4 @@
+"""Auth middleware"""
 from typing import Annotated
 
 from app.generated.identity_service.auth_pb2 import AccessToken

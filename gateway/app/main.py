@@ -1,3 +1,4 @@
+"""Main file"""
 from .middleware import InterceptorMiddleware
 from .params import GrpcClientParams
 from .routers import Events, Invites, Notifications, Users

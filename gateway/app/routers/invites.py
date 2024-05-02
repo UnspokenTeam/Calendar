@@ -14,7 +14,7 @@ from app.generated.event_service.event_service_pb2 import (
     EventsRequestByEventsIds as GrpcGetEventsByEventIdsRequest,
 )
 from app.generated.event_service.event_service_pb2 import (
-    EventsResponse as GrpcEventsResponse,
+    ListOfEvents as GrpcListOfEvents,
 )
 from app.generated.event_service.event_service_pb2 import (
     ListOfEventsIds as GrpcListOfEventsIds,
@@ -341,7 +341,7 @@ async def create_multiple_invites(
     if len(users.users) != len(invites):
         raise ValueError("Some users do not exist")
 
-    events: GrpcEventsResponse = (
+    events: GrpcListOfEvents = (
         await grpc_clients.event_service_client.request().get_events_by_events_ids(
             GrpcGetEventsByEventIdsRequest(
                 page_number=1,
@@ -352,8 +352,8 @@ async def create_multiple_invites(
             )
         )
     )
-    if len(events.events.events) != len(invites) and all(
-        [event.author_id == user.id for event in events.events.events]
+    if len(events.events) != len(invites) and all(
+        [event.author_id == user.id for event in events.events]
     ):
         raise ValueError("Some events do not exist")
 
