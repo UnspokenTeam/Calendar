@@ -344,7 +344,7 @@ async def get_new_access_token(
             GrpcGetNewAccessTokenRequest(refresh_token=refresh_token)
         )
     )
-    return access_token_request.access_token
+    return str(access_token_request.access_token)
 
 
 @router.put("/")
