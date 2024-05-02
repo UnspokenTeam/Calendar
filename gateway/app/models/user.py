@@ -4,6 +4,7 @@ from enum import StrEnum
 from typing import Annotated, Optional, Self
 from uuid import UUID
 
+from app.generated.identity_service.update_user_pb2 import UserToModify
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 
 from pydantic import UUID4, AfterValidator, BaseModel, EmailStr
@@ -87,6 +88,8 @@ class User(BaseModel):
     -------
     from_proto(proto)
         Get a user instance from user proto
+    to_update_proto()
+        Convert object to update proto
 
     """
 
@@ -123,9 +126,31 @@ class User(BaseModel):
                 proto.created_at.seconds + proto.created_at.nanos / 1e9
             ),
             suspended_at=None
-            if proto.suspended_at is None
+            if proto.WhichOneof("optional_suspended_at") is None
             else datetime.fromtimestamp(
                 proto.suspended_at.seconds + proto.suspended_at.nanos / 1e9
             ),
             type=UserType.from_proto(proto.type),
         )
+
+    def to_modify_proto(self) -> UserToModify:
+        """
+        Convert object to update proto
+
+        Returns
+        -------
+        UserToUpdate
+            Update proto
+
+        """
+        user = UserToModify(
+            id=self.id,
+            username=self.username,
+            password=self.password,
+            type=self.type.to_proto(),
+            email=self.email,
+        )
+        user.created_at.FromDatetime(self.created_at)
+        if self.suspended_at is not None:
+            user.suspended_at.FromDatetime(self.suspended_at)
+        return user

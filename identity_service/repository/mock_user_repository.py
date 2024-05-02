@@ -184,7 +184,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         self._users.append(user)
         return user
 
-    async def update_user(self, user: User) -> None:
+    async def update_user(self, user: User) -> User:
         """
         Updates user with matching id or throws an exception
 
@@ -192,6 +192,11 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         ----------
         user : User
             User data
+
+        Returns
+        -------
+        User
+            Updated user object
 
         Raises
         ------
@@ -202,6 +207,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         try:
             index: int = self._users.index(user)
             self._users[index] = user
+            return user
         except ValueError:
             raise ValueNotFoundError("No user found")
 
