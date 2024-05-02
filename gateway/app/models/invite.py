@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional, Self, Annotated
+from typing import Annotated, Optional, Self
 from uuid import UUID
 
 from app.generated.invite_service.invite_service_pb2 import (
@@ -10,7 +10,7 @@ from app.generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
 
-from pydantic import BaseModel, AfterValidator, UUID4
+from pydantic import UUID4, AfterValidator, BaseModel
 from pytz import utc
 
 

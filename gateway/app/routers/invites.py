@@ -73,7 +73,7 @@ from app.models import Invite, InviteStatus
 from app.params import GrpcClientParams
 
 from fastapi import APIRouter, Depends, Security
-from pydantic import BaseModel, Field, AfterValidator, UUID4
+from pydantic import UUID4, AfterValidator, BaseModel, Field
 
 router = APIRouter(prefix="/invites", tags=["invites"])
 
@@ -90,6 +90,7 @@ class CreateInviteData(BaseModel):
         Event id
 
     """
+
     invitee_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
 

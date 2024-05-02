@@ -46,7 +46,7 @@ from app.params import GrpcClientParams
 from app.validators.int_validators import int_not_equal_zero_validator
 
 from fastapi import APIRouter, Depends, Security
-from pydantic import AfterValidator, Field, UUID4
+from pydantic import UUID4, AfterValidator, Field
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 

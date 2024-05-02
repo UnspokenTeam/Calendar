@@ -45,7 +45,7 @@ from app.validators import str_special_characters_validator
 
 from fastapi import APIRouter, Depends, Security
 from google.protobuf.timestamp_pb2 import Timestamp
-from pydantic import AfterValidator, BaseModel, EmailStr, Field, UUID4
+from pydantic import UUID4, AfterValidator, BaseModel, EmailStr, Field
 
 router = APIRouter(prefix="/users", tags=["users"])
 

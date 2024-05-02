@@ -5,7 +5,7 @@ from uuid import UUID
 
 from app.generated.notification_service.notification_service_pb2 import GrpcNotification
 
-from pydantic import BaseModel, Field, UUID4, AfterValidator
+from pydantic import UUID4, AfterValidator, BaseModel, Field
 from pytz import utc
 
 
