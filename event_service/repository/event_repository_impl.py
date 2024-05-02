@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from prisma.models import Event as PrismaEvent
+from prisma.models import PrismaEvent
 
 from db.postgres_client import PostgresClient
 from errors.value_not_found_error import ValueNotFoundError
@@ -11,6 +11,7 @@ from errors.wrong_interval_error import WrongIntervalError
 from src.models.event import Event
 from utils.singleton import singleton
 
+from constants import GET_ALL_EVENTS_QUERY, GET_EVENTS_BY_AUTHOR_ID_QUERY
 from repository.event_repository_interface import EventRepositoryInterface
 
 
@@ -92,47 +93,58 @@ class EventRepositoryImpl(EventRepositoryInterface):
         if start is not None and end is not None and start > end:
             raise WrongIntervalError("Request failed. Wrong time interval.")
         start_date, end_date = None, None
+        # fmt: off
         if start is not None:
             start_date = (
-                f"'{start.day:02d}/{start.month:02d}/{start.year:04d} "
-                f"{start.hour:02d}:{start.minute:02d}:{start.second:02d}'"
+                f"\'{start.day:02d}/{start.month:02d}/{start.year:04d} "
+                f"{start.hour:02d}:{start.minute:02d}:{start.second:02d}\'"
             )
         if end is not None:
             end_date = (
-                f"'{end.day:02d}/{end.month:02d}/{end.year:04d} "
-                f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}'"
+                f"\'{end.day:02d}/{end.month:02d}/{end.year:04d} "
+                f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}\'"
             )
+        author_id_for_query = f"\'{author_id}\'"
+        # fmt: on
+        event_start_condition = (
+            f"\n\tAND {start_date}::timestamp <= event.start"
+            if start is not None
+            else ""
+        )
+        event_end_condition = (
+            f"\n\tAND event.start <= {end_date}::timestamp" if end is not None else ""
+        )
+        time_interval = (
+            f"timestamp {end_date}"
+            if end is not None
+            else f"{start_date}::timestamp + event.repeating_delay::interval"
+        )
+        repeating_event_start_condition = (
+            f"\n\tAND {start_date}::timestamp <= pattern.event_start_series"
+            if start is not None
+            else ""
+        )
+        repeating_event_end_condition = (
+            f"\n\tAND pattern.event_start_series <= {end_date}::timestamp"
+            if end is not None
+            else ""
+        )
+        pagination_parameters = (
+            f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
+            if items_per_page != -1
+            else ""
+        )
         await self._db_client.db.execute_raw("SET datestyle = DMY;")
         db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
-            # fmt: off
-            "SELECT *\nFROM \"Event\" as event\nWHERE\n\tevent.author_id = {}\n\tAND event.deleted_at IS NULL{}{}\n"
-            "UNION\nSELECT DISTINCT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", "
-            "pattern.\"start\", pattern.\"end\", pattern.\"repeating_delay\", pattern.\"author_id\", "
-            "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM \"Event\" as event, "
-            "GENERATE_SERIES(event.start, {}, event.repeating_delay::interval) as event_start_series\n\t"
-            "WHERE event.repeating_delay IS NOT NULL\n) as pattern\nWHERE\n\tpattern.author_id = {}\n\t"
-            "AND pattern.deleted_at IS NULL{}{}\nORDER BY start{};".format(
-                # fmt: on
-                f"\'{author_id}\'",
-                f"\n\tAND {start_date}::timestamp <= event.start"
-                if start is not None
-                else "",
-                f"\n\tAND event.start <= {end_date}::timestamp"
-                if end is not None
-                else "",
-                f"timestamp {end_date}"
-                if end is not None
-                else f"{start_date}::timestamp + event.repeating_delay::interval",
-                f"\'{author_id}\'",
-                f"\n\tAND {start_date}::timestamp <= pattern.event_start_series"
-                if start is not None
-                else "",
-                f"\n\tAND pattern.event_start_series <= {end_date}::timestamp"
-                if end is not None
-                else "",
-                f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
-                if items_per_page != -1
-                else "",
+            GET_EVENTS_BY_AUTHOR_ID_QUERY.format(
+                author_id_for_query,
+                event_start_condition,
+                event_end_condition,
+                time_interval,
+                author_id_for_query,
+                repeating_event_start_condition,
+                repeating_event_end_condition,
+                pagination_parameters,
             ),
             model=PrismaEvent,
         )
@@ -164,7 +176,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             No event was found for given event id.
 
         """
-        db_event: Optional[PrismaEvent] = await self._db_client.db.event.find_first(
+        db_event: Optional[PrismaEvent] = await self._db_client.db.prismaevent.find_first(
             where={"id": event_id, "deleted_at": None}
         )
         if db_event is None:
@@ -201,7 +213,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
         """
         db_events: Optional[
             List[PrismaEvent]
-        ] = await self._db_client.db.event.find_many(
+        ] = await self._db_client.db.prismaevent.find_many(
             where={
                 "id": {"in": events_ids},
                 "deleted_at": None,
@@ -254,26 +266,20 @@ class EventRepositoryImpl(EventRepositoryInterface):
         if start is not None and end is not None and start > end:
             raise WrongIntervalError("Request failed. Wrong time interval.")
         start_date, end_date = None, None
+        # fmt: off
         if start is not None:
             start_date = (
-                f"'{start.day:02d}/{start.month:02d}/{start.year:04d} "
-                f"{start.hour:02d}:{start.minute:02d}:{start.second:02d}'"
+                f"\'{start.day:02d}/{start.month:02d}/{start.year:04d} "
+                f"{start.hour:02d}:{start.minute:02d}:{start.second:02d}\'"
             )
         if end is not None:
             end_date = (
-                f"'{end.day:02d}/{end.month:02d}/{end.year:04d} "
-                f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}'"
+                f"\'{end.day:02d}/{end.month:02d}/{end.year:04d} "
+                f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}\'"
             )
-        await self._db_client.db.execute_raw("SET datestyle = DMY;")
-        db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
-            # fmt: off
-            "SELECT *\nFROM \"Event\" as event{}\nUNION\n"
-            "SELECT DISTINCT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", "
-            "pattern.\"start\", pattern.\"end\", pattern.\"repeating_delay\", pattern.\"author_id\", "
-            "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM \"Event\" as event, "
-            "GENERATE_SERIES(event.start, {}, event.repeating_delay::interval) as event_start_series\n"
-            "\tWHERE event.repeating_delay IS NOT NULL\n) as pattern{}\nORDER BY start{};".format(
-                # fmt: on
+        # fmt: on
+        where_condition = (
+            (
                 "\nWHERE\n\t"
                 + (
                     f"{start_date}::timestamp <= event.start"
@@ -282,11 +288,17 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 )
                 + ("\n\tAND " if start is not None and end is not None else "")
                 + (f"event.start <= {end_date}::timestamp" if end is not None else "")
-                if start is not None or end is not None
-                else "",
-                f"timestamp {end_date}"
-                if end is not None
-                else f"{start_date}::timestamp + event.repeating_delay::interval",
+            )
+            if start is not None or end is not None
+            else ""
+        )
+        time_interval = (
+            f"timestamp {end_date}"
+            if end is not None
+            else f"{start_date}::timestamp + event.repeating_delay::interval"
+        )
+        where_condition_for_repeating_events = (
+            (
                 "\nWHERE\n\t"
                 + (
                     f"{start_date}::timestamp <= pattern.event_start_series"
@@ -299,11 +311,22 @@ class EventRepositoryImpl(EventRepositoryInterface):
                     if end is not None
                     else ""
                 )
-                if start is not None or end is not None
-                else "",
-                f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
-                if items_per_page != -1
-                else "",
+            )
+            if start is not None or end is not None
+            else ""
+        )
+        pagination_parameters = (
+            f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
+            if items_per_page != -1
+            else ""
+        )
+        await self._db_client.db.execute_raw("SET datestyle = DMY;")
+        db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
+            GET_ALL_EVENTS_QUERY.format(
+                where_condition,
+                time_interval,
+                where_condition_for_repeating_events,
+                pagination_parameters,
             ),
             model=PrismaEvent,
         )
@@ -313,7 +336,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             Event.from_prisma_event(prisma_event=db_event) for db_event in db_events
         ]
 
-    async def create_event(self, event: Event) -> None:
+    async def create_event(self, event: Event) -> Event:
         """
         Create an event.
 
@@ -322,6 +345,11 @@ class EventRepositoryImpl(EventRepositoryInterface):
         event : Event
             Event object.
 
+        Returns
+        -------
+        Event
+            Created event.
+
         Raises
         ------
         prisma.errors.PrismaError
@@ -334,11 +362,13 @@ class EventRepositoryImpl(EventRepositoryInterface):
             raise WrongIntervalError(
                 "Request failed. Can't create event with wrong time interval."
             )
-        await self._db_client.db.event.create(
-            data=event.to_dict(exclude=["created_at", "deleted_at"])
+        return Event.from_prisma_event(
+            await self._db_client.db.prismaevent.create(
+                data=event.to_dict(exclude=["created_at", "deleted_at"])
+            )
         )
 
-    async def update_event(self, event: Event) -> None:
+    async def update_event(self, event: Event) -> Event:
         """
         Update event data.
 
@@ -347,6 +377,11 @@ class EventRepositoryImpl(EventRepositoryInterface):
         event : Event
             Event object.
 
+        Returns
+        -------
+        Event
+            Event with updated data.
+
         Raises
         ------
         prisma.errors.PrismaError
@@ -359,8 +394,10 @@ class EventRepositoryImpl(EventRepositoryInterface):
             raise WrongIntervalError(
                 "Request failed. Can't create event with wrong time interval."
             )
-        await self._db_client.db.event.update(
-            where={"id": event.id}, data=event.to_dict()
+        return Event.from_prisma_event(
+            await self._db_client.db.prismaevent.update(
+                where={"id": event.id}, data=event.to_dict()
+            )
         )
 
     async def delete_event_by_id(self, event_id: str) -> None:
@@ -378,19 +415,19 @@ class EventRepositoryImpl(EventRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.event.update_many(
+        await self._db_client.db.prismaevent.update_many(
             where={"id": event_id, "deleted_at": None},
             data={"deleted_at": datetime.now()},
         )
 
     async def delete_events_by_author_id(self, author_id: str) -> None:
         """
-        Delete the event.
+        Delete events.
 
         Parameters
         ----------
         author_id : str
-            Author id.
+            Author's id.
 
         Raises
         ------
@@ -398,7 +435,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.event.update_many(
+        await self._db_client.db.prismaevent.update_many(
             where={"author_id": author_id, "deleted_at": None},
             data={"deleted_at": datetime.now()},
         )

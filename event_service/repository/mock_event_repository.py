@@ -283,14 +283,19 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             raise ValueNotFoundError("Events not found")
         return events
 
-    async def create_event(self, event: Event) -> None:
+    async def create_event(self, event: Event) -> Event:
         """
-        Creates event with matching data or throws an exception.
+        Create an event.
 
         Parameters
         ----------
         event : Event
-            Event data.
+            Event object.
+
+        Returns
+        -------
+        Event
+            Created event.
 
         Raises
         ------
@@ -306,15 +311,21 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         event.created_at = datetime.now()
         event.deleted_at = None
         self._events.append(event)
+        return event
 
-    async def update_event(self, event: Event) -> None:
+    async def update_event(self, event: Event) -> Event:
         """
-        Updates event with matching id or throws an exception.
+        Update event data.
 
         Parameters
         ----------
         event : Event
-            Event data.
+            Event object.
+
+        Returns
+        -------
+        Event
+            Updated event.
 
         Raises
         ------
@@ -334,19 +345,19 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             )
             if self._events[index].author_id == event.author_id:
                 self._events[index] = event
-            else:
-                raise ValueNotFoundError("Events authors must be same")
+                return event
+            raise ValueNotFoundError("Events authors must be same")
         except StopIteration:
             raise ValueNotFoundError("Event not found")
 
     async def delete_event_by_id(self, event_id: str) -> None:
         """
-        Deletes event with matching id or throws an exception.
+        Delete the event.
 
         Parameters
         ----------
         event_id : str
-            Event's id.
+            Event id.
 
         Raises
         ------
@@ -366,12 +377,12 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
     async def delete_events_by_author_id(self, author_id: str) -> None:
         """
-        Deletes events with matching author ids or throws an exception.
+        Delete events.
 
         Parameters
         ----------
         author_id : str
-            Author's id.
+            Event id.
 
         Raises
         ------

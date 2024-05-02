@@ -170,7 +170,7 @@ class EventRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def create_event(self, event: Event) -> None:
+    async def create_event(self, event: Event) -> Event:
         """
         Create an event.
 
@@ -178,6 +178,11 @@ class EventRepositoryInterface(ABC):
         ----------
         event : Event
             Event object.
+
+        Returns
+        -------
+        Event
+            Created event.
 
         Raises
         ------
@@ -190,7 +195,7 @@ class EventRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def update_event(self, event: Event) -> None:
+    async def update_event(self, event: Event) -> Event:
         """
         Update event data.
 
@@ -198,6 +203,11 @@ class EventRepositoryInterface(ABC):
         ----------
         event : Event
             Event object.
+
+        Returns
+        -------
+        Event
+            Event with updated data.
 
         Raises
         ------
@@ -235,7 +245,7 @@ class EventRepositoryInterface(ABC):
         Parameters
         ----------
         author_id : str
-            Event id.
+            Author id.
 
         Raises
         ------
