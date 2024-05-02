@@ -90,7 +90,7 @@ class InviteServiceImpl(GrpcServicer):
 
     async def get_invites_by_author_id(
         self, request: proto.InvitesByAuthorIdRequest, context: grpc.ServicerContext
-    ) -> proto.InvitesResponse:
+    ) -> proto.ListOfInvites:
         """
         Get all invites by author id.
 
@@ -103,8 +103,8 @@ class InviteServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.InvitesResponse
-            Invites object for invite response.
+        proto.ListOfInvites
+            Invites object for several invites.
 
         Raises
         ------
@@ -126,15 +126,11 @@ class InviteServiceImpl(GrpcServicer):
             items_per_page=request.items_per_page,
         )
         context.set_code(grpc.StatusCode.OK)
-        return proto.InvitesResponse(
-            invites=proto.ListOfInvites(
-                invites=[invite.to_grpc_invite() for invite in invites]
-            ),
-        )
+        return proto.ListOfInvites(invites=[invite.to_grpc_invite() for invite in invites])
 
     async def get_all_invites(
         self, request: GrpcGetAllInvitesRequest, context: grpc.ServicerContext
-    ) -> proto.InvitesResponse:
+    ) -> proto.ListOfInvites:
         """
         Get all invites.
 
@@ -147,8 +143,8 @@ class InviteServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.InvitesResponse
-            Response object for invite response.
+        proto.ListOfInvites
+            Response object for several invites.
 
         Raises
         ------
@@ -166,15 +162,11 @@ class InviteServiceImpl(GrpcServicer):
             items_per_page=request.items_per_page,
         )
         context.set_code(grpc.StatusCode.OK)
-        return proto.InvitesResponse(
-            invites=proto.ListOfInvites(
-                invites=[invite.to_grpc_invite() for invite in invites]
-            ),
-        )
+        return proto.ListOfInvites(invites=[invite.to_grpc_invite() for invite in invites])
 
     async def get_invite_by_invite_id(
         self, request: proto.InviteRequestByInviteId, context: grpc.ServicerContext
-    ) -> proto.InviteResponse:
+    ) -> proto.GrpcInvite:
         """
         Get invite by invite id.
 
@@ -187,8 +179,8 @@ class InviteServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.InviteResponse
-            Response object for invite response.
+        proto.GrpcInvite
+            Response object for invite.
 
         Raises
         ------
@@ -206,11 +198,11 @@ class InviteServiceImpl(GrpcServicer):
         ):
             raise PermissionDeniedError("Permission denied")
         context.set_code(grpc.StatusCode.OK)
-        return proto.InviteResponse(invite=invite.to_grpc_invite())
+        return invite.to_grpc_invite()
 
     async def get_invites_by_invitee_id(
         self, request: proto.GetInvitesByInviteeIdRequest, context: grpc.ServicerContext
-    ) -> proto.InvitesResponse:
+    ) -> proto.ListOfInvites:
         """
         Get all invites by invitee id.
 
@@ -223,8 +215,8 @@ class InviteServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.InvitesResponse
-            Invites object for invite response.
+        proto.ListOfInvites
+            Invites object for several invite.
 
         Raises
         ------
@@ -246,15 +238,11 @@ class InviteServiceImpl(GrpcServicer):
             items_per_page=request.items_per_page,
         )
         context.set_code(grpc.StatusCode.OK)
-        return proto.InvitesResponse(
-            invites=proto.ListOfInvites(
-                invites=[invite.to_grpc_invite() for invite in invites]
-            ),
-        )
+        return proto.ListOfInvites(invites=[invite.to_grpc_invite() for invite in invites])
 
     async def create_invite(
         self, request: proto.InviteRequest, context: grpc.ServicerContext
-    ) -> Empty:
+    ) -> proto.GrpcInvite:
         """
         Create invite.
 
@@ -267,8 +255,8 @@ class InviteServiceImpl(GrpcServicer):
 
         Returns
         -------
-        Empty
-            Empty response object.
+        proto.GrpcInvite
+            Response object for invite.
 
         Raises
         ------
@@ -284,11 +272,11 @@ class InviteServiceImpl(GrpcServicer):
             raise PermissionDeniedError("Permission denied")
         await self._invite_repository.create_invite(invite=invite)
         context.set_code(grpc.StatusCode.OK)
-        return Empty()
+        return invite.to_grpc_invite()
 
     async def create_multiple_invites(
-            self, request: proto.InvitesRequest, _: grpc.ServicerContext
-    ) -> Empty:
+        self, request: proto.InvitesRequest, context: grpc.ServicerContext
+    ) -> proto.ListOfInvites:
         """
         Create multiple invites.
 
@@ -296,23 +284,33 @@ class InviteServiceImpl(GrpcServicer):
         ----------
         request : proto.InvitesRequest
             Request data containing GrpcInvites.
-        _ : grpc.ServicerContext
+        context : grpc.ServicerContext
             Request context.
 
         Returns
         -------
-        proto.BaseResponse
-            Object containing status code and message if the response status is not 200.
+        proto.ListOfInvites
+            Response object for invites.
 
         """
-        if any([invite.author_id != request.requesting_user.id for invite in request.invites.invites]):
+        if any(
+            [
+                invite.author_id != request.requesting_user.id
+                for invite in request.invites.invites
+            ]
+        ):
             raise PermissionDeniedError("Permission denied")
-        await self._invite_repository.create_multiple_invites(invites=[Invite.from_grpc_invite(invite) for invite in request.invites.invites])
-        return Empty()
+        invites = await self._invite_repository.create_multiple_invites(
+            invites=[
+                Invite.from_grpc_invite(invite) for invite in request.invites.invites
+            ]
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return proto.ListOfInvites(invites=[invite.to_grpc_invite() for invite in invites])
 
     async def update_invite(
         self, request: proto.InviteRequest, context: grpc.ServicerContext
-    ) -> Empty:
+    ) -> proto.GrpcInvite:
         """
         Update invite.
 
@@ -325,8 +323,8 @@ class InviteServiceImpl(GrpcServicer):
 
         Returns
         -------
-        Empty
-            Empty response object.
+        proto.GrpcInvite
+            Response object for invite.
 
         """
         invite = Invite.from_grpc_invite(request.invite)
@@ -338,7 +336,7 @@ class InviteServiceImpl(GrpcServicer):
             raise PermissionDeniedError("Permission denied")
         await self._invite_repository.update_invite(invite=invite)
         context.set_code(grpc.StatusCode.OK)
-        return Empty()
+        return invite.to_grpc_invite()
 
     async def delete_invite_by_id(
         self, request: proto.DeleteInviteByIdRequest, context: grpc.ServicerContext

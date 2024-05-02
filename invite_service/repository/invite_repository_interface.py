@@ -207,14 +207,19 @@ class InviteRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def create_invite(self, invite: Invite) -> None:
+    async def create_invite(self, invite: Invite) -> Invite:
         """
-        Create an invite if does not exist or update the existing one.
+        Create an invite.
 
         Parameters
         ----------
         invite : Invite
             Invite object.
+
+        Returns
+        -------
+        Invite
+            Created invite.
 
         Raises
         ------
@@ -227,7 +232,7 @@ class InviteRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def create_multiple_invites(self, invites: List[Invite]) -> None:
+    async def create_multiple_invites(self, invites: List[Invite]) -> List[Invite]:
         """
         Create multiple invites.
 
@@ -235,6 +240,11 @@ class InviteRepositoryInterface(ABC):
         ----------
         invites : List[Invite]
             Invite objects to create
+
+        Returns
+        -------
+        List[Invite]
+            List of invites that have been created.
 
         Raises
         ------
@@ -247,7 +257,7 @@ class InviteRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def update_invite(self, invite: Invite) -> None:
+    async def update_invite(self, invite: Invite) -> Invite:
         """
         Update invite data.
 
@@ -255,6 +265,11 @@ class InviteRepositoryInterface(ABC):
         ----------
         invite : Invite
             invite object.
+
+        Returns
+        -------
+        Invite
+            Updated invite.
 
         Raises
         ------

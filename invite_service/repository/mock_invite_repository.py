@@ -257,14 +257,19 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             raise ValueNotFoundError("Invites not found")
         return invites
 
-    async def create_invite(self, invite: Invite) -> None:
+    async def create_invite(self, invite: Invite) -> Invite:
         """
-        Creates invite with matching data
+        Creates invite with matching data.
 
         Parameters
         ----------
         invite : Invite
             Invite data
+
+        Returns
+        -------
+        Invite
+            Created invite.
 
         Raises
         ------
@@ -280,7 +285,10 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
                 and self._invites[i].invitee_id == invite.invitee_id
             )
 
-            if self._invites[old_invite_index].status == InviteStatus.PENDING and self._invites[old_invite_index].deleted_at is None:
+            if (
+                self._invites[old_invite_index].status == InviteStatus.PENDING
+                and self._invites[old_invite_index].deleted_at is None
+            ):
                 raise UniqueError("Invite already exists")
 
             self._invites[old_invite_index] = invite
@@ -289,15 +297,21 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invite.created_at = datetime.now()
             invite.deleted_at = None
             self._invites.append(invite)
+        return invite
 
-    async def create_multiple_invites(self, invites: List[Invite]) -> None:
+    async def create_multiple_invites(self, invites: List[Invite]) -> List[Invite]:
         """
-        Create multiple invites or modify existing ones
+        Create multiple invites or modify existing ones.
 
         Parameters
         ----------
         invites : List[Invite]
-            List of invites to create
+            List of invites to create.
+
+        Returns
+        -------
+        List[Invite]
+            List of invites that have been created.
 
         Raises
         ------
@@ -308,10 +322,19 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
         """
         invite_ids = [invite.id for invite in invites]
-        db_invites = [(self._invites[i], i) for i in range(len(self._invites)) if self._invites[i].id in invite_ids]
+        db_invites = [
+            (self._invites[i], i)
+            for i in range(len(self._invites))
+            if self._invites[i].id in invite_ids
+        ]
 
         for invite, index in db_invites:
-            if any([invite == InviteStatus.PENDING and invite.deleted_at is None for invite, _ in db_invites]):
+            if any(
+                [
+                    invite == InviteStatus.PENDING and invite.deleted_at is None
+                    for invite, _ in db_invites
+                ]
+            ):
                 raise UniqueError("Some invites already exist")
 
             self._invites[index].deleted_at = None
@@ -322,15 +345,21 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
         for invite in invites:
             self._invites.append(invite)
+        return invites
 
-    async def update_invite(self, invite: Invite) -> None:
+    async def update_invite(self, invite: Invite) -> Invite:
         """
-        Updates invite with matching id
+        Updates invite with matching id.
 
         Parameters
         ----------
         invite : Invite
             Invite data
+
+        Returns
+        -------
+        Invite
+            Updated invite.
 
         Raises
         ------
@@ -345,6 +374,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
                 if self._invites[i].id == invite.id and invite.deleted_at is None
             )
             self._invites[index] = invite
+            return invite
         except StopIteration:
             raise ValueNotFoundError("Invite not found")
 

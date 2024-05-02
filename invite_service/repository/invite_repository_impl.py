@@ -189,7 +189,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         return Invite.from_prisma_invite(prisma_invite=db_invite)
 
     async def get_all_invites(
-            self, page_number: int, items_per_page: int, status: Optional[InviteStatus]
+        self, page_number: int, items_per_page: int, status: Optional[InviteStatus]
     ) -> List[Invite]:
         """
         Get all invites.
@@ -282,7 +282,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             for db_invite in db_invites
         ]
 
-    async def create_invite(self, invite: Invite) -> None:
+    async def create_invite(self, invite: Invite) -> Invite:
         """
         Create an invite with matching data if not exist or update existing one.
 
@@ -290,6 +290,11 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         ----------
         invite : Invite
             Invite object.
+
+        Returns
+        -------
+        Invite
+            Created invite.
 
         Raises
         ------
@@ -304,10 +309,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         )
 
         if prisma_db_invite is None:
-            await self._db_client.db.invite.create(
+            return await self._db_client.db.invite.create(
                 data=invite.to_dict(exclude=["created_at", "deleted_at"])
             )
-            return
 
         db_invite = Invite.from_prisma_invite(prisma_db_invite)
 
@@ -316,9 +320,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
 
         db_invite.deleted_at = None
         db_invite.status = InviteStatus.PENDING
-        await self.update_invite(db_invite)
+        return await self.update_invite(db_invite)
 
-    async def create_multiple_invites(self, invites: List[Invite]) -> None:
+    async def create_multiple_invites(self, invites: List[Invite]) -> List[Invite]:
         """
         Create multiple invites with matching data if not exist.
 
@@ -326,6 +330,11 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         ----------
         invites : List[Invite]
             List of invites to create.
+
+        Returns
+        -------
+        List[Invite]
+            List of invites that have been created.
 
         Raises
         -------
@@ -340,7 +349,13 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         )
 
         if db_invites is not None and len(db_invites) > 0:
-            if any([db_invite.status == InviteStatus.PENDING and db_invite.deleted_at is None for db_invite in db_invites]):
+            if any(
+                [
+                    db_invite.status == InviteStatus.PENDING
+                    and db_invite.deleted_at is None
+                    for db_invite in db_invites
+                ]
+            ):
                 raise UniqueError("Some invites already exist")
 
             ids = [db_invite.id for db_invite in db_invites]
@@ -351,14 +366,15 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
                 data={
                     "deleted_at": None,
                     "status": InviteStatus.PENDING,
-                }
+                },
             )
 
         await self._db_client.db.invite.create_many(
             data=[invite.to_dict() for invite in invites]
         )
+        return invites
 
-    async def update_invite(self, invite: Invite) -> None:
+    async def update_invite(self, invite: Invite) -> Invite:
         """
         Update invite data.
 
@@ -367,13 +383,18 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         invite : Invite
             invite object.
 
+        Returns
+        -------
+        Invite
+            Updated invite.
+
         Raises
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        await self._db_client.db.invite.update(
+        return await self._db_client.db.invite.update(
             where={"id": invite.id}, data=invite.to_dict()
         )
 
