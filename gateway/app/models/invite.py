@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional, Self
+from typing import Annotated, Optional, Self
 from uuid import UUID
 
 from app.generated.invite_service.invite_service_pb2 import (
@@ -10,7 +10,7 @@ from app.generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
 
-from pydantic import BaseModel
+from pydantic import UUID4, AfterValidator, BaseModel
 from pytz import utc
 
 
@@ -87,13 +87,13 @@ class Invite(BaseModel):
 
     Attributes
     ----------
-    id : UUID
+    id : UUID4 | str
         Id of the invite
-    event_id : UUID
+    event_id : UUID4 | str
         Id of the related event
-    author_id : UUID
+    author_id : UUID4 | str
         Id of the author of the invite
-    invitee_id : UUID
+    invitee_id : UUID4 | str
         Id of the invitee
     status : InviteStatus
         Invite status
@@ -112,10 +112,10 @@ class Invite(BaseModel):
 
     """
 
-    id: UUID
-    event_id: UUID
-    author_id: UUID
-    invitee_id: UUID
+    id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
+    event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
+    author_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
+    invitee_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     status: InviteStatus = InviteStatus.PENDING
     created_at: datetime
     deleted_at: Optional[datetime] = None
