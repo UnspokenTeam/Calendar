@@ -33,6 +33,15 @@ from app.generated.identity_service.update_user_pb2 import (
     UpdateUserRequest as GrpcUpdateUserRequest,
 )
 from app.generated.identity_service.get_user_pb2 import ListOfUser as GrpcListOfUser
+from app.generated.notification_service.notification_service_pb2 import (
+    DeleteNotificationsByAuthorIdRequest as GrpcDeleteNotificationsByAuthorIdRequest
+)
+from app.generated.invite_service.invite_service_pb2 import (
+    DeleteInvitesByAuthorIdRequest as GrpcDeleteInvitesByAuthorId
+)
+from app.generated.event_service.event_service_pb2 import (
+    DeleteEventsByAuthorIdRequest as GrpcDeleteEventsByAuthorIdRequest
+)
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware.auth import api_key_header, auth
 from app.models import User, UserType
@@ -397,6 +406,27 @@ async def delete_user(
         Grpc clients injected by DI
 
     """
+    grpc_clients.notification_service_client.request().delete_notifications_by_author_id(
+        GrpcDeleteNotificationsByAuthorIdRequest(
+            author_id=grpc_user.id,
+            requesting_user=grpc_user
+        )
+    )
+
+    grpc_clients.invite_service_client.request().delete_invites_by_author_id(
+        GrpcDeleteInvitesByAuthorId(
+            author_id=grpc_user.id,
+            requesting_user=grpc_user
+        )
+    )
+
+    grpc_clients.event_service_client.request().delete_events_by_author_id(
+        GrpcDeleteEventsByAuthorIdRequest(
+            author_id=grpc_user.id,
+            requesting_user=grpc_user
+        )
+    )
+
     grpc_clients.identity_service_client.request().delete_user(
         GrpcDeleteUserRequest(user_id=grpc_user.id, requesting_user=grpc_user)
     )
