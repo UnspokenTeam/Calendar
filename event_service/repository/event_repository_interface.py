@@ -245,7 +245,7 @@ class EventRepositoryInterface(ABC):
         Parameters
         ----------
         author_id : str
-            Event id.
+            Author id.
 
         Raises
         ------
