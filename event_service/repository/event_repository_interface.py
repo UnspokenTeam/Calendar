@@ -220,7 +220,7 @@ class EventRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def delete_event_by_id(self, event_id: str) -> Event:
+    async def delete_event_by_id(self, event_id: str) -> None:
         """
         Delete the event.
 
@@ -228,11 +228,6 @@ class EventRepositoryInterface(ABC):
         ----------
         event_id : str
             Event id.
-
-        Returns
-        -------
-        Event
-            Event that was deleted.
 
         Raises
         ------
@@ -243,7 +238,7 @@ class EventRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def delete_events_by_author_id(self, author_id: str) -> List[Event]:
+    async def delete_events_by_author_id(self, author_id: str) -> None:
         """
         Delete events.
 
@@ -251,11 +246,6 @@ class EventRepositoryInterface(ABC):
         ----------
         author_id : str
             Event id.
-
-        Returns
-        -------
-        List[Event]
-            List of events that were deleted.
 
         Raises
         ------

@@ -325,7 +325,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         Returns
         -------
         Event
-            Event with updated data.
+            Updated event.
 
         Raises
         ------
@@ -345,13 +345,12 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             )
             if self._events[index].author_id == event.author_id:
                 self._events[index] = event
-            else:
-                raise ValueNotFoundError("Events authors must be same")
-            return event
+                return event
+            raise ValueNotFoundError("Events authors must be same")
         except StopIteration:
             raise ValueNotFoundError("Event not found")
 
-    async def delete_event_by_id(self, event_id: str) -> Event:
+    async def delete_event_by_id(self, event_id: str) -> None:
         """
         Delete the event.
 
@@ -359,11 +358,6 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         ----------
         event_id : str
             Event id.
-
-        Returns
-        -------
-        Event
-            Event that was deleted.
 
         Raises
         ------
@@ -377,14 +371,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                 for i in range(len(self._events))
                 if self._events[i].id == event_id and self._events[i].deleted_at is None
             )
-            deleted_event = await self.get_event_by_event_id(event_id)
             self._events[index].deleted_at = datetime.now()
-            return deleted_event
-
         except StopIteration:
             raise ValueNotFoundError("Event not found")
 
-    async def delete_events_by_author_id(self, author_id: str) -> List[Event]:
+    async def delete_events_by_author_id(self, author_id: str) -> None:
         """
         Delete events.
 
@@ -392,11 +383,6 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         ----------
         author_id : str
             Event id.
-
-        Returns
-        -------
-        List[Event]
-            List of events that were deleted.
 
         Raises
         ------
@@ -412,9 +398,5 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         )
         if len(indexes) == 0:
             raise ValueNotFoundError("Events not found")
-        events = await self.get_events_by_author_id(
-            author_id, page_number=1, items_per_page=-1
-        )
         for index in indexes:
             self._events[index].deleted_at = datetime.now()
-        return events
