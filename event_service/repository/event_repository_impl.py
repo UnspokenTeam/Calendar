@@ -93,39 +93,58 @@ class EventRepositoryImpl(EventRepositoryInterface):
         if start is not None and end is not None and start > end:
             raise WrongIntervalError("Request failed. Wrong time interval.")
         start_date, end_date = None, None
+        # fmt: off
         if start is not None:
             start_date = (
-                f"'{start.day:02d}/{start.month:02d}/{start.year:04d} "
-                f"{start.hour:02d}:{start.minute:02d}:{start.second:02d}'"
+                f"\'{start.day:02d}/{start.month:02d}/{start.year:04d} "
+                f"{start.hour:02d}:{start.minute:02d}:{start.second:02d}\'"
             )
         if end is not None:
             end_date = (
-                f"'{end.day:02d}/{end.month:02d}/{end.year:04d} "
-                f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}'"
+                f"\'{end.day:02d}/{end.month:02d}/{end.year:04d} "
+                f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}\'"
             )
+        author_id_for_query = f"\'{author_id}\'"
+        # fmt: on
+        event_start_condition = (
+            f"\n\tAND {start_date}::timestamp <= event.start"
+            if start is not None
+            else ""
+        )
+        event_end_condition = (
+            f"\n\tAND event.start <= {end_date}::timestamp" if end is not None else ""
+        )
+        time_interval = (
+            f"timestamp {end_date}"
+            if end is not None
+            else f"{start_date}::timestamp + event.repeating_delay::interval"
+        )
+        repeating_event_start_condition = (
+            f"\n\tAND {start_date}::timestamp <= pattern.event_start_series"
+            if start is not None
+            else ""
+        )
+        repeating_event_end_condition = (
+            f"\n\tAND pattern.event_start_series <= {end_date}::timestamp"
+            if end is not None
+            else ""
+        )
+        pagination_parameters = (
+            f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
+            if items_per_page != -1
+            else ""
+        )
         await self._db_client.db.execute_raw("SET datestyle = DMY;")
         db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
             GET_EVENTS_BY_AUTHOR_ID_QUERY.format(
-                f"\'{author_id}\'",
-                f"\n\tAND {start_date}::timestamp <= event.start"
-                if start is not None
-                else "",
-                f"\n\tAND event.start <= {end_date}::timestamp"
-                if end is not None
-                else "",
-                f"timestamp {end_date}"
-                if end is not None
-                else f"{start_date}::timestamp + event.repeating_delay::interval",
-                f"\'{author_id}\'",
-                f"\n\tAND {start_date}::timestamp <= pattern.event_start_series"
-                if start is not None
-                else "",
-                f"\n\tAND pattern.event_start_series <= {end_date}::timestamp"
-                if end is not None
-                else "",
-                f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
-                if items_per_page != -1
-                else "",
+                author_id_for_query,
+                event_start_condition,
+                event_end_condition,
+                time_interval,
+                author_id_for_query,
+                repeating_event_start_condition,
+                repeating_event_end_condition,
+                pagination_parameters,
             ),
             model=PrismaEvent,
         )
@@ -247,19 +266,20 @@ class EventRepositoryImpl(EventRepositoryInterface):
         if start is not None and end is not None and start > end:
             raise WrongIntervalError("Request failed. Wrong time interval.")
         start_date, end_date = None, None
+        # fmt: off
         if start is not None:
             start_date = (
-                f"'{start.day:02d}/{start.month:02d}/{start.year:04d} "
-                f"{start.hour:02d}:{start.minute:02d}:{start.second:02d}'"
+                f"\'{start.day:02d}/{start.month:02d}/{start.year:04d} "
+                f"{start.hour:02d}:{start.minute:02d}:{start.second:02d}\'"
             )
         if end is not None:
             end_date = (
-                f"'{end.day:02d}/{end.month:02d}/{end.year:04d} "
-                f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}'"
+                f"\'{end.day:02d}/{end.month:02d}/{end.year:04d} "
+                f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}\'"
             )
-        await self._db_client.db.execute_raw("SET datestyle = DMY;")
-        db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
-            GET_ALL_EVENTS_QUERY.format(
+        # fmt: on
+        where_condition = (
+            (
                 "\nWHERE\n\t"
                 + (
                     f"{start_date}::timestamp <= event.start"
@@ -268,11 +288,17 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 )
                 + ("\n\tAND " if start is not None and end is not None else "")
                 + (f"event.start <= {end_date}::timestamp" if end is not None else "")
-                if start is not None or end is not None
-                else "",
-                f"timestamp {end_date}"
-                if end is not None
-                else f"{start_date}::timestamp + event.repeating_delay::interval",
+            )
+            if start is not None or end is not None
+            else ""
+        )
+        time_interval = (
+            f"timestamp {end_date}"
+            if end is not None
+            else f"{start_date}::timestamp + event.repeating_delay::interval"
+        )
+        where_condition_for_repeating_events = (
+            (
                 "\nWHERE\n\t"
                 + (
                     f"{start_date}::timestamp <= pattern.event_start_series"
@@ -285,11 +311,22 @@ class EventRepositoryImpl(EventRepositoryInterface):
                     if end is not None
                     else ""
                 )
-                if start is not None or end is not None
-                else "",
-                f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
-                if items_per_page != -1
-                else "",
+            )
+            if start is not None or end is not None
+            else ""
+        )
+        pagination_parameters = (
+            f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
+            if items_per_page != -1
+            else ""
+        )
+        await self._db_client.db.execute_raw("SET datestyle = DMY;")
+        db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
+            GET_ALL_EVENTS_QUERY.format(
+                where_condition,
+                time_interval,
+                where_condition_for_repeating_events,
+                pagination_parameters,
             ),
             model=PrismaEvent,
         )
