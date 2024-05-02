@@ -1,7 +1,7 @@
 """Users route"""
 from datetime import datetime
 from typing import Annotated, List
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from app.constants import MIN_PASSWORD_LENGTH, MIN_USERNAME_LENGTH
 from app.errors import PermissionDeniedError
@@ -45,7 +45,7 @@ from app.params import GrpcClientParams
 from app.validators import str_special_characters_validator
 
 from fastapi import APIRouter, Depends, Security
-from pydantic import AfterValidator, BaseModel, EmailStr, Field
+from pydantic import UUID4, AfterValidator, BaseModel, EmailStr, Field
 
 router = APIRouter(prefix="/users", tags=["users"])
 
