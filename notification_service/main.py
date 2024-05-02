@@ -21,16 +21,19 @@ async def serve() -> None:
         await PostgresClient().connect()
     notification_service_grpc.add_NotificationServiceServicer_to_server(
         NotificationServiceImpl(
-            notification_repository=NotificationRepositoryImpl()
-            if os.environ["ENVIRONMENT"] == "PRODUCTION"
-            else MockNotificationRepositoryImpl(),
+            notification_repository=(
+                NotificationRepositoryImpl()
+                if os.environ["ENVIRONMENT"] == "PRODUCTION"
+                else MockNotificationRepositoryImpl()
+            ),
         ),
         server=server,
     )
     server.add_insecure_port("0.0.0.0:8083")
     await server.start()
     logging.info(
-        "Server started on http://localhost:8083 with environment " + os.environ["ENVIRONMENT"]
+        "Server started on http://localhost:8083 with environment "
+        + os.environ["ENVIRONMENT"]
     )
     await server.wait_for_termination()
 
