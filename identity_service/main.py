@@ -3,7 +3,6 @@ import logging
 import os
 import sys
 
-import dotenv
 import grpc
 
 from db.postgres_client import PostgresClient
@@ -15,6 +14,7 @@ from repository.mock_token_repository import MockTokenRepositoryImpl
 from repository.mock_user_repository import MockUserRepositoryImpl
 from repository.token_repository_impl import TokenRepositoryImpl
 from repository.user_repository_impl import UserRepositoryImpl
+import dotenv
 import generated.identity_service.identity_service_pb2_grpc as identity_service_grpc
 
 

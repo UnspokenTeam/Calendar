@@ -1,11 +1,11 @@
 from typing import Annotated
 
-from fastapi import Depends
-from fastapi.security import APIKeyHeader
-
 from app.generated.identity_service.auth_pb2 import AccessToken
 from app.generated.user.user_pb2 import GrpcUser
 from app.params import GrpcClientParams
+
+from fastapi import Depends
+from fastapi.security import APIKeyHeader
 
 api_key_header = APIKeyHeader(name="Authorization")
 

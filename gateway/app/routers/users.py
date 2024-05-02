@@ -3,11 +3,11 @@ from datetime import datetime
 from typing import Annotated, List
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, Security
-from pydantic import AfterValidator, BaseModel, EmailStr, Field
-
 from app.constants import MIN_PASSWORD_LENGTH, MIN_USERNAME_LENGTH
 from app.errors import PermissionDeniedError
+from app.generated.event_service.event_service_pb2 import (
+    DeleteEventsByAuthorIdRequest as GrpcDeleteEventsByAuthorIdRequest,
+)
 from app.generated.identity_service.auth_pb2 import AccessToken as GrpcAccessToken
 from app.generated.identity_service.auth_pb2 import (
     CredentialsResponse as GrpcCredentialsResponse,
@@ -25,27 +25,27 @@ from app.generated.identity_service.get_access_token_pb2 import (
 from app.generated.identity_service.get_user_pb2 import (
     GetAllUsersRequest as GrpcGetAllUsersRequest,
 )
+from app.generated.identity_service.get_user_pb2 import ListOfUser as GrpcListOfUser
 from app.generated.identity_service.get_user_pb2 import (
     UserByIdRequest as GrpcGetUserByIdRequest,
 )
 from app.generated.identity_service.update_user_pb2 import (
     UpdateUserRequest as GrpcUpdateUserRequest,
 )
-from app.generated.identity_service.get_user_pb2 import ListOfUser as GrpcListOfUser
-from app.generated.notification_service.notification_service_pb2 import (
-    DeleteNotificationsByAuthorIdRequest as GrpcDeleteNotificationsByAuthorIdRequest
-)
 from app.generated.invite_service.invite_service_pb2 import (
-    DeleteInvitesByAuthorIdRequest as GrpcDeleteInvitesByAuthorId
+    DeleteInvitesByAuthorIdRequest as GrpcDeleteInvitesByAuthorId,
 )
-from app.generated.event_service.event_service_pb2 import (
-    DeleteEventsByAuthorIdRequest as GrpcDeleteEventsByAuthorIdRequest
+from app.generated.notification_service.notification_service_pb2 import (
+    DeleteNotificationsByAuthorIdRequest as GrpcDeleteNotificationsByAuthorIdRequest,
 )
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware.auth import api_key_header, auth
 from app.models import User, UserType
 from app.params import GrpcClientParams
 from app.validators import str_special_characters_validator
+
+from fastapi import APIRouter, Depends, Security
+from pydantic import AfterValidator, BaseModel, EmailStr, Field
 
 router = APIRouter(prefix="/users", tags=["users"])
 

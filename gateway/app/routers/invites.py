@@ -20,13 +20,13 @@ from app.generated.event_service.event_service_pb2 import (
     ListOfEventsIds as GrpcListOfEventsIds,
 )
 from app.generated.identity_service.get_user_pb2 import (
+    ListOfUser as GrpcListOfUsers,
+)
+from app.generated.identity_service.get_user_pb2 import (
     UserByIdRequest as GrpcGetUserByIdRequest,
 )
 from app.generated.identity_service.get_user_pb2 import (
     UsersByIdRequest as GrpcGetUsersByIdRequest,
-)
-from app.generated.identity_service.get_user_pb2 import (
-    ListOfUser as GrpcListOfUsers,
 )
 from app.generated.invite_service.invite_service_pb2 import (
     DeleteInviteByIdRequest as GrpcDeleteInviteByIdRequest,

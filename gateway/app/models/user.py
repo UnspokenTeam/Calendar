@@ -3,8 +3,8 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Optional, Self
 
-from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.generated.identity_service.update_user_pb2 import UserToModify
+from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 
 from pydantic import BaseModel, EmailStr
 
