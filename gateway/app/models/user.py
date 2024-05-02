@@ -1,12 +1,13 @@
 """User model"""
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional, Self
+from typing import Annotated, Optional, Self
+from uuid import UUID
 
 from app.generated.identity_service.update_user_pb2 import UserToModify
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 
-from pydantic import BaseModel, EmailStr
+from pydantic import UUID4, AfterValidator, BaseModel, EmailStr
 
 
 class UserType(StrEnum):
@@ -92,10 +93,10 @@ class User(BaseModel):
 
     """
 
-    id: str
-    username: str
+    id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
+    username: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     email: EmailStr
-    password: str
+    password: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     created_at: datetime
     suspended_at: Optional[datetime]
     type: UserType
