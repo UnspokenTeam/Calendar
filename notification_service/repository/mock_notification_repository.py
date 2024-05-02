@@ -260,27 +260,29 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             Raises if the notification already exists.
 
         """
-        for i in range(len(self._notifications)):
-            if (
-                self._notifications[i].event_id == notification.event_id
-                and self._notifications[i].author_id == notification.author_id
-            ):
-                if self._notifications[i].enabled:
-                    raise UniqueError("Notifications already exists")
-                self._notifications[i].enabled = True
-                notification = self._notifications[i]
-                if self._notifications[i].deleted_at is not None:
-                    self._notifications[i].created_at = datetime.now()
-                    self._notifications[i].deleted_at = None
-                    notification = self._notifications[i]
-                break
-        else:
+        try:
+            index = next(
+                i
+                for i in range(len(self._notifications))
+                if (
+                    self._notifications[i].event_id == notification.event_id
+                    and self._notifications[i].author_id == notification.author_id
+                )
+            )
+            if self._notifications[index].enabled:
+                raise UniqueError("Notifications already exists")
+            self._notifications[index].enabled = True
+            if self._notifications[index].deleted_at is not None:
+                self._notifications[index].created_at = datetime.now()
+                self._notifications[index].deleted_at = None
+            return self._notifications[index]
+        except StopIteration:
             notification.id = str(uuid4())
             notification.created_at = datetime.now()
             notification.deleted_at = None
             notification.enabled = True
             self._notifications.append(notification)
-        return notification
+            return notification
 
     async def update_notification(self, notification: Notification) -> Notification:
         """
