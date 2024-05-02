@@ -279,13 +279,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             if db_notification.enabled:
                 raise UniqueError("Notification already exists")
             async with self._db_client.db.tx() as transaction:
-                notification = await transaction.notification.find_first(
-                    where={
-                        "event_id": notification.event_id,
-                        "author_id": notification.author_id,
-                    },
-                )
-                await self._db_client.db.notification.update_many(
+                await transaction.notification.update_many(
                     where={
                         "event_id": notification.event_id,
                         "author_id": notification.author_id,
@@ -297,7 +291,12 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
                         else {}
                     ),
                 )
-                return await self.get_notification_by_notification_id(notification.id)
+                return await transaction.notification.find_first(
+                    where={
+                        "event_id": notification.event_id,
+                        "author_id": notification.author_id,
+                    },
+                )
         else:
             return await self._db_client.db.notification.create(
                 data=notification.to_dict(
