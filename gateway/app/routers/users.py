@@ -1,6 +1,9 @@
 """Users route"""
 from typing import Annotated, List
 
+from fastapi import APIRouter, Depends, Security
+from pydantic import AfterValidator, BaseModel, EmailStr, Field
+
 from app.constants import MIN_PASSWORD_LENGTH, MIN_USERNAME_LENGTH
 from app.errors import PermissionDeniedError
 from app.generated.identity_service.auth_pb2 import AccessToken as GrpcAccessToken
@@ -26,25 +29,15 @@ from app.generated.identity_service.get_user_pb2 import (
 from app.generated.identity_service.get_user_pb2 import (
     UserByIdRequest as GrpcGetUserByIdRequest,
 )
-from app.generated.identity_service.get_user_pb2 import UserResponse as GrpcUserResponse
-from app.generated.identity_service.get_user_pb2 import (
-    UsersResponse as GrpcUsersResponse,
-)
 from app.generated.identity_service.update_user_pb2 import (
     UpdateUserRequest as GrpcUpdateUserRequest,
 )
-from app.generated.identity_service.update_user_pb2 import (
-    UserToUpdate as GrpcUserToUpdate,
-)
+from app.generated.identity_service.get_user_pb2 import ListOfUser as GrpcListOfUser
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware.auth import api_key_header, auth
 from app.models import User, UserType
 from app.params import GrpcClientParams
 from app.validators import str_special_characters_validator
-
-from fastapi import APIRouter, Depends, Security
-from google.protobuf.timestamp_pb2 import Timestamp
-from pydantic import AfterValidator, BaseModel, EmailStr, Field
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -113,6 +106,7 @@ class CredentialsResponse(BaseModel):
 
     access_token: str
     refresh_token: str
+    user: User
 
 
 @router.get("/me", response_model_exclude={"password"})
@@ -164,7 +158,7 @@ async def get_all_users(
     if user.type != GrpcUserType.USER:
         raise PermissionDeniedError("Permission denied")
 
-    response: GrpcUsersResponse = (
+    response: GrpcListOfUser = (
         grpc_clients.identity_service_client.request().get_all_users(
             GrpcGetAllUsersRequest(
                 page=page, items_per_page=items_per_page, requested_user=user
@@ -172,7 +166,7 @@ async def get_all_users(
         )
     )
 
-    return [User.from_proto(grpc_user) for grpc_user in response.users.users]
+    return [User.from_proto(grpc_user) for grpc_user in response.users]
 
 
 @router.get("/{user_id}", response_model_exclude={"password", "email"})
@@ -203,12 +197,12 @@ async def get_user(
         User object
 
     """
-    user: GrpcUserResponse = (
+    user: GrpcUser = (
         grpc_clients.identity_service_client.request().get_user_by_id(
             GrpcGetUserByIdRequest(user_id=user_id)
         )
     )
-    return User.from_proto(user.user)
+    return User.from_proto(user)
 
 
 @router.post("/register")
@@ -245,6 +239,7 @@ async def register_user(
     return CredentialsResponse(
         access_token=credentials.data.access_token,
         refresh_token=credentials.data.refresh_token,
+        user=User.from_proto(credentials.user)
     )
 
 
@@ -277,6 +272,7 @@ async def login(
     return CredentialsResponse(
         access_token=credentials.data.access_token,
         refresh_token=credentials.data.refresh_token,
+        user=User.from_proto(credentials.user)
     )
 
 
@@ -312,7 +308,7 @@ async def get_new_access_token(
         Field("", min_length=1),
     ],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> CredentialsResponse:
+) -> str:
     """
     Fast api route to get new access token
 
@@ -325,18 +321,16 @@ async def get_new_access_token(
 
     Returns
     -------
-    CredentialsResponse
-        Access and refresh token
+    str
+        New access token
 
     """
-    credentials: GrpcGetNewAccessTokenResponse = (
+    access_token_request: GrpcGetNewAccessTokenResponse = (
         grpc_clients.identity_service_client.request().get_new_access_token(
             GrpcGetNewAccessTokenRequest(refresh_token=refresh_token)
         )
     )
-    return CredentialsResponse(
-        access_token=credentials.access_token, refresh_token=refresh_token
-    )
+    return access_token_request.access_token
 
 
 @router.put("/")
@@ -344,7 +338,7 @@ async def update_user(
     grpc_user: Annotated[GrpcUser, Security(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
     user_to_update: User,
-) -> User:
+) -> CredentialsResponse:
     """
     Fast api route to update user
 
@@ -373,24 +367,18 @@ async def update_user(
     ):
         raise ValueError
 
-    grpc_clients.identity_service_client.request().update_user(
+    response: GrpcCredentialsResponse = grpc_clients.identity_service_client.request().update_user(
         GrpcUpdateUserRequest(
             requesting_user=grpc_user,
-            new_user=GrpcUserToUpdate(
-                id=user_to_update.id,
-                username=user_to_update.username,
-                email=user_to_update.email,
-                password=user_to_update.password,
-                created_at=Timestamp().FromDatetime(dt=user_to_update.suspended_at),
-                suspended_at=Timestamp().FromDatetime(dt=user_to_update.suspended_at)
-                if user_to_update.suspended_at is not None
-                else None,
-                type=user_to_update.type.to_proto(),
-            ),
+            new_user=user_to_update.to_update_proto(),
         )
     )
 
-    return user_to_update
+    return CredentialsResponse(
+        access_token=response.data.access_token,
+        refresh_token=response.data.refresh_token,
+        user=User.from_proto(response.user)
+    )
 
 
 @router.delete("/")
