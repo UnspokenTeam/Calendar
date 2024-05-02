@@ -11,7 +11,11 @@ from errors.wrong_interval_error import WrongIntervalError
 from src.models.event import Event
 from utils.singleton import singleton
 
-from constants import GET_ALL_EVENTS_QUERY, GET_EVENTS_BY_AUTHOR_ID_QUERY
+from constants import (
+    GET_ALL_EVENTS_QUERY,
+    GET_EVENTS_BY_AUTHOR_ID_QUERY,
+    GET_EVENTS_BY_EVENT_IDS_QUERY,
+)
 from repository.event_repository_interface import EventRepositoryInterface
 
 
@@ -176,7 +180,9 @@ class EventRepositoryImpl(EventRepositoryInterface):
             No event was found for given event id.
 
         """
-        db_event: Optional[PrismaEvent] = await self._db_client.db.prismaevent.find_first(
+        db_event: Optional[
+            PrismaEvent
+        ] = await self._db_client.db.prismaevent.find_first(
             where={"id": event_id, "deleted_at": None}
         )
         if db_event is None:
@@ -184,7 +190,12 @@ class EventRepositoryImpl(EventRepositoryInterface):
         return Event.from_prisma_event(prisma_event=db_event)
 
     async def get_events_by_events_ids(
-        self, events_ids: List[str], page_number: int, items_per_page: int
+        self,
+        events_ids: List[str],
+        page_number: int,
+        items_per_page: int,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
     ) -> List[Event]:
         """
         Get events by events ids.
@@ -192,11 +203,15 @@ class EventRepositoryImpl(EventRepositoryInterface):
         Parameters
         ----------
         events_ids : List[str]
-            Event's ids.
+            List of events ids.
         page_number : int
             Number of page to get.
         items_per_page : int
             Number of items per page to load.
+        start : Optional[datetime]
+            Start of time interval for search.
+        end : Optional[datetime]
+            End of time interval for search.
 
         Returns
         -------
@@ -211,15 +226,63 @@ class EventRepositoryImpl(EventRepositoryInterface):
             No events were found for given events ids.
 
         """
-        db_events: Optional[
-            List[PrismaEvent]
-        ] = await self._db_client.db.prismaevent.find_many(
-            where={
-                "id": {"in": events_ids},
-                "deleted_at": None,
-            },
-            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
-            take=items_per_page if items_per_page != -1 else None,
+        if start is not None and end is not None and start > end:
+            raise WrongIntervalError("Request failed. Wrong time interval.")
+        start_date, end_date = None, None
+        # fmt: off
+        if start is not None:
+            start_date = (
+                f"\'{start.day:02d}/{start.month:02d}/{start.year:04d} "
+                f"{start.hour:02d}:{start.minute:02d}:{start.second:02d}\'"
+            )
+        if end is not None:
+            end_date = (
+                f"\'{end.day:02d}/{end.month:02d}/{end.year:04d} "
+                f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}\'"
+            )
+        events_ids_for_query = ", ".join(f"\'{event_id}\'" for event_id in events_ids)
+        # fmt: on
+        event_start_condition = (
+            f"\n\tAND {start_date}::timestamp <= event.start"
+            if start is not None
+            else ""
+        )
+        event_end_condition = (
+            f"\n\tAND event.start <= {end_date}::timestamp" if end is not None else ""
+        )
+        time_interval = (
+            f"timestamp {end_date}"
+            if end is not None
+            else f"{start_date}::timestamp + event.repeating_delay::interval"
+        )
+        repeating_event_start_condition = (
+            f"\n\tAND {start_date}::timestamp <= pattern.event_start_series"
+            if start is not None
+            else ""
+        )
+        repeating_event_end_condition = (
+            f"\n\tAND pattern.event_start_series <= {end_date}::timestamp"
+            if end is not None
+            else ""
+        )
+        pagination_parameters = (
+            f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
+            if items_per_page != -1
+            else ""
+        )
+        await self._db_client.db.execute_raw("SET datestyle = DMY;")
+        db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
+            GET_EVENTS_BY_EVENT_IDS_QUERY.format(
+                events_ids_for_query,
+                event_start_condition,
+                event_end_condition,
+                time_interval,
+                events_ids_for_query,
+                repeating_event_start_condition,
+                repeating_event_end_condition,
+                pagination_parameters,
+            ),
+            model=PrismaEvent,
         )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")

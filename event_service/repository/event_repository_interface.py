@@ -101,7 +101,12 @@ class EventRepositoryInterface(ABC):
 
     @abstractmethod
     async def get_events_by_events_ids(
-        self, events_ids: List[str], page_number: int, items_per_page: int
+        self,
+        events_ids: List[str],
+        page_number: int,
+        items_per_page: int,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
     ) -> List[Event]:
         """
         Get events by events ids.
@@ -114,6 +119,10 @@ class EventRepositoryInterface(ABC):
             Number of page to get.
         items_per_page : int
             Number of items per page to load.
+        start : Optional[datetime]
+            Start of time interval for search.
+        end : Optional[datetime]
+            End of time interval for search.
 
         Returns
         -------
