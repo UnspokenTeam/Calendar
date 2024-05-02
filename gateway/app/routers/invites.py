@@ -26,7 +26,7 @@ from app.generated.identity_service.get_user_pb2 import (
     UsersByIdRequest as GrpcGetUsersByIdRequest,
 )
 from app.generated.identity_service.get_user_pb2 import (
-    UsersResponse as GrpcUsersResponse,
+    ListOfUser as GrpcListOfUsers,
 )
 from app.generated.invite_service.invite_service_pb2 import (
     DeleteInviteByIdRequest as GrpcDeleteInviteByIdRequest,
@@ -319,14 +319,14 @@ async def create_multiple_invites(
         If some users or events does not exist or user does not have permission to them
 
     """
-    users: GrpcUsersResponse = (
+    users: GrpcListOfUsers = (
         await grpc_clients.identity_service_client.request().get_users_by_id(
             GrpcGetUsersByIdRequest(
                 page=1, items_per_page=-1, id=[str(invite.invitee_id) for invite in invites]
             )
         )
     )
-    if len(users.users.users) != len(invites):
+    if len(users.users) != len(invites):
         raise ValueError("Some users do not exist")
 
     events: GrpcEventsResponse = (

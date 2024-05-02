@@ -4,7 +4,7 @@ from enum import StrEnum
 from typing import Optional, Self
 
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
-from app.generated.identity_service.update_user_pb2 import UserToUpdate
+from app.generated.identity_service.update_user_pb2 import UserToModify
 
 from pydantic import BaseModel, EmailStr
 
@@ -132,7 +132,7 @@ class User(BaseModel):
             type=UserType.from_proto(proto.type),
         )
 
-    def to_update_proto(self) -> UserToUpdate:
+    def to_modify_proto(self) -> UserToModify:
         """
         Convert object to update proto
 
@@ -142,7 +142,7 @@ class User(BaseModel):
             Update proto
 
         """
-        user = UserToUpdate(
+        user = UserToModify(
             id=self.id,
             username=self.username,
             password=self.password,

@@ -1,5 +1,7 @@
 """Users route"""
+from datetime import datetime
 from typing import Annotated, List
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Security
 from pydantic import AfterValidator, BaseModel, EmailStr, Field
@@ -11,9 +13,6 @@ from app.generated.identity_service.auth_pb2 import (
     CredentialsResponse as GrpcCredentialsResponse,
 )
 from app.generated.identity_service.auth_pb2 import LoginRequest as GrpcLoginRequest
-from app.generated.identity_service.auth_pb2 import (
-    RegisterRequest as GrpcRegisterRequest,
-)
 from app.generated.identity_service.delete_user_pb2 import (
     DeleteUserRequest as GrpcDeleteUserRequest,
 )
@@ -235,13 +234,19 @@ async def register_user(
         Access and refresh token
 
     """
+    user = User(
+        id=uuid4(),
+        username=register_request.username,
+        email=register_request.email,
+        password=register_request.password,
+        type=UserType.USER,
+        created_at=datetime.now(),
+        suspended_at=None,
+    )
+
     credentials: GrpcCredentialsResponse = (
         grpc_clients.identity_service_client.request().register(
-            GrpcRegisterRequest(
-                username=register_request.username,
-                password=register_request.password,
-                email=register_request.email,
-            )
+            user.to_modify_proto()
         )
     )
 
