@@ -1,4 +1,5 @@
 """Notification Service Controller."""
+
 import grpc
 
 from errors.permission_denied_error import PermissionDeniedError
@@ -61,7 +62,7 @@ class NotificationServiceImpl(GrpcServicer):
         self,
         request: proto.NotificationsRequestByAuthorId,
         context: grpc.ServicerContext,
-    ) -> proto.NotificationsResponse:
+    ) -> proto.ListOfNotifications:
         """
         Get notifications by author id.
 
@@ -74,8 +75,8 @@ class NotificationServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.NotificationsResponse
-            Response object for notification response.
+        proto.ListOfNotifications
+            Response object for several notifications.
 
         Raises
         ------
@@ -96,20 +97,17 @@ class NotificationServiceImpl(GrpcServicer):
             )
         )
         context.set_code(grpc.StatusCode.OK)
-        return proto.NotificationsResponse(
-            notifications=proto.ListOfNotifications(
-                notifications=[
-                    notification.to_grpc_notification()
-                    for notification in notifications
-                ]
-            ),
+        return proto.ListOfNotifications(
+            notifications=[
+                notification.to_grpc_notification() for notification in notifications
+            ]
         )
 
     async def get_notification_by_event_and_author_ids(
         self,
         request: proto.NotificationRequestByEventAndAuthorIds,
         context: grpc.ServicerContext,
-    ) -> proto.NotificationResponse:
+    ) -> proto.GrpcNotification:
         """
         Get notification by event and author ids.
 
@@ -122,7 +120,7 @@ class NotificationServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.NotificationResponse
+        proto.GrpcNotification
             Response object for notification response.
 
         Raises
@@ -141,15 +139,13 @@ class NotificationServiceImpl(GrpcServicer):
             author_id=request.author_id,
         )
         context.set_code(grpc.StatusCode.OK)
-        return proto.NotificationResponse(
-            notification=notification.to_grpc_notification()
-        )
+        return notification.to_grpc_notification()
 
     async def get_notification_by_notification_id(
         self,
         request: proto.NotificationRequestByNotificationId,
         context: grpc.ServicerContext,
-    ) -> proto.NotificationResponse:
+    ) -> proto.GrpcNotification:
         """
         Get notification by notification id.
 
@@ -162,7 +158,7 @@ class NotificationServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.NotificationResponse
+        proto.GrpcNotification
             Response object for notification response.
 
         Raises
@@ -182,15 +178,13 @@ class NotificationServiceImpl(GrpcServicer):
         ):
             raise PermissionDeniedError("Permission denied")
         context.set_code(grpc.StatusCode.OK)
-        return proto.NotificationResponse(
-            notification=notification.to_grpc_notification()
-        )
+        return notification.to_grpc_notification()
 
     async def get_notifications_by_notifications_ids(
         self,
         request: proto.NotificationsRequestByNotificationsIds,
         context: grpc.ServicerContext,
-    ) -> proto.NotificationsResponse:
+    ) -> proto.ListOfNotifications:
         """
         Get notifications by notifications ids.
 
@@ -203,8 +197,8 @@ class NotificationServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.NotificationsResponse
-            Response object for notification response.
+        proto.ListOfNotifications
+            Response object for several notifications.
 
         """
         notifications = (
@@ -215,20 +209,18 @@ class NotificationServiceImpl(GrpcServicer):
             )
         )
         context.set_code(grpc.StatusCode.OK)
-        return proto.NotificationsResponse(
-            notifications=proto.ListOfNotifications(
-                notifications=[
-                    notification.to_grpc_notification()
-                    for notification in notifications
-                    if notification.author_id == request.requesting_user.id
-                    or request.requesting_user.id == GrpcUserType.ADMIN
-                ]
-            ),
+        return proto.ListOfNotifications(
+            notifications=[
+                notification.to_grpc_notification()
+                for notification in notifications
+                if notification.author_id == request.requesting_user.id
+                or request.requesting_user.id == GrpcUserType.ADMIN
+            ]
         )
 
     async def get_all_notifications(
         self, request: proto.GetAllNotificationsRequest, context: grpc.ServicerContext
-    ) -> proto.NotificationsResponse:
+    ) -> proto.ListOfNotifications:
         """
         Get all notifications.
 
@@ -241,8 +233,8 @@ class NotificationServiceImpl(GrpcServicer):
 
         Returns
         -------
-        proto.NotificationsResponse
-            Response object for notification response.
+        proto.ListOfNotifications
+            Response object for several notifications.
 
         Raises
         ------
@@ -256,18 +248,15 @@ class NotificationServiceImpl(GrpcServicer):
             page_number=request.page_number, items_per_page=request.items_per_page
         )
         context.set_code(grpc.StatusCode.OK)
-        return proto.NotificationsResponse(
-            notifications=proto.ListOfNotifications(
-                notifications=[
-                    notification.to_grpc_notification()
-                    for notification in notifications
-                ]
-            ),
+        return proto.ListOfNotifications(
+            notifications=[
+                notification.to_grpc_notification() for notification in notifications
+            ]
         )
 
     async def create_notification(
         self, request: proto.NotificationRequest, context: grpc.ServicerContext
-    ) -> Empty:
+    ) -> proto.GrpcNotification:
         """
         Create notification.
 
@@ -280,8 +269,8 @@ class NotificationServiceImpl(GrpcServicer):
 
         Returns
         -------
-        Empty
-            Empty response object.
+        proto.GrpcNotification
+            Response object for notification response.
 
         Raises
         ------
@@ -299,11 +288,11 @@ class NotificationServiceImpl(GrpcServicer):
             notification=notification
         )
         context.set_code(grpc.StatusCode.OK)
-        return Empty()
+        return request.notification
 
     async def update_notification(
         self, request: proto.NotificationRequest, context: grpc.ServicerContext
-    ) -> Empty:
+    ) -> proto.GrpcNotification:
         """
         Update notification.
 
@@ -316,8 +305,8 @@ class NotificationServiceImpl(GrpcServicer):
 
         Returns
         -------
-        Empty
-            Empty response object.
+        proto.GrpcNotification
+            Response object for notification response.
 
         Raises
         ------
@@ -335,13 +324,13 @@ class NotificationServiceImpl(GrpcServicer):
             notification=notification
         )
         context.set_code(grpc.StatusCode.OK)
-        return Empty()
+        return request.notification
 
     async def delete_notification_by_id(
         self,
         request: proto.DeleteNotificationByIdRequest,
         context: grpc.ServicerContext,
-    ) -> Empty:
+    ) -> proto.GrpcNotification:
         """
         Delete notification.
 
@@ -354,8 +343,8 @@ class NotificationServiceImpl(GrpcServicer):
 
         Returns
         -------
-        Empty
-            Empty response object.
+        proto.GrpcNotification
+            Response object for notification response.
 
         Raises
         ------
@@ -377,13 +366,13 @@ class NotificationServiceImpl(GrpcServicer):
             notification_id=request.notification_id
         )
         context.set_code(grpc.StatusCode.OK)
-        return Empty()
+        return notification.to_grpc_notification()
 
     async def delete_notifications_by_events_and_author_ids(
         self,
         request: proto.DeleteNotificationsByEventsAndAuthorIdsRequest,
         context: grpc.ServicerContext,
-    ) -> Empty:
+    ) -> proto.ListOfNotifications:
         """
         Delete notifications by events and author id.
 
@@ -396,8 +385,8 @@ class NotificationServiceImpl(GrpcServicer):
 
         Returns
         -------
-        Empty
-            Empty response object.
+        proto.ListOfNotifications
+            Response object for several notifications.
 
         Raises
         ------
@@ -410,17 +399,25 @@ class NotificationServiceImpl(GrpcServicer):
             and request.requesting_user.type != GrpcUserType.ADMIN
         ):
             raise PermissionDeniedError("Permission denied")
+        notifications = []
+        for event_id in request.event_ids.ids:
+            notification = await self._notification_repository.get_notification_by_event_and_author_ids(
+                event_id=event_id, author_id=request.author_id
+            )
+            notifications.append(notification.to_grpc_notification())
+
+        notifications = proto.ListOfNotifications(notifications)
         await self._notification_repository.delete_notifications_by_events_and_author_ids(
             event_ids=list(request.event_ids.ids), author_id=request.author_id
         )
         context.set_code(grpc.StatusCode.OK)
-        return Empty()
+        return notifications
 
     async def delete_notifications_by_author_id(
         self,
         request: proto.DeleteNotificationsByAuthorIdRequest,
         context: grpc.ServicerContext,
-    ) -> Empty:
+    ) -> proto.ListOfNotifications:
         """
         Delete notifications by author id.
 
@@ -433,8 +430,8 @@ class NotificationServiceImpl(GrpcServicer):
 
         Returns
         -------
-        Empty
-            Empty response object.
+        proto.ListOfNotifications
+            Response object for several notifications.
 
         Raises
         ------
@@ -447,17 +444,24 @@ class NotificationServiceImpl(GrpcServicer):
             and request.requesting_user.type != GrpcUserType.ADMIN
         ):
             raise PermissionDeniedError("Permission denied")
+        notifications = await self._notification_repository.get_notifications_by_author_id(
+            author_id=request.author_id, page_number=1, items_per_page=-1
+        )
         await self._notification_repository.delete_notifications_by_author_id(
             author_id=request.author_id
         )
         context.set_code(grpc.StatusCode.OK)
-        return Empty()
+        return proto.ListOfNotifications(
+            notifications=[
+                notification.to_grpc_notification() for notification in notifications
+            ]
+        )
 
     async def delete_notifications_by_event_id(
         self,
         request: proto.DeleteNotificationsByEventIdRequest,
         context: grpc.ServicerContext,
-    ) -> Empty:
+    ) -> proto.ListOfNotifications:
         """
         Delete notifications by event id.
 
@@ -470,8 +474,8 @@ class NotificationServiceImpl(GrpcServicer):
 
         Returns
         -------
-        Empty
-            Empty response object.
+        proto.ListOfNotifications
+            Response object for several notifications.
 
         """
         await self._notification_repository.delete_notifications_by_event_id(
