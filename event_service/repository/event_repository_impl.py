@@ -11,7 +11,11 @@ from errors.wrong_interval_error import WrongIntervalError
 from src.models.event import Event
 from utils.singleton import singleton
 
-from constants import GET_ALL_EVENTS_QUERY, GET_EVENTS_BY_AUTHOR_ID_QUERY, GET_EVENTS_BY_EVENT_IDS_QUERY
+from constants import (
+    GET_ALL_EVENTS_QUERY,
+    GET_EVENTS_BY_AUTHOR_ID_QUERY,
+    GET_EVENTS_BY_EVENT_IDS_QUERY,
+)
 from repository.event_repository_interface import EventRepositoryInterface
 
 
