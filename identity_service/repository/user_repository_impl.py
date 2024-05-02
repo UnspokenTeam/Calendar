@@ -187,10 +187,9 @@ class UserRepositoryImpl(UserRepositoryInterface):
             raise UniqueError("User with this email or username already exists")
         logging.info(user.to_dict())
         prisma_user_data = await self._db_client.db.user.create(data=user.to_dict())
-        user.id = prisma_user_data.id
-        return user
+        return User.from_prisma_user(prisma_user_data)
 
-    async def update_user(self, user: User) -> None:
+    async def update_user(self, user: User) -> User:
         """
         Updates user with matching id or throws an exception
 
@@ -198,6 +197,11 @@ class UserRepositoryImpl(UserRepositoryInterface):
         ----------
         user : User
             User data
+
+        Returns
+        -------
+        User
+            Updated user object
 
         Raises
         ------
@@ -219,10 +223,13 @@ class UserRepositoryImpl(UserRepositoryInterface):
         )
         if db_user_counter != 0:
             raise UniqueError("User with this email or username already exists")
-        await self._db_client.db.user.update(
+        prisma_user_data = await self._db_client.db.user.update(
             where={"id": user.id},
             data=user.to_dict(exclude=["type"]),
         )
+        if prisma_user_data is None:
+            raise ValueNotFoundError("User not found")
+        return User.from_prisma_user(prisma_user_data)
 
     async def delete_user(self, user_id: str) -> None:
         """
