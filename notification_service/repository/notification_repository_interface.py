@@ -183,7 +183,7 @@ class NotificationRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def create_notification(self, notification: Notification) -> None:
+    async def create_notification(self, notification: Notification) -> Notification:
         """
         Create an notification.
 
@@ -191,6 +191,11 @@ class NotificationRepositoryInterface(ABC):
         ----------
         notification : Notification
             Notification object.
+
+        Returns
+        -------
+        Notification
+            Created notification.
 
         Raises
         ------
@@ -203,7 +208,7 @@ class NotificationRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def update_notification(self, notification: Notification) -> None:
+    async def update_notification(self, notification: Notification) -> Notification:
         """
         Update notification data.
 
@@ -211,6 +216,11 @@ class NotificationRepositoryInterface(ABC):
         ----------
         notification : Notification
             Notification object.
+
+        Returns
+        -------
+        Notification
+            Notification with updated data.
 
         Raises
         ------

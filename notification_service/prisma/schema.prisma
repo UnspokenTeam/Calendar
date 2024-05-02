@@ -7,7 +7,7 @@ generator client {
   provider = "prisma-client-py"
 }
 
-model Notification {
+model PrismaNotification {
   id         String    @id @default(uuid())
   event_id   String
   author_id  String
