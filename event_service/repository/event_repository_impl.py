@@ -11,6 +11,7 @@ from errors.wrong_interval_error import WrongIntervalError
 from src.models.event import Event
 from utils.singleton import singleton
 
+from constants import GET_ALL_EVENTS_QUERY, GET_EVENTS_BY_AUTHOR_ID_QUERY
 from repository.event_repository_interface import EventRepositoryInterface
 
 
@@ -104,15 +105,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             )
         await self._db_client.db.execute_raw("SET datestyle = DMY;")
         db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
-            # fmt: off
-            "SELECT *\nFROM \"Event\" as event\nWHERE\n\tevent.author_id = {}\n\tAND event.deleted_at IS NULL{}{}\n"
-            "UNION\nSELECT DISTINCT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", "
-            "pattern.\"start\", pattern.\"end\", pattern.\"repeating_delay\", pattern.\"author_id\", "
-            "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM \"Event\" as event, "
-            "GENERATE_SERIES(event.start, {}, event.repeating_delay::interval) as event_start_series\n\t"
-            "WHERE event.repeating_delay IS NOT NULL\n) as pattern\nWHERE\n\tpattern.author_id = {}\n\t"
-            "AND pattern.deleted_at IS NULL{}{}\nORDER BY start{};".format(
-                # fmt: on
+            GET_EVENTS_BY_AUTHOR_ID_QUERY.format(
                 f"\'{author_id}\'",
                 f"\n\tAND {start_date}::timestamp <= event.start"
                 if start is not None
@@ -266,14 +259,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             )
         await self._db_client.db.execute_raw("SET datestyle = DMY;")
         db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
-            # fmt: off
-            "SELECT *\nFROM \"Event\" as event{}\nUNION\n"
-            "SELECT DISTINCT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", "
-            "pattern.\"start\", pattern.\"end\", pattern.\"repeating_delay\", pattern.\"author_id\", "
-            "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM \"Event\" as event, "
-            "GENERATE_SERIES(event.start, {}, event.repeating_delay::interval) as event_start_series\n"
-            "\tWHERE event.repeating_delay IS NOT NULL\n) as pattern{}\nORDER BY start{};".format(
-                # fmt: on
+            GET_ALL_EVENTS_QUERY.format(
                 "\nWHERE\n\t"
                 + (
                     f"{start_date}::timestamp <= event.start"
