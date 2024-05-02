@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
 import "user/user.proto";
 
 service EventService {
@@ -11,8 +12,8 @@ service EventService {
   rpc get_all_events(GetAllEventsRequest) returns (ListOfEvents){}
   rpc create_event(EventRequest) returns (GrpcEvent){}
   rpc update_event(EventRequest) returns (GrpcEvent){}
-  rpc delete_event_by_id(DeleteEventByIdRequest) returns (GrpcEvent){}
-  rpc delete_events_by_author_id(DeleteEventsByAuthorIdRequest) returns (ListOfEvents){}
+  rpc delete_event_by_id(DeleteEventByIdRequest) returns (google.protobuf.Empty){}
+  rpc delete_events_by_author_id(DeleteEventsByAuthorIdRequest) returns (google.protobuf.Empty){}
   rpc generate_event_description(GenerateDescriptionRequest) returns (GenerateDescriptionResponse){}
 }
 
