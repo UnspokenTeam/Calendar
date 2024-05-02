@@ -39,8 +39,16 @@ message EventRequestByEventId {
 
 message EventsRequestByEventsIds {
   ListOfEventsIds events_ids = 1;
-  uint64 page_number = 2;
-  int64 items_per_page = 3;
+    oneof optional_start {
+    google.protobuf.NullValue start_null = 2;
+    google.protobuf.Timestamp start = 3;
+  }
+  oneof optional_end {
+    google.protobuf.NullValue end_null = 4;
+    google.protobuf.Timestamp end = 5;
+  }
+  uint64 page_number = 6;
+  int64 items_per_page = 7;
 }
 
 message GrpcEvent {

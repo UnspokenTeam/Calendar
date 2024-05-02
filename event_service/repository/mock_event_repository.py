@@ -165,7 +165,12 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             raise ValueNotFoundError("Event not found")
 
     async def get_events_by_events_ids(
-        self, events_ids: List[str], page_number: int, items_per_page: int
+        self,
+        events_ids: List[str],
+        page_number: int,
+        items_per_page: int,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
     ) -> List[Event]:
         """
         Get events by events ids.
@@ -178,6 +183,10 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             Number of page to get.
         items_per_page : int
             Number of items per page to load.
+        start : Optional[datetime]
+            Start of time interval for search.
+        end : Optional[datetime]
+            End of time interval for search.
 
         Returns
         -------
@@ -188,13 +197,51 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         ------
         ValueNotFoundError
             No events were found for given event ids.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
-        events = [
-            event
-            for event in self._events
-            if event.id in events_ids and event.deleted_at is None
-        ]
+        if start is not None and end is not None and start > end:
+            raise WrongIntervalError("Request failed. Wrong time interval.")
+        events = []
+        for event in self._events:
+            if event.repeating_delay is not None and not (
+                (True if start is None else start <= event.start)
+                and (True if end is None else event.start <= end)
+            ):
+                repeating_delay = (
+                    datetime.now()
+                    - (
+                        datetime.now()
+                        - event.delay_string_to_timedelta(event.repeating_delay)
+                    )
+                ).total_seconds()
+                start_modulo, end_modulo = None, None
+                if start is not None:
+                    start_seconds = int(start.timestamp())
+                    start_modulo = start_seconds % repeating_delay
+                if end is not None:
+                    end_seconds = int(end.timestamp())
+                    end_modulo = end_seconds % repeating_delay
+                    end_modulo = repeating_delay if not end_modulo else end_modulo
+                event_seconds = int(event.start.timestamp())
+                event_modulo = event_seconds % repeating_delay
+                if (
+                    (True if start is None else start_modulo <= event_modulo)
+                    and (True if end is None else event_modulo <= end_modulo)
+                    and (True if end is None else event.start <= end)
+                    and event.id in events_ids
+                    and event.deleted_at is None
+                ):
+                    events.append(event)
+            else:
+                if (
+                    (start <= event.start if start is not None else True)
+                    and (event.start <= end if end is not None else True)
+                    and event.id in events_ids
+                    and event.deleted_at is None
+                ):
+                    events.append(event)
         events = (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
