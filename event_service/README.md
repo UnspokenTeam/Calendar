@@ -2,7 +2,7 @@ ___
 # Event service
 [![Build event service](https://github.com/UnspokenTeam/Calendar/actions/workflows/build_event_service.yaml/badge.svg)](https://github.com/UnspokenTeam/Calendar/actions/workflows/build_event_service.yaml)
 ___
-- **Установка и описание**
+**Установка и описание**
 ___
 1. **Образец .env файла**
 	```
