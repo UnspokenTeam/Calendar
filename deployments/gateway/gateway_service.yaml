@@ -8,6 +8,8 @@ spec:
     app: gateway-deployment
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: gateway_port
+      port: 8084
+      targetPort: gateway-port
+#  externalIPs:
+#    - 192.168.49.2
   

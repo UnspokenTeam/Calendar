@@ -27,6 +27,16 @@ spec:
                 secretKeyRef:
                   name: event-service-secret
                   key: DATABASE_URL
+            - name: "ENVIRONMENT"
+              valueFrom:
+                secretKeyRef:
+                  name: event-service-secret
+                  key: ENVIRONMENT
+            - name: "OPENROUTER_API_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: event-service-secret
+                  key: OPENROUTER_API_KEY
           ports:
             - containerPort: 8081
               name: evs-port
