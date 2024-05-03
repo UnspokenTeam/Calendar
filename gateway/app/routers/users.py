@@ -3,6 +3,8 @@ from datetime import datetime
 from typing import Annotated, List
 from uuid import UUID, uuid4
 
+from grpc import RpcError
+
 from app.constants import MIN_PASSWORD_LENGTH, MIN_USERNAME_LENGTH
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
@@ -343,7 +345,6 @@ async def logout(
     grpc_clients.identity_service_client.request().logout(
         GrpcAccessToken(access_token=access_token)
     )
-    return
 
 
 @router.get("/access_token/")
@@ -396,6 +397,11 @@ async def update_user(
     user_to_update
         New user data
 
+    Raises
+    ------
+    ValueError
+        User tried to modify fields that he cant modify
+
     Returns
     -------
     User
@@ -410,7 +416,7 @@ async def update_user(
             or user_to_update.suspended_at != user.suspended_at
             or user_to_update.created_at != user.created_at
     ):
-        raise ValueError
+        raise ValueError("Cannot update user")
 
     response: GrpcCredentialsResponse = grpc_clients.identity_service_client.request().update_user(
         GrpcUpdateUserRequest(
@@ -442,26 +448,35 @@ async def delete_user(
         Grpc clients injected by DI
 
     """
-    grpc_clients.notification_service_client.request().delete_notifications_by_author_id(
-        GrpcDeleteNotificationsByAuthorIdRequest(
-            author_id=grpc_user.id,
-            requesting_user=grpc_user
+    try:
+        grpc_clients.notification_service_client.request().delete_notifications_by_author_id(
+            GrpcDeleteNotificationsByAuthorIdRequest(
+                author_id=grpc_user.id,
+                requesting_user=grpc_user
+            )
         )
-    )
+    except RpcError:
+        pass
 
-    grpc_clients.invite_service_client.request().delete_invites_by_author_id(
-        GrpcDeleteInvitesByAuthorId(
-            author_id=grpc_user.id,
-            requesting_user=grpc_user
+    try:
+        grpc_clients.invite_service_client.request().delete_invites_by_author_id(
+            GrpcDeleteInvitesByAuthorId(
+                author_id=grpc_user.id,
+                requesting_user=grpc_user
+            )
         )
-    )
+    except RpcError:
+        pass
 
-    grpc_clients.event_service_client.request().delete_events_by_author_id(
-        GrpcDeleteEventsByAuthorIdRequest(
-            author_id=grpc_user.id,
-            requesting_user=grpc_user
+    try:
+        grpc_clients.event_service_client.request().delete_events_by_author_id(
+            GrpcDeleteEventsByAuthorIdRequest(
+                author_id=grpc_user.id,
+                requesting_user=grpc_user
+            )
         )
-    )
+    except RpcError:
+        pass
 
     grpc_clients.identity_service_client.request().delete_user(
         GrpcDeleteUserRequest(user_id=grpc_user.id, requesting_user=grpc_user)

@@ -186,7 +186,7 @@ async def create_notification(
         event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> None:
+) -> Notification:
     """
     \f
 
@@ -201,6 +201,11 @@ async def create_notification(
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients which are injected by DI
 
+    Returns
+    -------
+    Notification
+        New notification
+
     """
     await check_permission_for_event(grpc_user=user, event_id=event_id, grpc_clients=grpc_clients)
 
@@ -213,11 +218,13 @@ async def create_notification(
         enabled=True,
     )
 
-    grpc_clients.notification_service_client.request().create_notification(
+    notification_proto: GrpcNotification = grpc_clients.notification_service_client.request().create_notification(
         GrpcNotificationRequest(
             notification=notification.to_proto(), requesting_user=user
         )
     )
+
+    return Notification.from_proto(notification_proto)
 
 
 @router.put("/")
@@ -225,7 +232,7 @@ async def update_notification_as_author(
         notification: Notification,
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> None:
+) -> Notification:
     """
     \f
 
@@ -245,8 +252,13 @@ async def update_notification_as_author(
     PermissionDeniedError
         Permission denied
 
+    Returns
+    -------
+    Notification
+        Updated notification
+
     """
-    if notification.author_id != user.id:
+    if str(notification.author_id) != user.id:
         raise PermissionDeniedError
 
     stored_notification_response: GrpcNotification = (
@@ -265,11 +277,13 @@ async def update_notification_as_author(
     notification.created_at = stored_notification.created_at
     notification.deleted_at = stored_notification.deleted_at
 
-    grpc_clients.notification_service_client.request().update_notification(
+    notification_proto: GrpcNotification = grpc_clients.notification_service_client.request().update_notification(
         GrpcNotificationRequest(
             notification=notification.to_proto(), requesting_user=user
         )
     )
+
+    return Notification.from_proto(notification_proto)
 
 
 @router.put("/admin/")
@@ -277,7 +291,7 @@ async def update_notification(
         notification: Notification,
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> None:
+) -> Notification:
     """
     \f
 
@@ -297,6 +311,11 @@ async def update_notification(
     PermissionDeniedError
         Permission denied
 
+    Returns
+    -------
+    Notification
+        Updated notification
+
     """
     if user.type != UserType.ADMIN:
         raise PermissionDeniedError
@@ -308,11 +327,13 @@ async def update_notification(
         )
     )
 
-    grpc_clients.notification_service_client.request().update_notification(
+    notification_proto: GrpcNotification = grpc_clients.notification_service_client.request().update_notification(
         GrpcNotificationRequest(
             notification=notification.to_proto(), requesting_user=user
         )
     )
+
+    return Notification.from_proto(notification_proto)
 
 
 @router.delete("/")

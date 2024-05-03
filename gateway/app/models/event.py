@@ -108,7 +108,7 @@ class Event(BaseModel):
         Event start time
     end : datetime
         Event end time
-    author_id : str
+    author_id : UUID4 | str
         Event author ID
     created_at : datetime
         Event created time
@@ -134,7 +134,7 @@ class Event(BaseModel):
     title: str
     start: datetime
     end: datetime
-    author_id: str
+    author_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     created_at: datetime
     description: Optional[str] = None
     color: Optional[str] = None
@@ -191,7 +191,7 @@ class Event(BaseModel):
         event = GrpcEvent(
             id=str(self.id),
             title=self.title,
-            author_id=self.author_id,
+            author_id=str(self.author_id),
             description=self.description if self.description is not None else None,
             color=self.color if self.color is not None else None,
             repeating_delay=self.repeating_delay.to_proto() if self.repeating_delay is not None else None,

@@ -349,6 +349,11 @@ async def get_all_events(
     end : Optional[datetime]
         End date and time.
 
+    Raises
+    ------
+    PermissionDeniedError
+        Permission denied
+
     Returns
     -------
     List[Event]
@@ -415,7 +420,7 @@ async def create_event(
         event_data: CreateEventRequest,
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> None:
+) -> Event:
     """
     \f
 
@@ -430,6 +435,11 @@ async def create_event(
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
 
+    Returns
+    -------
+    Event
+        Created event object.
+
     """
     event = Event(
         id=uuid4(),
@@ -443,9 +453,12 @@ async def create_event(
         color=event_data.color,
         repeating_delay=event_data.repeating_delay,
     )
-    grpc_clients.event_service_client.request().create_event(
+
+    proto_event: GrpcEvent = grpc_clients.event_service_client.request().create_event(
         GrpcEventRequest(event=event.to_proto(), requesting_user=user)
     )
+
+    return Event.from_proto(proto_event)
 
 
 @router.put("/")
@@ -453,7 +466,7 @@ async def update_event(
         event: Event,
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> None:
+) -> Event:
     """
     \f
 
@@ -473,8 +486,13 @@ async def update_event(
     PermissionDeniedError
         Permission denied.
 
+    Returns
+    -------
+    Event
+        Updated event object.
+
     """
-    if event.author_id != user.id:
+    if str(event.author_id) != user.id:
         raise PermissionDeniedError("Permission denied")
 
     db_event_response: GrpcEvent = grpc_clients.event_service_client.request().get_event_by_event_id(
@@ -488,9 +506,11 @@ async def update_event(
     event.deleted_at = None
     event.created_at = db_event.created_at
 
-    grpc_clients.event_service_client.request().update_event(
+    event_proto: GrpcEvent = grpc_clients.event_service_client.request().update_event(
         GrpcEventRequest(event=event.to_proto(), requesting_user=user)
     )
+
+    return Event.from_proto(event_proto)
 
 
 @router.put("/admin/")
@@ -498,7 +518,7 @@ async def update_event_as_admin(
         event: Event,
         user: Annotated[GrpcUser, Security(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> None:
+) -> Event:
     """
     \f
 
@@ -513,13 +533,25 @@ async def update_event_as_admin(
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
 
+    Raises
+    ------
+    PermissionDeniedError
+        Permission denied
+
+    Returns
+    -------
+    Event
+        Updated event object.
+
     """
     if user.type != GrpcUserType.ADMIN:
         raise PermissionDeniedError("Permission denied")
 
-    grpc_clients.event_service_client.request().update_event(
+    event_proto: GrpcEvent = grpc_clients.event_service_client.request().update_event(
         GrpcEventRequest(event=event.to_proto(), requesting_user=user)
     )
+
+    return Event.from_proto(event_proto)
 
 
 @router.delete("/")

@@ -71,7 +71,7 @@ class User(BaseModel):
 
     Attributes
     ----------
-    id : str
+    id : UUID4 | str
         ID of the user
     username : str
         User's name
