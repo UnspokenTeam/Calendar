@@ -1,15 +1,18 @@
+___
 # Event service
+[![Build event service](https://github.com/UnspokenTeam/Calendar/actions/workflows/build_event_service.yaml/badge.svg)](https://github.com/UnspokenTeam/Calendar/actions/workflows/build_event_service.yaml)
+___
 ## Установка и описание
-
+___
 1. **Образец .env файла**
 	```
 	ENVIRONMENT="ENVIRONMENT"
 	OPENROUTER_API_KEY="API_KEY"
 	```
-
+___
 2. **Установка**:
 	- Доступно несколько способов установки.
-	1. **Через docker**
+    2. **Через docker**
        - Установка осуществляется через **docker**, для установки пакета микросервиса введите и выполните команду:
 		```
     	docker pull ghcr.io/unspokenteam/event_service:latest
@@ -27,7 +30,7 @@
         ```
         poetry run python main.py
         ```
-
+---
 3. **О микросервисе**:
 	- Сервис полностью осуществляет взаимодействие с событиями (**event**'ами) в календаре.
 	- Также под контролем сервиса находится взаимодействие с данными о событиях.
@@ -72,5 +75,6 @@
 		- **delete_event_by_id** - **Удаление события по его ID**
 
 		- **delete_events_by_author_id** - **Удаление всех событий указанного по ID автора**
-
+---
 * **Для каждого метода предусмотрена обработка всевозможных ошибок.** **Подробнее ознакомиться с функционалом можно, прочитав docstring'и к методам.**
+---
