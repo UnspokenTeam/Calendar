@@ -1,3 +1,4 @@
+"""Event routes"""
 from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID, uuid4
@@ -10,20 +11,20 @@ from pytz import utc
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     EventsRequestByAuthorId as GrpcGetEventsByAuthorIdRequest,
-    EventsResponse as GrpcEventsResponse,
     EventsRequestByEventsIds as GrpcGetEventsRequestByEventsIdsRequest,
     ListOfEventsIds,
-    EventResponse as GrpcEventResponse,
     EventRequestByEventId as GrpcGetEventByEventIdRequest,
     DeleteEventByIdRequest as GrpcDeleteEventByIdRequest,
     EventRequest as GrpcEventRequest,
     GenerateDescriptionRequest as GrpcGenerateDescriptionRequest,
     GenerateDescriptionResponse as GrpcGenerateDescriptionResponse,
     GetAllEventsRequest as GrpcGetAllEventsRequest,
+    ListOfEvents as GrpcListOfEvents,
+    GrpcEvent
 )
 from app.generated.identity_service.get_user_pb2 import (
     UsersByIdRequest as GrpcGetUsersByIdsRequest,
-    UsersResponse as GrpcGetUsersResponse,
+    ListOfUser as GrpcListOfUsers
 )
 from app.generated.invite_service.invite_service_pb2 import (
     GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
@@ -34,10 +35,7 @@ from app.generated.invite_service.invite_service_pb2 import (
 )
 from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationsByEventIdRequest as GrpcDeleteNotificationsByEventIdRequest,
-    NotificationRequestByEventAndAuthorIds as GrpcGetNotificationByEventAndAuthorIdsRequest,
-)
-from app.generated.notification_service.notification_service_pb2 import (
-    NotificationResponse as GrpcNotificationResponse,
+    NotificationRequestByEventAndAuthorIds as GrpcGetNotificationByEventAndAuthorIdsRequest, GrpcNotification,
 )
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware import auth
@@ -142,13 +140,13 @@ async def get_my_created_events(
     if end is not None:
         request_data.end.FromDatetime(end.astimezone(utc))
 
-    my_events_result: GrpcEventsResponse = (
+    my_events_result: GrpcListOfEvents = (
         grpc_clients.event_service_client.request().get_events_by_author_id(
             request_data
         )
     )
 
-    return [Event.from_proto(event_proto) for event_proto in my_events_result.events.events]
+    return [Event.from_proto(event_proto) for event_proto in my_events_result.events]
 
 
 @router.get("/my/invited")
@@ -202,18 +200,25 @@ async def get_my_invited_events(
         item.event_id for item in invite_result.invites.invites
     )
 
-    invited_events_request: GrpcEventsResponse = (
-        grpc_clients.event_service_client.request().get_events_by_events_ids(
-            GrpcGetEventsRequestByEventsIdsRequest(
-                events_ids=ListOfEventsIds(ids=invited_events_id_list),
-                page_number=page,
-                items_per_page=items_per_page,
+    events_request = GrpcGetEventsRequestByEventsIdsRequest(
+        events_ids=ListOfEventsIds(ids=invited_events_id_list),
+        page_number=page,
+        items_per_page=items_per_page,
+    )
 
-            )
+    if start is not None:
+        events_request.start.FromDatetime(start.astimezone(utc))
+
+    if end is not None:
+        events_request.end.FromDatetime(end.astimezone(utc))
+
+    invited_events_request: GrpcListOfEvents = (
+        grpc_clients.event_service_client.request().get_events_by_events_ids(
+            events_request
         )
     )
 
-    return [Event.from_proto(event) for event in invited_events_request.events.events]
+    return [Event.from_proto(event) for event in invited_events_request.events]
 
 
 @router.get("/{id}")
@@ -242,7 +247,7 @@ async def get_event(
         Event response containing event, all invitees and notification status.
 
     """
-    event_response: GrpcEventResponse = (
+    event_response: GrpcEvent = (
         grpc_clients.event_service_client.request().get_event_by_event_id(
             GrpcGetEventByEventIdRequest(
                 event_id=str(event_id),
@@ -252,7 +257,7 @@ async def get_event(
     )
 
     response = EventResponse(
-        event=Event.from_proto(event_response.event),
+        event=Event.from_proto(event_response),
         invited_users=[],
         notification_turned_on=False,
     )
@@ -267,7 +272,7 @@ async def get_event(
             )
         )
 
-        invited_people_response: GrpcGetUsersResponse = (
+        invited_people_response: GrpcListOfUsers = (
             grpc_clients.identity_service_client.request().get_users_by_id(
                 GrpcGetUsersByIdsRequest(
                     page=-1,
@@ -280,12 +285,12 @@ async def get_event(
             )
         )
         response.invited_users = [
-            User.from_proto(person) for person in invited_people_response.users.users
+            User.from_proto(person) for person in invited_people_response.users
         ]
     except RpcError:
         pass
 
-    notification_request: GrpcNotificationResponse = (
+    notification_request: GrpcNotification = (
         grpc_clients.notification_service_client.request().get_notification_by_event_and_author_ids(
             GrpcGetNotificationByEventAndAuthorIdsRequest(
                 event_id=str(event_id),
@@ -295,7 +300,7 @@ async def get_event(
         )
     )
 
-    response.notification_turned_on = notification_request.notification.enabled
+    response.notification_turned_on = notification_request.enabled
 
     return response
 
@@ -349,11 +354,11 @@ async def get_all_events(
     if end is not None:
         events_request.end.FromDatetime(end.astimezone(utc))
 
-    events_response: GrpcEventsResponse = grpc_clients.event_service_client.request().get_all_events(
+    events_response: GrpcListOfEvents = grpc_clients.event_service_client.request().get_all_events(
         events_request
     )
 
-    return [Event.from_proto(event) for event in events_response.events.events]
+    return [Event.from_proto(event) for event in events_response.events]
 
 
 @router.get("/description/")
@@ -457,13 +462,13 @@ async def update_event(
     if event.author_id != user.id:
         raise PermissionDeniedError("Permission denied")
 
-    db_event_response: GrpcEventResponse = grpc_clients.event_service_client.request().get_event_by_event_id(
+    db_event_response: GrpcEvent = grpc_clients.event_service_client.request().get_event_by_event_id(
         GrpcGetEventByEventIdRequest(
             event_id=str(event.id),
             requesting_user=user,
         )
     )
-    db_event = Event.from_proto(db_event_response.event)
+    db_event = Event.from_proto(db_event_response)
 
     event.deleted_at = None
     event.created_at = db_event.created_at
