@@ -138,7 +138,7 @@ class UserRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def update_user(self, user: User) -> None:
+    async def update_user(self, user: User) -> User:
         """
         Updates user with matching id or throws an exception
 
@@ -146,6 +146,11 @@ class UserRepositoryInterface(ABC):
         ----------
         user : User
             User data
+
+        Returns
+        -------
+        User
+            Updated user object
 
         Raises
         ------

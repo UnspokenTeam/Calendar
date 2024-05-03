@@ -1,11 +1,13 @@
 """User model"""
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional, Self
+from typing import Annotated, Optional, Self
+from uuid import UUID
 
+from app.generated.identity_service.update_user_pb2 import UserToModify
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 
-from pydantic import BaseModel, EmailStr
+from pydantic import UUID4, AfterValidator, BaseModel, EmailStr
 
 
 class UserType(StrEnum):
@@ -86,13 +88,15 @@ class User(BaseModel):
     -------
     from_proto(proto)
         Get a user instance from user proto
+    to_update_proto()
+        Convert object to update proto
 
     """
 
-    id: str
-    username: str
+    id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
+    username: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     email: EmailStr
-    password: str
+    password: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     created_at: datetime
     suspended_at: Optional[datetime]
     type: UserType
@@ -128,3 +132,25 @@ class User(BaseModel):
             ),
             type=UserType.from_proto(proto.type),
         )
+
+    def to_modify_proto(self) -> UserToModify:
+        """
+        Convert object to update proto
+
+        Returns
+        -------
+        UserToUpdate
+            Update proto
+
+        """
+        user = UserToModify(
+            id=self.id,
+            username=self.username,
+            password=self.password,
+            type=self.type.to_proto(),
+            email=self.email,
+        )
+        user.created_at.FromDatetime(self.created_at)
+        if self.suspended_at is not None:
+            user.suspended_at.FromDatetime(self.suspended_at)
+        return user

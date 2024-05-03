@@ -5,7 +5,7 @@ from uuid import UUID
 
 from app.generated.notification_service.notification_service_pb2 import GrpcNotification
 
-from pydantic import BaseModel, Field
+from pydantic import UUID4, AfterValidator, BaseModel, Field
 from pytz import utc
 
 
@@ -15,12 +15,18 @@ class Notification(BaseModel):
 
     Attributes
     ----------
-    id : UUID
-    event_id : UUID
-    author_id : UUID
+    id : UUID4 | str
+        Notification id
+    event_id : UUID4 | str
+        Event id
+    author_id : UUID4 | str
+        Author id
     enabled : bool
+        Flag which is true if notification is enabled and false if disabled
     created_at : datetime
+        Timestamp when notification was created
     deleted_at : Optional[datetime]
+        Timestamp when notification was deleted
 
     Methods
     -------
@@ -31,9 +37,9 @@ class Notification(BaseModel):
 
     """
 
-    id: UUID
-    event_id: UUID
-    author_id: UUID
+    id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
+    event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
+    author_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     enabled: Annotated[bool, Field(True)]
     created_at: datetime
     deleted_at: Optional[datetime] = None

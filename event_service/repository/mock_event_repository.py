@@ -165,7 +165,12 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             raise ValueNotFoundError("Event not found")
 
     async def get_events_by_events_ids(
-        self, events_ids: List[str], page_number: int, items_per_page: int
+        self,
+        events_ids: List[str],
+        page_number: int,
+        items_per_page: int,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
     ) -> List[Event]:
         """
         Get events by events ids.
@@ -178,6 +183,10 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             Number of page to get.
         items_per_page : int
             Number of items per page to load.
+        start : Optional[datetime]
+            Start of time interval for search.
+        end : Optional[datetime]
+            End of time interval for search.
 
         Returns
         -------
@@ -188,13 +197,51 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         ------
         ValueNotFoundError
             No events were found for given event ids.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
-        events = [
-            event
-            for event in self._events
-            if event.id in events_ids and event.deleted_at is None
-        ]
+        if start is not None and end is not None and start > end:
+            raise WrongIntervalError("Request failed. Wrong time interval.")
+        events = []
+        for event in self._events:
+            if event.repeating_delay is not None and not (
+                (True if start is None else start <= event.start)
+                and (True if end is None else event.start <= end)
+            ):
+                repeating_delay = (
+                    datetime.now()
+                    - (
+                        datetime.now()
+                        - event.delay_string_to_timedelta(event.repeating_delay)
+                    )
+                ).total_seconds()
+                start_modulo, end_modulo = None, None
+                if start is not None:
+                    start_seconds = int(start.timestamp())
+                    start_modulo = start_seconds % repeating_delay
+                if end is not None:
+                    end_seconds = int(end.timestamp())
+                    end_modulo = end_seconds % repeating_delay
+                    end_modulo = repeating_delay if not end_modulo else end_modulo
+                event_seconds = int(event.start.timestamp())
+                event_modulo = event_seconds % repeating_delay
+                if (
+                    (True if start is None else start_modulo <= event_modulo)
+                    and (True if end is None else event_modulo <= end_modulo)
+                    and (True if end is None else event.start <= end)
+                    and event.id in events_ids
+                    and event.deleted_at is None
+                ):
+                    events.append(event)
+            else:
+                if (
+                    (start <= event.start if start is not None else True)
+                    and (event.start <= end if end is not None else True)
+                    and event.id in events_ids
+                    and event.deleted_at is None
+                ):
+                    events.append(event)
         events = (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
@@ -283,14 +330,19 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             raise ValueNotFoundError("Events not found")
         return events
 
-    async def create_event(self, event: Event) -> None:
+    async def create_event(self, event: Event) -> Event:
         """
-        Creates event with matching data or throws an exception.
+        Create an event.
 
         Parameters
         ----------
         event : Event
-            Event data.
+            Event object.
+
+        Returns
+        -------
+        Event
+            Created event.
 
         Raises
         ------
@@ -306,15 +358,21 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         event.created_at = datetime.now()
         event.deleted_at = None
         self._events.append(event)
+        return event
 
-    async def update_event(self, event: Event) -> None:
+    async def update_event(self, event: Event) -> Event:
         """
-        Updates event with matching id or throws an exception.
+        Update event data.
 
         Parameters
         ----------
         event : Event
-            Event data.
+            Event object.
+
+        Returns
+        -------
+        Event
+            Updated event.
 
         Raises
         ------
@@ -334,19 +392,19 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             )
             if self._events[index].author_id == event.author_id:
                 self._events[index] = event
-            else:
-                raise ValueNotFoundError("Events authors must be same")
+                return event
+            raise ValueNotFoundError("Events authors must be same")
         except StopIteration:
             raise ValueNotFoundError("Event not found")
 
     async def delete_event_by_id(self, event_id: str) -> None:
         """
-        Deletes event with matching id or throws an exception.
+        Delete the event.
 
         Parameters
         ----------
         event_id : str
-            Event's id.
+            Event id.
 
         Raises
         ------
@@ -366,12 +424,12 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
     async def delete_events_by_author_id(self, author_id: str) -> None:
         """
-        Deletes events with matching author ids or throws an exception.
+        Delete events.
 
         Parameters
         ----------
         author_id : str
-            Author's id.
+            Event id.
 
         Raises
         ------

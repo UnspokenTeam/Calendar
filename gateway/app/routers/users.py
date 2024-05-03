@@ -1,16 +1,18 @@
 """Users route"""
+from datetime import datetime
 from typing import Annotated, List
+from uuid import UUID, uuid4
 
 from app.constants import MIN_PASSWORD_LENGTH, MIN_USERNAME_LENGTH
 from app.errors import PermissionDeniedError
+from app.generated.event_service.event_service_pb2 import (
+    DeleteEventsByAuthorIdRequest as GrpcDeleteEventsByAuthorIdRequest,
+)
 from app.generated.identity_service.auth_pb2 import AccessToken as GrpcAccessToken
 from app.generated.identity_service.auth_pb2 import (
     CredentialsResponse as GrpcCredentialsResponse,
 )
 from app.generated.identity_service.auth_pb2 import LoginRequest as GrpcLoginRequest
-from app.generated.identity_service.auth_pb2 import (
-    RegisterRequest as GrpcRegisterRequest,
-)
 from app.generated.identity_service.delete_user_pb2 import (
     DeleteUserRequest as GrpcDeleteUserRequest,
 )
@@ -23,18 +25,19 @@ from app.generated.identity_service.get_access_token_pb2 import (
 from app.generated.identity_service.get_user_pb2 import (
     GetAllUsersRequest as GrpcGetAllUsersRequest,
 )
+from app.generated.identity_service.get_user_pb2 import GetUserByEmailRequest as GrpcGetUserByEmailRequest
+from app.generated.identity_service.get_user_pb2 import ListOfUser as GrpcListOfUser
 from app.generated.identity_service.get_user_pb2 import (
     UserByIdRequest as GrpcGetUserByIdRequest,
-)
-from app.generated.identity_service.get_user_pb2 import UserResponse as GrpcUserResponse
-from app.generated.identity_service.get_user_pb2 import (
-    UsersResponse as GrpcUsersResponse,
 )
 from app.generated.identity_service.update_user_pb2 import (
     UpdateUserRequest as GrpcUpdateUserRequest,
 )
-from app.generated.identity_service.update_user_pb2 import (
-    UserToUpdate as GrpcUserToUpdate,
+from app.generated.invite_service.invite_service_pb2 import (
+    DeleteInvitesByAuthorIdRequest as GrpcDeleteInvitesByAuthorId,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    DeleteNotificationsByAuthorIdRequest as GrpcDeleteNotificationsByAuthorIdRequest,
 )
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware.auth import api_key_header, auth
@@ -43,8 +46,7 @@ from app.params import GrpcClientParams
 from app.validators import str_special_characters_validator
 
 from fastapi import APIRouter, Depends, Security
-from google.protobuf.timestamp_pb2 import Timestamp
-from pydantic import AfterValidator, BaseModel, EmailStr, Field
+from pydantic import UUID4, AfterValidator, BaseModel, EmailStr, Field
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -113,6 +115,7 @@ class CredentialsResponse(BaseModel):
 
     access_token: str
     refresh_token: str
+    user: User
 
 
 @router.get("/me", response_model_exclude={"password"})
@@ -136,10 +139,10 @@ async def get_current_user_info(user: Annotated[GrpcUser, Security(auth)]) -> Us
 
 @router.get("/all", response_model_exclude={"password"})
 async def get_all_users(
-    items_per_page: int,
-    page: int,
-    user: Annotated[GrpcUser, Security(auth)],
-    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
+        items_per_page: int,
+        page: int,
+        user: Annotated[GrpcUser, Security(auth)],
+        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> List[User]:
     """
     Fast api route to get all users
@@ -164,7 +167,7 @@ async def get_all_users(
     if user.type != GrpcUserType.USER:
         raise PermissionDeniedError("Permission denied")
 
-    response: GrpcUsersResponse = (
+    response: GrpcListOfUser = (
         grpc_clients.identity_service_client.request().get_all_users(
             GrpcGetAllUsersRequest(
                 page=page, items_per_page=items_per_page, requested_user=user
@@ -172,16 +175,12 @@ async def get_all_users(
         )
     )
 
-    return [User.from_proto(grpc_user) for grpc_user in response.users.users]
+    return [User.from_proto(grpc_user) for grpc_user in response.users]
 
 
 @router.get("/{user_id}", response_model_exclude={"password", "email"})
 async def get_user(
-    user_id: Annotated[
-        str,
-        Field("", min_length=1),
-        AfterValidator(str_special_characters_validator),
-    ],
+    user_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
     _: Annotated[GrpcUser, Security(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> User:
@@ -190,7 +189,7 @@ async def get_user(
 
     Parameters
     ----------
-    user_id : str
+    user_id : UUID4 | str
         User's id
     _ : Annotated[GrpcUser, Security(auth)]
         Authorized user's data in proto format
@@ -203,18 +202,52 @@ async def get_user(
         User object
 
     """
-    user: GrpcUserResponse = (
+    user: GrpcUser = (
         grpc_clients.identity_service_client.request().get_user_by_id(
-            GrpcGetUserByIdRequest(user_id=user_id)
+            GrpcGetUserByIdRequest(user_id=str(user_id))
         )
     )
-    return User.from_proto(user.user)
+    return User.from_proto(user)
+
+
+@router.get("/email/")
+async def get_user_by_email(
+        email: EmailStr,
+        _: Annotated[GrpcUser, Security(auth)],
+        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
+) -> User:
+    """
+    \f
+
+    Fast api route to get user by email
+
+    Parameters
+    ----------
+    email : str
+        User's email
+    _ : Annotated[GrpcUser, Security(auth)]
+        Authorized user's data in proto format
+    grpc_clients
+        Grpc clients injected by DI
+
+    Returns
+    -------
+    User
+        User object
+
+    """
+    user_request: GrpcUser = grpc_clients.identity_service_client.request().get_user_by_email(
+        GrpcGetUserByEmailRequest(
+            email=email
+        )
+    )
+    return User.from_proto(user_request)
 
 
 @router.post("/register")
 async def register_user(
-    register_request: RegisterRequest,
-    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
+        register_request: RegisterRequest,
+        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> CredentialsResponse:
     """
     Fast api route to register user
@@ -232,26 +265,33 @@ async def register_user(
         Access and refresh token
 
     """
+    user = User(
+        id=uuid4(),
+        username=register_request.username,
+        email=register_request.email,
+        password=register_request.password,
+        type=UserType.USER,
+        created_at=datetime.now(),
+        suspended_at=None,
+    )
+
     credentials: GrpcCredentialsResponse = (
         grpc_clients.identity_service_client.request().register(
-            GrpcRegisterRequest(
-                username=register_request.username,
-                password=register_request.password,
-                email=register_request.email,
-            )
+            user.to_modify_proto()
         )
     )
 
     return CredentialsResponse(
         access_token=credentials.data.access_token,
         refresh_token=credentials.data.refresh_token,
+        user=User.from_proto(credentials.user)
     )
 
 
 @router.post("/login")
 async def login(
-    login_request: LoginRequest,
-    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
+        login_request: LoginRequest,
+        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> CredentialsResponse:
     """
     Fast api route to log in user
@@ -277,14 +317,15 @@ async def login(
     return CredentialsResponse(
         access_token=credentials.data.access_token,
         refresh_token=credentials.data.refresh_token,
+        user=User.from_proto(credentials.user)
     )
 
 
 @router.post("/logout")
 async def logout(
-    _: Annotated[GrpcUser, Security(auth)],
-    access_token: Annotated[str, api_key_header],
-    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
+        _: Annotated[GrpcUser, Security(auth)],
+        access_token: Annotated[str, api_key_header],
+        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
     Fast api route to log out user
@@ -312,7 +353,7 @@ async def get_new_access_token(
         Field("", min_length=1),
     ],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> CredentialsResponse:
+) -> str:
     """
     Fast api route to get new access token
 
@@ -325,18 +366,16 @@ async def get_new_access_token(
 
     Returns
     -------
-    CredentialsResponse
-        Access and refresh token
+    str
+        New access token
 
     """
-    credentials: GrpcGetNewAccessTokenResponse = (
+    access_token_request: GrpcGetNewAccessTokenResponse = (
         grpc_clients.identity_service_client.request().get_new_access_token(
             GrpcGetNewAccessTokenRequest(refresh_token=refresh_token)
         )
     )
-    return CredentialsResponse(
-        access_token=credentials.access_token, refresh_token=refresh_token
-    )
+    return str(access_token_request.access_token)
 
 
 @router.put("/")
@@ -344,7 +383,7 @@ async def update_user(
     grpc_user: Annotated[GrpcUser, Security(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
     user_to_update: User,
-) -> User:
+) -> CredentialsResponse:
     """
     Fast api route to update user
 
@@ -366,37 +405,31 @@ async def update_user(
     user = User.from_proto(grpc_user)
 
     if user.type == UserType.USER and (
-        user_to_update.id != user.id
-        or user_to_update.type == UserType.ADMIN
-        or user_to_update.suspended_at != user.suspended_at
-        or user_to_update.created_at != user.created_at
+            user_to_update.id != user.id
+            or user_to_update.type == UserType.ADMIN
+            or user_to_update.suspended_at != user.suspended_at
+            or user_to_update.created_at != user.created_at
     ):
         raise ValueError
 
-    grpc_clients.identity_service_client.request().update_user(
+    response: GrpcCredentialsResponse = grpc_clients.identity_service_client.request().update_user(
         GrpcUpdateUserRequest(
             requesting_user=grpc_user,
-            new_user=GrpcUserToUpdate(
-                id=user_to_update.id,
-                username=user_to_update.username,
-                email=user_to_update.email,
-                password=user_to_update.password,
-                created_at=Timestamp().FromDatetime(dt=user_to_update.suspended_at),
-                suspended_at=Timestamp().FromDatetime(dt=user_to_update.suspended_at)
-                if user_to_update.suspended_at is not None
-                else None,
-                type=user_to_update.type.to_proto(),
-            ),
+            new_user=user_to_update.to_modify_proto(),
         )
     )
 
-    return user_to_update
+    return CredentialsResponse(
+        access_token=response.data.access_token,
+        refresh_token=response.data.refresh_token,
+        user=User.from_proto(response.user)
+    )
 
 
 @router.delete("/")
 async def delete_user(
-    grpc_user: Annotated[GrpcUser, Security(auth)],
-    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
+        grpc_user: Annotated[GrpcUser, Security(auth)],
+        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
     Fast api route to delete user
@@ -409,6 +442,27 @@ async def delete_user(
         Grpc clients injected by DI
 
     """
+    grpc_clients.notification_service_client.request().delete_notifications_by_author_id(
+        GrpcDeleteNotificationsByAuthorIdRequest(
+            author_id=grpc_user.id,
+            requesting_user=grpc_user
+        )
+    )
+
+    grpc_clients.invite_service_client.request().delete_invites_by_author_id(
+        GrpcDeleteInvitesByAuthorId(
+            author_id=grpc_user.id,
+            requesting_user=grpc_user
+        )
+    )
+
+    grpc_clients.event_service_client.request().delete_events_by_author_id(
+        GrpcDeleteEventsByAuthorIdRequest(
+            author_id=grpc_user.id,
+            requesting_user=grpc_user
+        )
+    )
+
     grpc_clients.identity_service_client.request().delete_user(
         GrpcDeleteUserRequest(user_id=grpc_user.id, requesting_user=grpc_user)
     )

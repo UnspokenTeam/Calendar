@@ -4,8 +4,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Self
 
-from prisma.models import Event as PrismaEvent
+from prisma.models import PrismaEvent
 
+from constants import INTERVAL_SLOTS
 from dateutil.relativedelta import relativedelta
 from generated.event_service.event_service_pb2 import GrpcEvent, Interval
 from pytz import utc
@@ -231,15 +232,7 @@ class Event:
                 if not (
                     delay := " ".join(
                         f"{value} {name.upper()}"
-                        for name in (
-                            "years",
-                            "months",
-                            "weeks",
-                            "days",
-                            "hours",
-                            "minutes",
-                            "seconds",
-                        )
+                        for name in INTERVAL_SLOTS
                         if (value := getattr(grpc_event.repeating_delay, name)) != 0
                     )
                 )

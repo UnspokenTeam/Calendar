@@ -7,7 +7,7 @@ generator client {
   provider = "prisma-client-py"
 }
 
-model Event {
+model PrismaEvent {
   id String @id @default(uuid())
   title String
   description String?
