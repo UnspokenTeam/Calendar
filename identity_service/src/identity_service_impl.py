@@ -5,8 +5,7 @@ from uuid import uuid4
 
 import grpc
 
-from errors.permission_denied import PermissionDeniedError
-from errors.value_not_found_error import ValueNotFoundError
+from components.errors import PermissionDeniedError, ValueNotFoundError
 from src.models.user import User, UserType
 from utils.encoder import Encoder
 from utils.jwt_controller import JwtController, TokenType

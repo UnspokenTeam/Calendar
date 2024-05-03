@@ -1,8 +1,8 @@
 """Tokens repository"""
 
-from db.postgres_client import PostgresClient
-from errors.value_not_found_error import ValueNotFoundError
-from utils.singleton import singleton
+from components.db import PostgresClient
+from components.errors import ValueNotFoundError
+from components.utils import singleton
 
 from repository.token_repository_interface import TokenRepositoryInterface
 
