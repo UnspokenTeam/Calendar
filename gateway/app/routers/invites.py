@@ -397,8 +397,8 @@ async def update_invite(
         Grpc clients injected by DI
 
     """
-    if invite.author_id != user.id and invite.invitee_id != user.id:
-        raise PermissionDeniedError
+    if str(invite.author_id) != user.id and str(invite.invitee_id) != user.id:
+        raise PermissionDeniedError("Permission denied")
 
     if invite.author_id == invite.invitee_id:
         raise ValueError("Invitee and author cannot be the same person")

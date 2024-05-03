@@ -164,7 +164,7 @@ async def get_my_created_events(
     return [Event.from_proto(event_proto) for event_proto in my_events_result.events]
 
 
-@router.get("/my/invited")
+@router.get("/my/invited/")
 async def get_my_invited_events(
         page: Annotated[int, Field(1, ge=1)],
         items_per_page: Annotated[int, Field(-1, ge=-1)],
@@ -200,7 +200,7 @@ async def get_my_invited_events(
 
     """
     invite_result: GrpcGetInvitesResponse = (
-        grpc_clients.invite_service_client.request().get_invites_by_author_id(
+        grpc_clients.invite_service_client.request().get_invites_by_invitee_id(
             GrpcGetInvitesByInviteeIdRequest(
                 invitee_id=user.id,
                 requesting_user=user,
@@ -543,15 +543,21 @@ async def delete_event(
         Grpc clients injected by DI
 
     """
-    grpc_clients.notification_service_client.request().delete_notifications_by_event_id(
-        GrpcDeleteNotificationsByEventIdRequest(event_id=str(event_id), requesting_user=user)
-    )
-
-    grpc_clients.invite_service_client.request().delete_invites_by_event_id(
-        GrpcDeleteInvitesByEventIdRequest(
-            event_id=str(event_id),
+    try:
+        grpc_clients.notification_service_client.request().delete_notifications_by_event_id(
+            GrpcDeleteNotificationsByEventIdRequest(event_id=str(event_id), requesting_user=user)
         )
-    )
+    except RpcError:
+        pass
+
+    try:
+        grpc_clients.invite_service_client.request().delete_invites_by_event_id(
+            GrpcDeleteInvitesByEventIdRequest(
+                event_id=str(event_id),
+            )
+        )
+    except RpcError:
+        pass
 
     grpc_clients.event_service_client.request().delete_event_by_id(
         GrpcDeleteEventByIdRequest(event_id=str(event_id), requesting_user=user)
