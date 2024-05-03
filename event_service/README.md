@@ -8,16 +8,19 @@
 		```
     	docker pull ghcr.io/unspokenteam/event_service:latest
  		```
-       - Создайте .env файл окружения в папке микросервиса и выполните команду:
+       - Создайте .env файл, укажите его путь в команде и выполните её:
 		```
-		docker run -d -p 8081=8081 —env-file ./.env ghcr.io/unspokenteam/event_service:latest
+		docker run -d -p 8081=8081 —env-file $PATH_TO_ENV ghcr.io/unspokenteam/event_service:latest
  		```
 	2. **Через poetry**
-       - Также возможен локальный запуск при помощи утилиты poetry **без использования docker'a**. Для этого введите и выполните команды:
-		```
-		poetry install
-		poetry run python main.py
-		```
+        - Также возможен локальный запуск при помощи утилиты poetry **без использования docker'a**. Для этого введите и выполните команду:
+        ```
+    	poetry install
+    	```
+        - Создайте .env файл в папке микросервиса. Добавьте вызов load_dotenv из модуля dotenv в методе serve в файле main.py и выполните команду:
+        ```
+        poetry run python main.py
+        ```
 
 2. **Образец .env файла**
 	```
