@@ -1,3 +1,4 @@
+"""Interceptor middleware"""
 import logging
 
 from grpc import RpcError, StatusCode
@@ -11,6 +12,8 @@ from starlette.types import ASGIApp
 
 
 class InterceptorMiddleware(BaseHTTPMiddleware):
+    """Interceptor middleware"""
+
     def __init__(
         self,
         app: ASGIApp,
@@ -20,6 +23,22 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
+        """
+        Handle errors
+
+        Parameters
+        ----------
+        request : Request
+            Request object
+        call_next : RequestResponseEndpoint
+            Next function to call
+
+        Returns
+        -------
+        Response
+            Response
+
+        """
         try:
             return await call_next(request)
         except RpcError as e:
