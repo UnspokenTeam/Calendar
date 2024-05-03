@@ -3,7 +3,9 @@
 
 1. **Установка**:
 	- Установка осуществляется через **docker**, для установки пакета микросервиса введите и выполните команду:
-	```docker pull ghcr.io/unspokenteam/event_service:latest```
+	```
+    docker pull ghcr.io/unspokenteam/event_service:latest
+ 	```
 	- Также возможен локальный запуск при помощи утилиты poetry **без использования docker'a**. Для этого введите и выполните команды:
 	```
 	poetry install
