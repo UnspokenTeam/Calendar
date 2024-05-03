@@ -85,7 +85,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
 
         """
         db_notifications: Optional[
-        List[PrismaNotification]
+            List[PrismaNotification]
         ] = await self._db_client.db.prismanotification.find_many(
             where={"author_id": author_id, "deleted_at": None},
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
@@ -123,7 +123,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
 
         """
         db_notification: Optional[
-        PrismaNotification
+            PrismaNotification
         ] = await self._db_client.db.prismanotification.find_first(
             where={"event_id": event_id, "author_id": author_id, "deleted_at": None}
         )
@@ -158,7 +158,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
 
         """
         db_notification: Optional[
-        PrismaNotification
+            PrismaNotification
         ] = await self._db_client.db.prismanotification.find_first(
             where={"id": notification_id, "deleted_at": None}
         )
@@ -197,7 +197,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
 
         """
         db_notifications: Optional[
-        List[PrismaNotification]
+            List[PrismaNotification]
         ] = await self._db_client.db.prismanotification.find_many(
             where={
                 "id": {"in": notifications_ids},
@@ -240,7 +240,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
 
         """
         db_notifications: Optional[
-        List[PrismaNotification]
+            List[PrismaNotification]
         ] = await self._db_client.db.prismanotification.find_many(
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
@@ -255,19 +255,19 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
     async def create_notification(self, notification: Notification) -> Notification:
         """
         Create an notification.
-    
+
         Parameters
         ----------
         notification : Notification
             Notification object.
-    
+
         Raises
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
         UniqueError
             Raises if the notification already exists.
-    
+
         """
         async with self._db_client.db.tx() as transaction:
             db_notification = await transaction.prismanotification.find_first(
