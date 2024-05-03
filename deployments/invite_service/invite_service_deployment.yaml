@@ -20,7 +20,7 @@ spec:
       containers:
         - name: invite-service-deployment
           image: "ghcr.io/unspokenteam/invite_service"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8082
               name: ins-port

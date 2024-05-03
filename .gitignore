@@ -404,6 +404,7 @@ notification_service/generate.ps1
 /deployments/invite_service/invite_service_secret.yaml
 /deployments/event_service/event_service_secret.yaml
 /deployments/notification_service/notification_service_secret.yaml
+deployments/gateway/gateway_secret.yaml
 
 invite_service/proto/*.py
 invite_service/proto/*.pyi
