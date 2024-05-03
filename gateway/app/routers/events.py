@@ -3,45 +3,58 @@ from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Security, Depends
 from grpc import RpcError
-from pydantic import BaseModel, Field, UUID4, AfterValidator
-from pytz import utc
 
 from app.errors import PermissionDeniedError
+from app.generated.event_service.event_service_pb2 import DeleteEventByIdRequest as GrpcDeleteEventByIdRequest
+from app.generated.event_service.event_service_pb2 import EventRequest as GrpcEventRequest
+from app.generated.event_service.event_service_pb2 import EventRequestByEventId as GrpcGetEventByEventIdRequest
+from app.generated.event_service.event_service_pb2 import EventsRequestByAuthorId as GrpcGetEventsByAuthorIdRequest
 from app.generated.event_service.event_service_pb2 import (
-    EventsRequestByAuthorId as GrpcGetEventsByAuthorIdRequest,
     EventsRequestByEventsIds as GrpcGetEventsRequestByEventsIdsRequest,
-    ListOfEventsIds,
-    EventRequestByEventId as GrpcGetEventByEventIdRequest,
-    DeleteEventByIdRequest as GrpcDeleteEventByIdRequest,
-    EventRequest as GrpcEventRequest,
-    GenerateDescriptionRequest as GrpcGenerateDescriptionRequest,
-    GenerateDescriptionResponse as GrpcGenerateDescriptionResponse,
-    GetAllEventsRequest as GrpcGetAllEventsRequest,
-    ListOfEvents as GrpcListOfEvents,
-    GrpcEvent
 )
-from app.generated.identity_service.get_user_pb2 import (
-    UsersByIdRequest as GrpcGetUsersByIdsRequest,
-    ListOfUser as GrpcListOfUsers
+from app.generated.event_service.event_service_pb2 import GenerateDescriptionRequest as GrpcGenerateDescriptionRequest
+from app.generated.event_service.event_service_pb2 import (
+    GenerateDescriptionResponse as GrpcGenerateDescriptionResponse,
+)
+from app.generated.event_service.event_service_pb2 import GetAllEventsRequest as GrpcGetAllEventsRequest
+from app.generated.event_service.event_service_pb2 import GrpcEvent, ListOfEventsIds
+from app.generated.event_service.event_service_pb2 import ListOfEvents as GrpcListOfEvents
+from app.generated.identity_service.get_user_pb2 import ListOfUser as GrpcListOfUsers
+from app.generated.identity_service.get_user_pb2 import UsersByIdRequest as GrpcGetUsersByIdsRequest
+from app.generated.invite_service.invite_service_pb2 import (
+    DeleteInvitesByEventIdRequest as GrpcDeleteInvitesByEventIdRequest,
 )
 from app.generated.invite_service.invite_service_pb2 import (
     GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
-    InvitesResponse as GrpcGetInvitesResponse,
-    DeleteInvitesByEventIdRequest as GrpcDeleteInvitesByEventIdRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     InvitesByEventIdRequest as GrpcInvitesByEventIdRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import (
+    InvitesResponse as GrpcGetInvitesResponse,
+)
+from app.generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
 from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationsByEventIdRequest as GrpcDeleteNotificationsByEventIdRequest,
-    NotificationRequestByEventAndAuthorIds as GrpcGetNotificationByEventAndAuthorIdsRequest, GrpcNotification,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    GrpcNotification,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    NotificationRequestByEventAndAuthorIds as GrpcGetNotificationByEventAndAuthorIdsRequest,
 )
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware import auth
-from app.models import User, Event
+from app.models import Event, User
 from app.models.event import Interval
 from app.params import GrpcClientParams
+
+from fastapi import APIRouter, Depends, Security
+from pydantic import UUID4, AfterValidator, BaseModel, Field
+from pytz import utc
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -60,6 +73,7 @@ class EventResponse(BaseModel):
         Whether the event is notified turned on.
 
     """
+
     event: Event
     invited_users: List[User]
     notification_turned_on: bool
@@ -85,6 +99,7 @@ class CreateEventRequest(BaseModel):
         Repeating delay of the event.
 
     """
+
     title: str
     start: datetime
     end: datetime
@@ -392,7 +407,7 @@ async def generate_event_description(
             GrpcGenerateDescriptionRequest(event_title=event_title)
         )
     )
-    return description_response.event_description
+    return str(description_response.event_description)
 
 
 @router.post("/")

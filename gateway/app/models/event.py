@@ -1,12 +1,12 @@
 from datetime import datetime
-from typing import Optional, Self, Annotated
+from typing import Annotated, Optional, Self
 from uuid import UUID
-
-from pydantic import BaseModel, UUID4, AfterValidator, Field
-from pytz import utc
 
 from app.generated.event_service.event_service_pb2 import GrpcEvent
 from app.generated.event_service.event_service_pb2 import Interval as GrpcInterval
+
+from pydantic import UUID4, AfterValidator, BaseModel, Field
+from pytz import utc
 
 
 class Interval(BaseModel):
@@ -38,6 +38,7 @@ class Interval(BaseModel):
         Get Interval instance from proto.
 
     """
+
     years: Annotated[int, Field(0, ge=0)]
     months: Annotated[int, Field(0, ge=0)]
     weeks: Annotated[int, Field(0, ge=0)]
@@ -128,6 +129,7 @@ class Event(BaseModel):
         Get Event proto from Event instance
 
     """
+
     id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     title: str
     start: datetime
