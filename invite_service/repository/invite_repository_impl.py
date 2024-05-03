@@ -309,9 +309,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         )
 
         if prisma_db_invite is None:
-            return Invite.from_prisma_invite(await self._db_client.db.invite.create(
+            return await self._db_client.db.invite.create(
                 data=invite.to_dict(exclude=["created_at", "deleted_at"])
-            ))
+            )
 
         db_invite = Invite.from_prisma_invite(prisma_db_invite)
 
@@ -320,7 +320,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
 
         db_invite.deleted_at = None
         db_invite.status = InviteStatus.PENDING
-        return Invite.from_prisma_invite(await self.update_invite(db_invite))
+        return await self.update_invite(db_invite)
 
     async def create_multiple_invites(self, invites: List[Invite]) -> List[Invite]:
         """
@@ -369,9 +369,10 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
                 },
             )
 
-        return Invite.from_prisma_invite(await self._db_client.db.invite.create_many(
+        await self._db_client.db.invite.create_many(
             data=[invite.to_dict() for invite in invites]
-        ))
+        )
+        return invites
 
     async def update_invite(self, invite: Invite) -> Invite:
         """
@@ -393,9 +394,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        return Invite.from_prisma_invite(await self._db_client.db.invite.update(
+        return await self._db_client.db.invite.update(
             where={"id": invite.id}, data=invite.to_dict()
-        ))
+        )
 
     async def delete_invite_by_invite_id(self, invite_id: str) -> None:
         """

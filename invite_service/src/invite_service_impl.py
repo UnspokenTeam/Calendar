@@ -126,7 +126,9 @@ class InviteServiceImpl(GrpcServicer):
             items_per_page=request.items_per_page,
         )
         context.set_code(grpc.StatusCode.OK)
-        return proto.ListOfInvites(invites=[invite.to_grpc_invite() for invite in invites])
+        return proto.ListOfInvites(
+            invites=[invite.to_grpc_invite() for invite in invites]
+        )
 
     async def get_all_invites(
         self, request: GrpcGetAllInvitesRequest, context: grpc.ServicerContext
@@ -162,7 +164,9 @@ class InviteServiceImpl(GrpcServicer):
             items_per_page=request.items_per_page,
         )
         context.set_code(grpc.StatusCode.OK)
-        return proto.ListOfInvites(invites=[invite.to_grpc_invite() for invite in invites])
+        return proto.ListOfInvites(
+            invites=[invite.to_grpc_invite() for invite in invites]
+        )
 
     async def get_invite_by_invite_id(
         self, request: proto.InviteRequestByInviteId, context: grpc.ServicerContext
@@ -238,7 +242,9 @@ class InviteServiceImpl(GrpcServicer):
             items_per_page=request.items_per_page,
         )
         context.set_code(grpc.StatusCode.OK)
-        return proto.ListOfInvites(invites=[invite.to_grpc_invite() for invite in invites])
+        return proto.ListOfInvites(
+            invites=[invite.to_grpc_invite() for invite in invites]
+        )
 
     async def create_invite(
         self, request: proto.InviteRequest, context: grpc.ServicerContext
@@ -306,7 +312,9 @@ class InviteServiceImpl(GrpcServicer):
             ]
         )
         context.set_code(grpc.StatusCode.OK)
-        return proto.ListOfInvites(invites=[invite.to_grpc_invite() for invite in invites])
+        return proto.ListOfInvites(
+            invites=[invite.to_grpc_invite() for invite in invites]
+        )
 
     async def update_invite(
         self, request: proto.InviteRequest, context: grpc.ServicerContext

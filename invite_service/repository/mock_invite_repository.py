@@ -93,6 +93,8 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invites = invites[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
+        if invites is None or len(invites) == 0:
+            raise ValueNotFoundError("Invites not found")
         return invites
 
     async def get_invite_by_invite_id(self, invite_id: str) -> Invite:
@@ -327,6 +329,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             for i in range(len(self._invites))
             if self._invites[i].id in invite_ids
         ]
+        updated_invites = []
 
         for invite, index in db_invites:
             if any(
@@ -339,13 +342,16 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
             self._invites[index].deleted_at = None
             self._invites[index].status = InviteStatus.PENDING
+            updated_invites.append(self._invites[index])
 
         ids = [db_invite.id for db_invite, _ in db_invites]
         invites = [invite for invite in invites if invite.id not in ids]
 
         for invite in invites:
+            invite.deleted_at = None
+            invite.status = InviteStatus.PENDING
             self._invites.append(invite)
-        return invites
+        return invites + updated_invites
 
     async def update_invite(self, invite: Invite) -> Invite:
         """
