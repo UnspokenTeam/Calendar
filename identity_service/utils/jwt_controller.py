@@ -9,7 +9,7 @@ from errors.invalid_token_error import InvalidTokenError
 from utils.singleton import singleton
 
 from jwt import decode, encode
-from jwt.exceptions import DecodeError
+from jwt.exceptions import DecodeError, ExpiredSignatureError
 
 
 class TokenType(Enum):
@@ -148,4 +148,6 @@ class JwtController:
             )
             return str(data["user_id"]), str(data["session_id"])
         except DecodeError:
+            raise InvalidTokenError("Invalid token")
+        except ExpiredSignatureError:
             raise InvalidTokenError("Invalid token")
