@@ -18,7 +18,7 @@ from repository.notification_repository_interface import NotificationRepositoryI
 class NotificationRepositoryImpl(NotificationRepositoryInterface):
     """
     Class for manipulating with notification data.
-    
+
     Attributes
     ----------
     _db_client : prisma.Client
@@ -299,14 +299,13 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
                         },
                     )
                 )
-            else:
-                return Notification.from_prisma_notification(
-                    await transaction.prismanotification.create(
-                        data=notification.to_dict(
-                            exclude=["enabled", "created_at", "deleted_at"]
-                        )
+            return Notification.from_prisma_notification(
+                await transaction.prismanotification.create(
+                    data=notification.to_dict(
+                        exclude=["enabled", "created_at", "deleted_at"]
                     )
                 )
+            )
 
     async def update_notification(self, notification: Notification) -> Notification:
         """
