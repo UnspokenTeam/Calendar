@@ -4,11 +4,10 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import uuid4
 
-from errors.value_not_found_error import ValueNotFoundError
-from errors.wrong_interval_error import WrongIntervalError
 from src.models.event import Event
-from utils.singleton import singleton
 
+from components.errors import ValueNotFoundError, WrongIntervalError
+from components.utils import singleton
 from repository.event_repository_interface import EventRepositoryInterface
 
 

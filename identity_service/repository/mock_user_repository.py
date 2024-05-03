@@ -3,11 +3,11 @@ from datetime import datetime
 from typing import List
 from uuid import uuid4
 
-from components.errors import UniqueError, ValueNotFoundError
 from src.models.user import User
 from utils.jwt_controller import JwtController, TokenType
-from components.utils import singleton
 
+from components.errors import UniqueError, ValueNotFoundError
+from components.utils import singleton
 from repository.mock_token_repository import MockTokenRepositoryImpl
 from repository.user_repository_interface import UserRepositoryInterface
 

@@ -5,12 +5,11 @@ from typing import List, Optional
 
 from prisma.models import PrismaEvent
 
-from db.postgres_client import PostgresClient
-from errors.value_not_found_error import ValueNotFoundError
-from errors.wrong_interval_error import WrongIntervalError
 from src.models.event import Event
-from utils.singleton import singleton
 
+from components.db import PostgresClient
+from components.errors import ValueNotFoundError, WrongIntervalError
+from components.utils import singleton
 from constants import (
     GET_ALL_EVENTS_QUERY,
     GET_EVENTS_BY_AUTHOR_ID_QUERY,

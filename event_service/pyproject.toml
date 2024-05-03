@@ -11,13 +11,13 @@ authors = [
 python = "^3.11"
 grpcio = "^1.62.1"
 grpcio-tools = "^1.62.1"
-prisma = "^0.13.0"
 types-protobuf = "^4.24.0.20240311"
 grpc-interceptor = "0.15.4"
 requests = "^2.31.0"
 protoletariat = "^3.2.19"
 python-dateutil = "^2.9.0.post0"
 pytz = "^2024.1"
+shared = {path = "../shared"}
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.1.0"

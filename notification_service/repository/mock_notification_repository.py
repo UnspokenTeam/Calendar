@@ -4,11 +4,10 @@ from datetime import datetime
 from typing import List
 from uuid import uuid4
 
-from errors.unique_error import UniqueError
-from errors.value_not_found_error import ValueNotFoundError
 from src.models.notification import Notification
-from utils.singleton import singleton
 
+from components.errors import UniqueError, ValueNotFoundError
+from components.utils import singleton
 from repository.notification_repository_interface import NotificationRepositoryInterface
 
 

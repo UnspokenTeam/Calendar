@@ -3,10 +3,10 @@ from datetime import datetime
 
 import grpc
 
-from errors.permission_denied_error import PermissionDeniedError
 from src.models.event import Event
 from utils.ai_client import AIClient
 
+from components.errors import PermissionDeniedError
 from generated.event_service.event_service_pb2_grpc import (
     EventServiceServicer as GrpcServicer,
 )

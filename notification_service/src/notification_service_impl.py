@@ -2,9 +2,9 @@
 
 import grpc
 
-from errors.permission_denied_error import PermissionDeniedError
 from src.models.notification import Notification
 
+from components.errors import PermissionDeniedError
 from generated.notification_service.notification_service_pb2_grpc import (
     NotificationServiceServicer as GrpcServicer,
 )

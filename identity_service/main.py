@@ -3,14 +3,13 @@ import logging
 import os
 import sys
 
-import dotenv
 import grpc
 
-from components.db import PostgresClient
 from src.identity_service_impl import IdentityServiceImpl
 from utils.custom_interceptor import CustomInterceptor
 from utils.jwt_controller import JwtController
 
+from components.db import PostgresClient
 from repository.mock_token_repository import MockTokenRepositoryImpl
 from repository.mock_user_repository import MockUserRepositoryImpl
 from repository.token_repository_impl import TokenRepositoryImpl
@@ -21,7 +20,6 @@ import generated.identity_service.identity_service_pb2_grpc as identity_service_
 async def serve() -> None:
     """Start an async server"""
     server = grpc.aio.server(interceptors=[CustomInterceptor()])
-    dotenv.load_dotenv()
     if os.environ["ENVIRONMENT"] == "PRODUCTION":
         await PostgresClient().connect()
     identity_service_grpc.add_IdentityServiceServicer_to_server(

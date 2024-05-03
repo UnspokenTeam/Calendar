@@ -2,9 +2,9 @@
 
 import grpc
 
-from errors.permission_denied import PermissionDeniedError
 from src.models.invite import Invite, InviteStatus
 
+from components.errors import PermissionDeniedError
 from generated.invite_service.invite_service_pb2 import (
     GetAllInvitesRequest as GrpcGetAllInvitesRequest,
 )

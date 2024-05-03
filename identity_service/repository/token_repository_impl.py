@@ -3,7 +3,6 @@
 from components.db import PostgresClient
 from components.errors import ValueNotFoundError
 from components.utils import singleton
-
 from repository.token_repository_interface import TokenRepositoryInterface
 
 

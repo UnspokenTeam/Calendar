@@ -3,11 +3,10 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import uuid4
 
-from errors.unique_error import UniqueError
-from errors.value_not_found_error import ValueNotFoundError
 from src.models.invite import Invite, InviteStatus
-from utils.singleton import singleton
 
+from components.errors import UniqueError, ValueNotFoundError
+from components.utils import singleton
 from repository.invite_repository_interface import InviteRepositoryInterface
 
 

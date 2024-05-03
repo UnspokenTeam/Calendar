@@ -7,7 +7,6 @@ import os
 
 from components.errors import InvalidTokenError
 from components.utils import singleton
-
 from jwt import decode, encode
 from jwt.exceptions import DecodeError
 

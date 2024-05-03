@@ -5,10 +5,10 @@ import sys
 
 import grpc
 
-from db.postgres_client import PostgresClient
 from src.event_service_impl import EventServiceImpl
 from utils.custom_interceptor import CustomInterceptor
 
+from components.db import PostgresClient
 from repository.event_repository_impl import EventRepositoryImpl
 from repository.mock_event_repository import MockEventRepositoryImpl
 import generated.event_service.event_service_pb2_grpc as event_service_grpc

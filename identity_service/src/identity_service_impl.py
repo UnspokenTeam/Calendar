@@ -5,11 +5,11 @@ from uuid import uuid4
 
 import grpc
 
-from components.errors import PermissionDeniedError, ValueNotFoundError
 from src.models.user import User, UserType
 from utils.encoder import Encoder
 from utils.jwt_controller import JwtController, TokenType
 
+from components.errors import PermissionDeniedError, ValueNotFoundError
 from generated.identity_service.identity_service_pb2_grpc import (
     IdentityServiceServicer as GrpcServicer,
 )

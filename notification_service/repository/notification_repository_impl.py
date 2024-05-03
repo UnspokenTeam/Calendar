@@ -5,12 +5,11 @@ from typing import List, Optional
 
 from prisma.models import PrismaNotification
 
-from db.postgres_client import PostgresClient
-from errors.unique_error import UniqueError
-from errors.value_not_found_error import ValueNotFoundError
 from src.models.notification import Notification
-from utils.singleton import singleton
 
+from components.db import PostgresClient
+from components.errors import UniqueError, ValueNotFoundError
+from components.utils import singleton
 from repository.notification_repository_interface import NotificationRepositoryInterface
 
 

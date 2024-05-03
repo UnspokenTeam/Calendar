@@ -6,11 +6,11 @@ import logging
 
 from prisma.models import User as PrismaUser
 
+from src.models.user import User
+
 from components.db import PostgresClient
 from components.errors import UniqueError, ValueNotFoundError
-from src.models.user import User
 from components.utils import singleton
-
 from repository.user_repository_interface import UserRepositoryInterface
 
 

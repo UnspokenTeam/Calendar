@@ -8,7 +8,6 @@ authors = ["Nhsdkk <38581029+Nhsdkk@users.noreply.github.com>"]
 python = "^3.11"
 grpcio = "^1.62.1"
 grpcio-tools = "^1.62.1"
-prisma = "^0.13.0"
 bcrypt = "^4.1.2"
 pyjwt = "^2.8.0"
 protobuf = "4.25.3"

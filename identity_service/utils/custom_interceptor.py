@@ -8,7 +8,6 @@ import grpc
 from prisma.errors import PrismaError
 
 from components.errors import InvalidTokenError, PermissionDeniedError, UniqueError, ValueNotFoundError
-
 from grpc_interceptor.server import AsyncServerInterceptor
 
 
