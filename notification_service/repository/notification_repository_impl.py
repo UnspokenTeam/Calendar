@@ -18,7 +18,7 @@ from repository.notification_repository_interface import NotificationRepositoryI
 class NotificationRepositoryImpl(NotificationRepositoryInterface):
     """
     Class for manipulating with notification data.
-
+    
     Attributes
     ----------
     _db_client : prisma.Client
