@@ -2,7 +2,6 @@
 from datetime import datetime
 from typing import Annotated, List
 from uuid import UUID, uuid4
-import logging
 
 from grpc import RpcError
 
@@ -282,8 +281,13 @@ async def create_invite(
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
 
+    Raises
+    ------
+    ValueError
+        Invitee and author ids are identical
+
     """
-    if user.id == invitee_id:
+    if user.id == str(invitee_id):
         raise ValueError("Invitee and author cannot be the same person")
 
     await check_permission_for_event(
@@ -396,9 +400,16 @@ async def update_invite(
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
 
+    Raises
+    ------
+    PermissionDeniedError
+        Permission denied
+    ValueError
+        Author and Invitee id are identical
+
     """
-    if invite.author_id != user.id and invite.invitee_id != user.id:
-        raise PermissionDeniedError
+    if str(invite.author_id) != user.id and str(invite.invitee_id) != user.id:
+        raise PermissionDeniedError("Permission denied")
 
     if invite.author_id == invite.invitee_id:
         raise ValueError("Invitee and author cannot be the same person")
@@ -458,10 +469,6 @@ async def delete_invite(
 
     invite = Invite.from_proto(invite_response.invite)
 
-    grpc_clients.invite_service_client.request().delete_invite_by_id(
-        GrpcDeleteInviteByIdRequest(invite_id=str(invite_id), requesting_user=user)
-    )
-
     try:
         grpc_clients.notification_service_client.request().delete_notifications_by_events_and_author_ids(
             GrpcDeleteNotificationsByEventsAndAuthorIdsRequest(
@@ -472,6 +479,10 @@ async def delete_invite(
         )
     except RpcError:
         pass
+
+    grpc_clients.invite_service_client.request().delete_invite_by_id(
+        GrpcDeleteInviteByIdRequest(invite_id=str(invite_id), requesting_user=user)
+    )
 
 
 async def check_permission_for_event(
@@ -506,8 +517,7 @@ async def check_permission_for_event(
                 requesting_user=requesting_user,
             )
         )
-    except RpcError as e:
-        logging.error(e.details())
+    except RpcError:
         invites: GrpcInvitesResponse = (
             grpc_clients.invite_service_client.request().get_invites_by_invitee_id(
                 GrpcGetInvitesByInviteeIdRequest(

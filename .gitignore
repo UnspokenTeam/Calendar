@@ -378,24 +378,28 @@ event_service/generated
 event_service/generate.bat
 event_service/generate.sh
 event_service/generate.ps1
+event_service/.env
 
 identity_service/.idea
 identity_service/generate.bat
 identity_service/generate.sh
 identity_service/generate.ps1
 identity_service/generated
+identity_service/.env
 
 invite_service/.idea
 invite_service/generate.bat
 invite_service/generate.sh
 invite_service/generate.ps1
 invite_service/generated
+invite_service/.env
 
 notification_service/.idea
 notification_service/generated
 notification_service/generate.bat
 notification_service/generate.sh
 notification_service/generate.ps1
+notification_service/.env
 
 /init.sql
 
@@ -411,3 +415,4 @@ identity_service/__init__.py
 
 gateway/app/generated
 gateway/generate.bat
+gateway/.env
