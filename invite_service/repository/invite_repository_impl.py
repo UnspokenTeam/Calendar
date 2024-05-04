@@ -409,8 +409,10 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        return await self._db_client.db.invite.update(
-            where={"id": invite.id}, data=invite.to_dict()
+        return Invite.from_prisma_invite(
+            await self._db_client.db.invite.update(
+                where={"id": invite.id}, data=invite.to_dict()
+            )
         )
 
     async def delete_invite_by_invite_id(self, invite_id: str) -> None:
