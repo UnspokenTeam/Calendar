@@ -46,6 +46,14 @@ class InviteServiceImpl(GrpcServicer):
         Function that need to be bind to the server that updates the invite.
     async delete_invite(request, context)
         Function that need to be bind to the server that deletes the invite.
+    async delete_invite_by_id(request, context)
+        Function that need to be bind to the server that deletes the invite by id.
+    async delete_invites_by_event_id(request, context)
+        Function that need to be bind to the server that deletes invites by event id.
+    async delete_invites_by_author_id(request, context)
+        Function that need to be bind to the server that deletes invites by author id.
+    async delete_invites_by_invitee_id(request, context)
+        Function that need to be bind to the server that deletes invites by invitee id.
 
     """
 
