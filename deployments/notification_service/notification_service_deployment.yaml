@@ -36,4 +36,3 @@ spec:
                   name: notification-service-secret
                   key: ENVIRONMENT
       restartPolicy: Always
-      

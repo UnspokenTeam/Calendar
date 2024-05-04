@@ -11,4 +11,3 @@ spec:
       targetPort: nos-port
   clusterIP: None
   type: ClusterIP
-  

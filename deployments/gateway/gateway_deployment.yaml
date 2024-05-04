@@ -71,4 +71,3 @@ spec:
             - containerPort: 8084
               name: gateway-port
       restartPolicy: Always
-      
