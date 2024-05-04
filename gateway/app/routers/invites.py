@@ -71,7 +71,7 @@ from app.middleware import auth
 from app.models import Invite, InviteStatus
 from app.params import GrpcClientParams
 
-from fastapi import APIRouter, Depends, Security
+from fastapi import APIRouter, Depends
 from pydantic import UUID4, AfterValidator, BaseModel, Field
 
 router = APIRouter(prefix="/invites", tags=["invites"])
@@ -98,7 +98,7 @@ class CreateInviteData(BaseModel):
 async def get_all_invites(
     page: Annotated[int, Field(1, ge=1)],
     items_per_page: Annotated[int, Field(-1, ge=-1)],
-    user: Annotated[GrpcUser, Security(auth)],
+    user: Annotated[GrpcUser, Depends(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> List[Invite]:
     """
@@ -112,7 +112,7 @@ async def get_all_invites(
         Page number
     items_per_page : int
         Number of items per page
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
@@ -142,7 +142,7 @@ async def get_all_invites(
 async def get_users_invitee_invites(
     page: Annotated[int, Field(1, ge=1)],
     items_per_page: Annotated[int, Field(-1, ge=-1)],
-    user: Annotated[GrpcUser, Security(auth)],
+    user: Annotated[GrpcUser, Depends(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> List[Invite]:
     """
@@ -156,7 +156,7 @@ async def get_users_invitee_invites(
         Page number
     items_per_page : int
         Number of items to return per page
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
@@ -184,7 +184,7 @@ async def get_users_invitee_invites(
 async def get_users_author_invites(
     page: Annotated[int, Field(1, ge=1)],
     items_per_page: Annotated[int, Field(-1, ge=-1)],
-    user: Annotated[GrpcUser, Security(auth)],
+    user: Annotated[GrpcUser, Depends(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> List[Invite]:
     """
@@ -198,7 +198,7 @@ async def get_users_author_invites(
         Page number
     items_per_page : int
         Number of items to return per page
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
@@ -226,7 +226,7 @@ async def get_users_author_invites(
 @router.get("/{invite_id}")
 async def get_invite_by_invite_id(
     invite_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
-    user: Annotated[GrpcUser, Security(auth)],
+    user: Annotated[GrpcUser, Depends(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Invite:
     """
@@ -238,7 +238,7 @@ async def get_invite_by_invite_id(
     ----------
     invite_id : UUID4 | str
         Invite id
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
@@ -262,7 +262,7 @@ async def get_invite_by_invite_id(
 async def create_invite(
     invitee_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
     event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
-    user: Annotated[GrpcUser, Security(auth)],
+    user: Annotated[GrpcUser, Depends(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
@@ -276,7 +276,7 @@ async def create_invite(
         Invitee user id
     event_id : UUID4 | str
         Event id
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
@@ -313,7 +313,7 @@ async def create_invite(
 @router.post("/multiple/")
 async def create_multiple_invites(
     invites: List[CreateInviteData],
-    user: Annotated[GrpcUser, Security(auth)],
+    user: Annotated[GrpcUser, Depends(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
@@ -324,7 +324,7 @@ async def create_multiple_invites(
     Parameters
     ----------
     invites : List[CreateInviteData]
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
@@ -383,7 +383,7 @@ async def create_multiple_invites(
 @router.put("/")
 async def update_invite(
     invite: Invite,
-    user: Annotated[GrpcUser, Security(auth)],
+    user: Annotated[GrpcUser, Depends(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
@@ -395,7 +395,7 @@ async def update_invite(
     ----------
     invite : Invite
         Invite instance
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
@@ -443,7 +443,7 @@ async def update_invite(
 @router.delete("/")
 async def delete_invite(
     invite_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
-    user: Annotated[GrpcUser, Security(auth)],
+    user: Annotated[GrpcUser, Depends(auth)],
     grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
@@ -455,7 +455,7 @@ async def delete_invite(
     ----------
     invite_id : UUID4 | str
         Delete invite
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI

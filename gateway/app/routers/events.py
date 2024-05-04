@@ -52,7 +52,7 @@ from app.models import Event, User
 from app.models.event import Interval
 from app.params import GrpcClientParams
 
-from fastapi import APIRouter, Depends, Security
+from fastapi import APIRouter, Depends
 from pydantic import UUID4, AfterValidator, BaseModel, Field
 from pytz import utc
 
@@ -112,7 +112,7 @@ class CreateEventRequest(BaseModel):
 async def get_my_created_events(
         page: Annotated[int, Field(1, ge=1)],
         items_per_page: Annotated[int, Field(-1, ge=-1)],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
@@ -168,7 +168,7 @@ async def get_my_created_events(
 async def get_my_invited_events(
         page: Annotated[int, Field(1, ge=1)],
         items_per_page: Annotated[int, Field(-1, ge=-1)],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
@@ -239,7 +239,7 @@ async def get_my_invited_events(
 @router.get("/{id}")
 async def get_event(
         event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> EventResponse:
     """
@@ -324,7 +324,7 @@ async def get_event(
 async def get_all_events(
         page: Annotated[int, Field(1, ge=1)],
         items_per_page: Annotated[int, Field(-1, ge=-1)],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
@@ -384,7 +384,7 @@ async def get_all_events(
 @router.get("/description/")
 async def generate_event_description(
         event_title: str,
-        _: Annotated[GrpcUser, Security(auth)],
+        _: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> str:
     """
@@ -418,7 +418,7 @@ async def generate_event_description(
 @router.post("/")
 async def create_event(
         event_data: CreateEventRequest,
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Event:
     """
@@ -464,7 +464,7 @@ async def create_event(
 @router.put("/")
 async def update_event(
         event: Event,
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Event:
     """
@@ -516,7 +516,7 @@ async def update_event(
 @router.put("/admin/")
 async def update_event_as_admin(
         event: Event,
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Event:
     """
@@ -557,7 +557,7 @@ async def update_event_as_admin(
 @router.delete("/")
 async def delete_event(
         event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
