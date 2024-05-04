@@ -6,7 +6,7 @@ import logging
 
 from grpc import RpcError
 
-from app.errors import PermissionDeniedError
+from components.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     EventRequestByEventId as GrpcGetEventByEventIdRequest,
 )

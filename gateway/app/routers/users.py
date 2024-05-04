@@ -4,7 +4,7 @@ from typing import Annotated, List
 from uuid import UUID, uuid4
 
 from app.constants import MIN_PASSWORD_LENGTH, MIN_USERNAME_LENGTH
-from app.errors import PermissionDeniedError
+from components.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     DeleteEventsByAuthorIdRequest as GrpcDeleteEventsByAuthorIdRequest,
 )
