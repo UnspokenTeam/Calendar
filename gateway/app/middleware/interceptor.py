@@ -4,7 +4,6 @@ import logging
 from grpc import RpcError, StatusCode
 
 from components.errors import PermissionDeniedError
-
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response

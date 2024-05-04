@@ -5,7 +5,6 @@ from uuid import UUID, uuid4
 
 from grpc import RpcError
 
-from components.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     EventRequestByEventId as GrpcGetEventByEventIdRequest,
 )
@@ -41,6 +40,7 @@ from app.models import Notification, UserType
 from app.params import GrpcClientParams
 from app.validators.int_validators import int_not_equal_zero_validator
 
+from components.errors import PermissionDeniedError
 from fastapi import APIRouter, Depends, Security
 from pydantic import UUID4, AfterValidator, Field
 

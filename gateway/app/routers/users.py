@@ -4,7 +4,6 @@ from typing import Annotated, List
 from uuid import UUID, uuid4
 
 from app.constants import MIN_PASSWORD_LENGTH, MIN_USERNAME_LENGTH
-from components.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     DeleteEventsByAuthorIdRequest as GrpcDeleteEventsByAuthorIdRequest,
 )
@@ -45,6 +44,7 @@ from app.models import User, UserType
 from app.params import GrpcClientParams
 from app.validators import str_special_characters_validator
 
+from components.errors import PermissionDeniedError
 from fastapi import APIRouter, Depends, Security
 from pydantic import UUID4, AfterValidator, BaseModel, EmailStr, Field
 
