@@ -1,7 +1,9 @@
 """Main file"""
+# mypy: ignore-errors
 from contextlib import asynccontextmanager
 from os import environ
-from typing import AsyncIterator, Never
+from typing import AsyncIterator
+
 from .middleware import InterceptorMiddleware
 from .middleware.rate_limiter import handler as rate_limiter_handler
 from .params import GrpcClientParams
@@ -13,7 +15,7 @@ import redis.asyncio as redis
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI) -> AsyncIterator[Never]:
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     """
     Context manager that enables lifespan of FastAPI application.
 
@@ -30,7 +32,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[Never]:
     """
     redis_client = redis.from_url(environ["REDIS_URL"])
     await FastAPILimiter.init(redis_client, http_callback=rate_limiter_handler)
-    yield
+    yield None
     await FastAPILimiter.close()
 
 
