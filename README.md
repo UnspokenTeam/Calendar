@@ -101,9 +101,9 @@
    ```
 3. Создание сервисов
    ```shell
-   kubectl apply -f ./notification_service/notification_service-deployment.yaml, ./identity_service/identity_service-deployment.yaml, ./invite_service/invite_service-deployment.yaml, ./event_service/event_service-deployment.yaml 
+   kubectl apply -f ./notification_service/notification_service-deployment.yaml, ./identity_service/identity_service-deployment.yaml, ./invite_service/invite_service-deployment.yaml, ./event_service/event_service-deployment.yaml
    ```
-4. Создание Service объектов для сервисов 
+4. Создание Service объектов для сервисов
    ```shell
    kubectl apply -f ./notification_service/notification_service-service.yaml, ./identity_service/identity_service-service.yaml, ./invite_service/invite_service-service.yaml, ./event_service/event_service-service.yaml
    ```
