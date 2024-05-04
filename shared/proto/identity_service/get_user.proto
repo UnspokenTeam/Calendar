@@ -6,14 +6,6 @@ message UserByIdRequest {
   string user_id = 1;
 }
 
-message UserResponse {
-  GrpcUser user = 1;
-}
-
-message UsersResponse {
-  ListOfUser users = 1;
-}
-
 message GetUserByEmailRequest{
   string email = 1;
 }

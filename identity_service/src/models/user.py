@@ -7,9 +7,9 @@ from typing import Any, List, Optional, Self
 
 from prisma.models import User as PrismaUser
 
-from generated.identity_service.auth_pb2 import RegisterRequest
-from generated.identity_service.update_user_pb2 import UserToUpdate as GrpcUserToUpdate
+from generated.identity_service.update_user_pb2 import UserToModify as GrpcUserToModify
 from generated.user.user_pb2 import GrpcUser, GrpcUserType
+from pytz import utc
 
 
 class UserType(StrEnum):
@@ -110,9 +110,9 @@ class User:
             ),
             suspended_at=None,
         )
-        user.created_at.FromDatetime(self.created_at)
+        user.created_at.FromDatetime(dt=self.created_at.astimezone(utc))
         if self.suspended_at is not None:
-            user.suspended_at.FromDatetime(self.suspended_at)
+            user.suspended_at.FromDatetime(dt=self.suspended_at.astimezone(utc))
         return user
 
     @classmethod
@@ -167,34 +167,7 @@ class User:
         return obj
 
     @classmethod
-    def from_register_request(cls, request: RegisterRequest) -> Self:
-        """
-        Get user instance from registration request
-
-        Parameters
-        ----------
-        request : RegisterRequest
-            Registration request
-
-
-        Returns
-        -------
-        User
-            User class instance
-
-        """
-        return cls(
-            id="",
-            username=request.username,
-            email=request.email,
-            password=request.password,
-            type=UserType.USER,
-            created_at=datetime.now(),
-            suspended_at=None,
-        )
-
-    @classmethod
-    def from_update_grpc_user(cls, grpc_user: GrpcUserToUpdate) -> Self:
+    def from_modify_grpc_user(cls, grpc_user: GrpcUserToModify) -> Self:
         """
         Get user instance from update user request data
 

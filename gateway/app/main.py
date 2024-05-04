@@ -1,11 +1,11 @@
+"""Main file"""
 from contextlib import asynccontextmanager
 from os import environ
 from typing import AsyncIterator, Never
-
 from .middleware import InterceptorMiddleware
 from .middleware.rate_limiter import handler as rate_limiter_handler
 from .params import GrpcClientParams
-from .routers import Events, Users
+from .routers import Events, Invites, Notifications, Users
 from fastapi import Depends, FastAPI
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
@@ -42,3 +42,5 @@ app.add_middleware(InterceptorMiddleware)
 
 app.include_router(Events)
 app.include_router(Users)
+app.include_router(Notifications)
+app.include_router(Invites)

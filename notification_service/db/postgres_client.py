@@ -30,7 +30,7 @@ class PostgresClient:
     """
 
     db: Client
-    _connected: bool
+    _connected: bool = False
 
     def __init__(self) -> None:
         self.db = Prisma(auto_register=True)

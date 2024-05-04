@@ -16,6 +16,7 @@ grpcio-tools = "^1.62.1"
 types-protobuf = "^4.24.0.20240311"
 protoletariat = "^3.2.19"
 fastapi-limiter = "^0.1.6"
+pytz = "^2024.1"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.1.0"

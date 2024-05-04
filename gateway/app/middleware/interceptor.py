@@ -1,3 +1,6 @@
+"""Interceptor middleware"""
+import logging
+
 from grpc import RpcError, StatusCode
 
 from app.errors import PermissionDeniedError, RateLimitError
@@ -10,6 +13,8 @@ from starlette.types import ASGIApp
 
 
 class InterceptorMiddleware(BaseHTTPMiddleware):
+    """Interceptor middleware"""
+
     def __init__(
         self,
         app: ASGIApp,
@@ -19,10 +24,31 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
+        """
+        Handle errors
+
+        Parameters
+        ----------
+        request : Request
+            Request object
+        call_next : RequestResponseEndpoint
+            Next function to call
+
+        Returns
+        -------
+        Response
+            Response
+
+        """
         try:
             return await call_next(request)
         except RpcError as e:
+            logging.error(f"Code - {e.code()}. Details - {e.details()}")
             match (e.code()):
+                case StatusCode.ALREADY_EXISTS:
+                    return JSONResponse(
+                        status_code=400, content={"message": "Already exists"}
+                    )
                 case StatusCode.PERMISSION_DENIED:
                     return JSONResponse(
                         status_code=403, content={"message": "Permission denied"}
@@ -52,4 +78,8 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
                 status_code=HTTP_429_TOO_MANY_REQUESTS,
                 content={"message": "Too Many Requests"},
                 headers={"Retry-After": str(rate_limit_error.retry_after)},
+            )
+        except ValueError as e:
+            return JSONResponse(
+                status_code=422, content={"message": f"Bad Request {e}"}
             )

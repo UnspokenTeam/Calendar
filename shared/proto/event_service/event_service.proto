@@ -1,25 +1,35 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
 import "user/user.proto";
 
 service EventService {
-  rpc get_event_by_event_id(EventRequestByEventId) returns (EventResponse){}
-  rpc get_events_by_events_ids(EventsRequestByEventsIds) returns (EventsResponse){}
-  rpc get_events_by_author_id(EventsRequestByAuthorId) returns (EventsResponse){}
-  rpc get_all_events(GetAllEventsRequest) returns (EventsResponse){}
-  rpc create_event(EventRequest) returns (google.protobuf.Empty){}
-  rpc update_event(EventRequest) returns (google.protobuf.Empty){}
-  rpc delete_event(DeleteEventRequest) returns (google.protobuf.Empty){}
+  rpc get_event_by_event_id(EventRequestByEventId) returns (GrpcEvent){}
+  rpc get_events_by_events_ids(EventsRequestByEventsIds) returns (ListOfEvents){}
+  rpc get_events_by_author_id(EventsRequestByAuthorId) returns (ListOfEvents){}
+  rpc get_all_events(GetAllEventsRequest) returns (ListOfEvents){}
+  rpc create_event(EventRequest) returns (GrpcEvent){}
+  rpc update_event(EventRequest) returns (GrpcEvent){}
+  rpc delete_event_by_id(DeleteEventByIdRequest) returns (google.protobuf.Empty){}
+  rpc delete_events_by_author_id(DeleteEventsByAuthorIdRequest) returns (google.protobuf.Empty){}
   rpc generate_event_description(GenerateDescriptionRequest) returns (GenerateDescriptionResponse){}
 }
 
 message EventsRequestByAuthorId {
   string author_id = 1;
-  GrpcUser requesting_user = 2;
-  uint64 page_number = 3;
-  int64 items_per_page = 4;
+  oneof optional_start {
+    google.protobuf.NullValue start_null = 2;
+    google.protobuf.Timestamp start = 3;
+  }
+  oneof optional_end {
+    google.protobuf.NullValue end_null = 4;
+    google.protobuf.Timestamp end = 5;
+  }
+  GrpcUser requesting_user = 6;
+  uint64 page_number = 7;
+  int64 items_per_page = 8;
 }
 
 message EventRequestByEventId {
@@ -29,35 +39,55 @@ message EventRequestByEventId {
 
 message EventsRequestByEventsIds {
   ListOfEventsIds events_ids = 1;
-  uint64 page_number = 2;
-  int64 items_per_page = 3;
-}
-
-message EventResponse {
-  GrpcEvent event = 1;
-}
-
-message EventsResponse {
-  ListOfEvents events = 1;
+    oneof optional_start {
+    google.protobuf.NullValue start_null = 2;
+    google.protobuf.Timestamp start = 3;
+  }
+  oneof optional_end {
+    google.protobuf.NullValue end_null = 4;
+    google.protobuf.Timestamp end = 5;
+  }
+  uint64 page_number = 6;
+  int64 items_per_page = 7;
 }
 
 message GrpcEvent {
   string id = 1;
   string title = 2;
-  optional string description = 3;
-  optional string color = 4;
-  google.protobuf.Timestamp start = 5;
-  google.protobuf.Timestamp end = 6;
-  optional google.protobuf.Timestamp repeating_delay = 7;
-  string author_id = 8;
-  google.protobuf.Timestamp created_at = 9;
-  optional google.protobuf.Timestamp deleted_at = 10;
+  oneof optional_description {
+    google.protobuf.NullValue description_null = 3;
+    string description = 4;
+  }
+  oneof optional_color {
+    google.protobuf.NullValue color_null = 5;
+    string color = 6;
+  }
+  google.protobuf.Timestamp start = 7;
+  google.protobuf.Timestamp end = 8;
+  oneof optional_repeating_delay {
+    google.protobuf.NullValue repeating_delay_null = 9;
+    Interval repeating_delay = 10;
+  }
+  string author_id = 11;
+  google.protobuf.Timestamp created_at = 12;
+  oneof optional_deleted_at {
+    google.protobuf.NullValue deleted_at_null = 13;
+    google.protobuf.Timestamp deleted_at = 14;
+  }
 }
 
 message GetAllEventsRequest {
   GrpcUser requesting_user = 1;
-  uint64 page_number = 2;
-  int64 items_per_page = 3;
+  oneof optional_start {
+    google.protobuf.NullValue start_null = 2;
+    google.protobuf.Timestamp start = 3;
+  }
+  oneof optional_end {
+    google.protobuf.NullValue end_null = 4;
+    google.protobuf.Timestamp end = 5;
+  }
+  uint64 page_number = 6;
+  int64 items_per_page = 7;
 }
 
 message EventRequest {
@@ -73,8 +103,13 @@ message ListOfEventsIds {
   repeated string ids = 1;
 }
 
-message DeleteEventRequest {
+message DeleteEventByIdRequest {
   string event_id = 1;
+  GrpcUser requesting_user = 2;
+}
+
+message DeleteEventsByAuthorIdRequest {
+  string author_id = 1;
   GrpcUser requesting_user = 2;
 }
 
@@ -84,4 +119,14 @@ message GenerateDescriptionRequest {
 
 message GenerateDescriptionResponse {
   string event_description = 1;
+}
+
+message Interval {
+  optional uint64 years = 1;
+  optional uint64 months = 2;
+  optional uint64 weeks = 3;
+  optional uint64 days = 4;
+  optional uint64 hours = 5;
+  optional uint64 minutes = 6;
+  optional uint64 seconds = 7;
 }

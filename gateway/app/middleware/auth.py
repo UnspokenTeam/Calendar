@@ -1,7 +1,7 @@
+"""Auth middleware"""
 from typing import Annotated
 
 from app.generated.identity_service.auth_pb2 import AccessToken
-from app.generated.identity_service.get_user_pb2 import UserResponse as GrpcUserResponse
 from app.generated.user.user_pb2 import GrpcUser
 from app.params import GrpcClientParams
 
@@ -31,8 +31,8 @@ async def auth(
         The authenticated user
 
     """
-    user: GrpcUserResponse = grpc_client_params.identity_service_client.request().auth(
+    user: GrpcUser = grpc_client_params.identity_service_client.request().auth(
         AccessToken(access_token=access_token)
     )
 
-    return user.user
+    return user

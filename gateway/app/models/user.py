@@ -1,11 +1,15 @@
 """User model"""
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional, Self
+from typing import Annotated, Optional, Self
+from uuid import UUID
 
+from app.constants import MIN_USERNAME_LENGTH
+from app.generated.identity_service.update_user_pb2 import UserToModify
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
+from app.validators import str_special_characters_validator
 
-from pydantic import BaseModel, EmailStr
+from pydantic import UUID4, AfterValidator, BaseModel, EmailStr, Field
 
 
 class UserType(StrEnum):
@@ -56,7 +60,7 @@ class UserType(StrEnum):
             Proto user type
 
         """
-        if self == GrpcUserType.USER:
+        if self == UserType.USER:
             return GrpcUserType.USER
         return GrpcUserType.ADMIN
 
@@ -67,7 +71,7 @@ class User(BaseModel):
 
     Attributes
     ----------
-    id : str
+    id : UUID4 | str
         ID of the user
     username : str
         User's name
@@ -86,13 +90,15 @@ class User(BaseModel):
     -------
     from_proto(proto)
         Get a user instance from user proto
+    to_update_proto()
+        Convert object to update proto
 
     """
 
-    id: str
-    username: str
+    id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
+    username: Annotated[str, Field("", min_length=MIN_USERNAME_LENGTH), AfterValidator(str_special_characters_validator)]
     email: EmailStr
-    password: str
+    password: Annotated[str, AfterValidator(str_special_characters_validator)]
     created_at: datetime
     suspended_at: Optional[datetime]
     type: UserType
@@ -122,9 +128,31 @@ class User(BaseModel):
                 proto.created_at.seconds + proto.created_at.nanos / 1e9
             ),
             suspended_at=None
-            if proto.suspended_at is None
+            if proto.WhichOneof("optional_suspended_at") is None
             else datetime.fromtimestamp(
                 proto.suspended_at.seconds + proto.suspended_at.nanos / 1e9
             ),
             type=UserType.from_proto(proto.type),
         )
+
+    def to_modify_proto(self) -> UserToModify:
+        """
+        Convert object to update proto
+
+        Returns
+        -------
+        UserToUpdate
+            Update proto
+
+        """
+        user = UserToModify(
+            id=str(self.id),
+            username=self.username,
+            password=self.password,
+            type=self.type.to_proto(),
+            email=self.email,
+        )
+        user.created_at.FromDatetime(self.created_at)
+        if self.suspended_at is not None:
+            user.suspended_at.FromDatetime(self.suspended_at)
+        return user

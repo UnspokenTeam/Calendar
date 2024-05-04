@@ -6,17 +6,18 @@ import "identity_service/get_user.proto";
 import "identity_service/update_user.proto";
 import "identity_service/delete_user.proto";
 import "google/protobuf/empty.proto";
+import "user/user.proto";
 
 service IdentityService {
   rpc logout(AccessToken) returns (google.protobuf.Empty){}
-  rpc auth(AccessToken) returns (UserResponse){}
+  rpc auth(AccessToken) returns (GrpcUser){}
   rpc login(LoginRequest) returns (CredentialsResponse){}
-  rpc register(RegisterRequest) returns (CredentialsResponse){}
+  rpc register(UserToModify) returns (CredentialsResponse){}
   rpc get_new_access_token(GetNewAccessTokenRequest) returns (GetNewAccessTokenResponse){}
-  rpc get_user_by_email(GetUserByEmailRequest) returns (UserResponse){}
-  rpc get_user_by_id(UserByIdRequest) returns (UserResponse){}
-  rpc get_users_by_id(UsersByIdRequest) returns (UsersResponse){}
-  rpc get_all_users(GetAllUsersRequest) returns (UsersResponse){}
+  rpc get_user_by_email(GetUserByEmailRequest) returns (GrpcUser){}
+  rpc get_user_by_id(UserByIdRequest) returns (GrpcUser){}
+  rpc get_users_by_id(UsersByIdRequest) returns (ListOfUser){}
+  rpc get_all_users(GetAllUsersRequest) returns (ListOfUser){}
   rpc update_user(UpdateUserRequest) returns (CredentialsResponse){}
   rpc delete_user(DeleteUserRequest) returns (google.protobuf.Empty){}
 }

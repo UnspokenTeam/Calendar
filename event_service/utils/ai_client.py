@@ -5,7 +5,6 @@ from os import environ
 from errors.ai_response_error import AiResponseError
 
 from constants import AI_ROLE_FOR_PROMPT
-from dotenv import load_dotenv
 from httpx import AsyncClient
 
 
@@ -41,7 +40,6 @@ class AIClient:
             Raises when AI sent bad response.
 
         """
-        load_dotenv()
         api_key = environ["OPENROUTER_API_KEY"]
 
         prompt = event_name
