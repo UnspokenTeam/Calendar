@@ -304,23 +304,29 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             Invite already exists.
 
         """
-        prisma_db_invite = await self._db_client.db.invite.find_first(
-            where={"author": invite.author_id, "invitee_id": invite.invitee_id}
-        )
-
-        if prisma_db_invite is None:
-            return await self._db_client.db.invite.create(
-                data=invite.to_dict(exclude=["created_at", "deleted_at"])
+        async with self._db_client.db.tx() as transaction:
+            prisma_db_invite = await transaction.invite.find_first(
+                where={"author": invite.author_id, "invitee_id": invite.invitee_id}
             )
 
-        db_invite = Invite.from_prisma_invite(prisma_db_invite)
+            if prisma_db_invite is None:
+                return Invite.from_prisma_invite(
+                    await transaction.invite.create(
+                        data=invite.to_dict(exclude=["created_at", "deleted_at"])
+                    )
+                )
 
-        if db_invite.status == InviteStatus.PENDING and db_invite.deleted_at is None:
-            raise UniqueError("Invite already exists")
+            db_invite = Invite.from_prisma_invite(prisma_db_invite)
 
-        db_invite.deleted_at = None
-        db_invite.status = InviteStatus.PENDING
-        return await self.update_invite(db_invite)
+            if (
+                db_invite.status == InviteStatus.PENDING
+                and db_invite.deleted_at is None
+            ):
+                raise UniqueError("Invite already exists")
+
+            db_invite.deleted_at = None
+            db_invite.status = InviteStatus.PENDING
+            return Invite.from_prisma_invite(await self.update_invite(db_invite))
 
     async def create_multiple_invites(self, invites: List[Invite]) -> List[Invite]:
         """
@@ -344,35 +350,44 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             Some invites already exist.
 
         """
-        db_invites = await self._db_client.db.invite.find_many(
-            where={"id": {"in": [invite.id for invite in invites]}}
-        )
+        async with self._db_client.db.tx() as transaction:
+            db_invites = await transaction.invite.find_many(
+                where={"id": {"in": [invite.id for invite in invites]}}
+            )
 
-        if db_invites is not None and len(db_invites) > 0:
-            if any(
-                [
-                    db_invite.status == InviteStatus.PENDING
-                    and db_invite.deleted_at is None
-                    for db_invite in db_invites
-                ]
-            ):
-                raise UniqueError("Some invites already exist")
+            if db_invites is not None and len(db_invites) > 0:
+                if any(
+                    [
+                        db_invite.status == InviteStatus.PENDING
+                        and db_invite.deleted_at is None
+                        for db_invite in db_invites
+                    ]
+                ):
+                    raise UniqueError("Some invites already exist")
 
             ids = [db_invite.id for db_invite in db_invites]
             invites = [invite for invite in invites if invite.id not in ids]
 
-            await self._db_client.db.invite.update_many(
-                where={"id": {"in": [db_invite.id for db_invite in db_invites]}},
+            await transaction.invite.update_many(
+                where={"id": {"in": ids}},
                 data={
                     "deleted_at": None,
                     "status": InviteStatus.PENDING,
                 },
             )
+            updated_invites = await transaction.invite.find_many(
+                where={"id": {"in": ids}},
+            )
 
-        await self._db_client.db.invite.create_many(
-            data=[invite.to_dict() for invite in invites]
-        )
-        return invites
+            await transaction.invite.create_many(
+                data=[invite.to_dict() for invite in invites]
+            )
+            created_invites = await transaction.invite.find_many(
+                where={"id": {"in": [invite.id for invite in invites]}}
+            )
+            return [Invite.from_prisma_invite(invite) for invite in updated_invites] + [
+                Invite.from_prisma_invite(invite) for invite in created_invites
+            ]
 
     async def update_invite(self, invite: Invite) -> Invite:
         """
