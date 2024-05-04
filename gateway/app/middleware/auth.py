@@ -6,14 +6,14 @@ from app.generated.user.user_pb2 import GrpcUser
 from app.params import GrpcClientParams
 
 from fastapi import Depends
-from fastapi.security import APIKeyHeader
+from fastapi.security import OAuth2PasswordBearer
 
-api_key_header = APIKeyHeader(name="Authorization")
+oauth_2 = OAuth2PasswordBearer(tokenUrl="users/login")
 
 
 async def auth(
-    grpc_client_params: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-    access_token: Annotated[str, api_key_header],
+        grpc_client_params: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
+        access_token: Annotated[str, Depends(oauth_2)],
 ) -> GrpcUser:
     """
     Authenticate user
@@ -23,7 +23,7 @@ async def auth(
     grpc_client_params : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
     access_token: Annotated[str, api_key_header]
-        The access token injected by DI
+        The credentials injected by DI
 
     Returns
     -------

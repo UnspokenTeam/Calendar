@@ -41,7 +41,7 @@ from app.models import Notification, UserType
 from app.params import GrpcClientParams
 from app.validators.int_validators import int_not_equal_zero_validator
 
-from fastapi import APIRouter, Depends, Security
+from fastapi import APIRouter, Depends
 from pydantic import UUID4, AfterValidator, Field
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
@@ -50,7 +50,7 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 @router.get("/{notification_id}")
 async def get_notification_by_id(
         notification_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Notification:
     """
@@ -62,7 +62,7 @@ async def get_notification_by_id(
     ----------
     notification_id : UUID4 | str
         Notification id
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authenticated user data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients which are injected by DI
@@ -91,7 +91,7 @@ async def get_notification_by_id(
 async def get_all_notifications(
         page: Annotated[int, Field(1, ge=1)],
         items_per_page: Annotated[int, Field(-1, ge=-1), AfterValidator(int_not_equal_zero_validator)],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> List[Notification]:
     """
@@ -105,7 +105,7 @@ async def get_all_notifications(
         Page number
     items_per_page : int
         Number of items per page
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authenticated user data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients which are injected by DI
@@ -137,7 +137,7 @@ async def get_all_notifications(
 async def get_my_notifications(
         page: Annotated[int, Field(1, ge=1)],
         items_per_page: Annotated[int, Field(-1, ge=-1), AfterValidator(int_not_equal_zero_validator)],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> List[Notification]:
     """
@@ -150,7 +150,7 @@ async def get_my_notifications(
         Page number
     items_per_page : int
         Amount of numbers per page
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authenticated user data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients which are injected by DI
@@ -184,7 +184,7 @@ async def get_my_notifications(
 @router.post("/")
 async def create_notification(
         event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Notification:
     """
@@ -196,7 +196,7 @@ async def create_notification(
     ----------
     event_id : UUID4 | str
         Event id
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authenticated user data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients which are injected by DI
@@ -230,7 +230,7 @@ async def create_notification(
 @router.put("/")
 async def update_notification_as_author(
         notification: Notification,
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Notification:
     """
@@ -242,7 +242,7 @@ async def update_notification_as_author(
     ----------
     notification : Notification
         New notification data
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authenticated user data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients which are injected by DI
@@ -289,7 +289,7 @@ async def update_notification_as_author(
 @router.put("/admin/")
 async def update_notification(
         notification: Notification,
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Notification:
     """
@@ -301,7 +301,7 @@ async def update_notification(
     ----------
     notification : Notification
         New notification data
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authenticated user data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients which are injected by DI
@@ -339,7 +339,7 @@ async def update_notification(
 @router.delete("/")
 async def delete_notification(
         notification_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
@@ -351,7 +351,7 @@ async def delete_notification(
     ----------
     notification_id : UUID4 | str
         Notification id
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authenticated user data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients which are injected by DI
