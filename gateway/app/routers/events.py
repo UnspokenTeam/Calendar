@@ -236,7 +236,7 @@ async def get_my_invited_events(
     return [Event.from_proto(event) for event in invited_events_request.events]
 
 
-@router.get("/{id}")
+@router.get("/{event-id}")
 async def get_event(
         event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
         user: Annotated[GrpcUser, Depends(auth)],
