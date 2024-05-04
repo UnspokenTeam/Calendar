@@ -5,7 +5,7 @@ metadata:
   labels:
     app: gateway-deployment
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: gateway-deployment
@@ -20,7 +20,7 @@ spec:
       containers:
         - name: gateway-deployment
           image: "ghcr.io/unspokenteam/gateway"
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - name: "INVITE_SERVICE_HOST"
               valueFrom:

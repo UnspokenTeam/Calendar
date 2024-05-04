@@ -10,4 +10,5 @@ spec:
       port: 8083
       targetPort: nos-port
   clusterIP: None
+  type: ClusterIP
   

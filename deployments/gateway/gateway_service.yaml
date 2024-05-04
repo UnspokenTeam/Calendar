@@ -10,6 +10,4 @@ spec:
     - protocol: TCP
       port: 8084
       targetPort: gateway-port
-#  externalIPs:
-#    - 192.168.49.2
   
