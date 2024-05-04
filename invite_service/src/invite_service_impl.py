@@ -44,10 +44,8 @@ class InviteServiceImpl(GrpcServicer):
         Function that need to be bind to the server that creates multiple invites or updates the existing ones.
     async update_invite(request, context)
         Function that need to be bind to the server that updates the invite.
-    async delete_invite(request, context)
-        Function that need to be bind to the server that deletes the invite.
     async delete_invite_by_id(request, context)
-        Function that need to be bind to the server that deletes the invite by id.
+        Function that need to be bind to the server that deletes invite by invite id.
     async delete_invites_by_event_id(request, context)
         Function that need to be bind to the server that deletes invites by event id.
     async delete_invites_by_author_id(request, context)
