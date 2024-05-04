@@ -65,13 +65,13 @@ REDIS_URL="redis://localhost:6543"
 2. Следуя инструкции для каждого сервиса запустить контейнеры
 
 ### Docker
- 
+
 1. Склонировать gateway
     ```bash
     docker pull ghcr.io/unspokenteam/gateway:latest
     ```
 2. В переменные вида **\*\_HOST** нужно прописать **host.docker.internal**
-3. Запустить Gateway при помощи команды 
+3. Запустить Gateway при помощи команды
    ```bash
    docker run -d -p 8084:8084 --env-file $ENV_FILE_PATH ghcr.io/unspokenteam/gateway:latest
    ```
