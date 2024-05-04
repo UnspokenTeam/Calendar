@@ -298,6 +298,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invite.id = str(uuid4())
             invite.created_at = datetime.now()
             invite.deleted_at = None
+            invite.status = InviteStatus.PENDING
             self._invites.append(invite)
         return invite
 
@@ -348,6 +349,8 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         invites = [invite for invite in invites if invite.id not in ids]
 
         for invite in invites:
+            invite.id = str(uuid4())
+            invite.created_at = datetime.now()
             invite.deleted_at = None
             invite.status = InviteStatus.PENDING
             self._invites.append(invite)
