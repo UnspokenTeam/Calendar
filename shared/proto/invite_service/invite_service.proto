@@ -6,14 +6,14 @@ import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
 
 service InviteService {
-  rpc get_invites_by_event_id(InvitesByEventIdRequest) returns (InvitesResponse) {}
-  rpc get_invite_by_invite_id(InviteRequestByInviteId) returns (InviteResponse){}
-  rpc get_all_invites(GetAllInvitesRequest) returns (InvitesResponse){}
-  rpc get_invites_by_author_id(InvitesByAuthorIdRequest) returns (InvitesResponse){}
-  rpc get_invites_by_invitee_id(GetInvitesByInviteeIdRequest) returns (InvitesResponse){}
-  rpc create_invite(InviteRequest) returns (google.protobuf.Empty){}
-  rpc create_multiple_invites(InvitesRequest) returns (google.protobuf.Empty){}
-  rpc update_invite(InviteRequest) returns (google.protobuf.Empty){}
+  rpc get_invites_by_event_id(InvitesByEventIdRequest) returns (ListOfInvites) {}
+  rpc get_invite_by_invite_id(InviteRequestByInviteId) returns (GrpcInvite){}
+  rpc get_all_invites(GetAllInvitesRequest) returns (ListOfInvites){}
+  rpc get_invites_by_author_id(InvitesByAuthorIdRequest) returns (ListOfInvites){}
+  rpc get_invites_by_invitee_id(GetInvitesByInviteeIdRequest) returns (ListOfInvites){}
+  rpc create_invite(InviteRequest) returns (GrpcInvite){}
+  rpc create_multiple_invites(InvitesRequest) returns (ListOfInvites){}
+  rpc update_invite(InviteRequest) returns (GrpcInvite){}
   rpc delete_invite_by_id(DeleteInviteByIdRequest) returns (google.protobuf.Empty){}
   rpc delete_invites_by_author_id(DeleteInvitesByAuthorIdRequest) returns (google.protobuf.Empty){}
   rpc delete_invites_by_event_id(DeleteInvitesByEventIdRequest) returns (google.protobuf.Empty){}
