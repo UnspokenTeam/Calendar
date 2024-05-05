@@ -382,9 +382,8 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
                 for i in range(len(self._invites))
                 if self._invites[i].id == invite.id and invite.deleted_at is None
             )
-            for key, value in invite.to_dict().items():
-                self._invites[index].__setattr__(key, value)
-            return self._invites[index]
+            self._invites[index] = invite
+            return invite
         except StopIteration:
             raise ValueNotFoundError("Invite not found")
 
