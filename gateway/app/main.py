@@ -1,11 +1,9 @@
 """Main file"""
-from starlette.middleware import Middleware
-from starlette.middleware.cors import CORSMiddleware
-
 from .middleware import InterceptorMiddleware
 from .params import GrpcClientParams
 from .routers import Events, Invites, Notifications, Users
 from fastapi import Depends, FastAPI
+from starlette.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     dependencies=[Depends(GrpcClientParams)],
