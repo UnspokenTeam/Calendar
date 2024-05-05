@@ -12,7 +12,7 @@ ___
 	```
 	- где:
       - DATABASE_URL - адрес базы данных
-      - ENVIRONMENT - название окружения
+      - ENVIRONMENT - вид окружения
       - OPENROUTER_API_KEY - ключ для взаимодействия с LLM через API от OpenRouter
 ___
 2. **Установка**:
