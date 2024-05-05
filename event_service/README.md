@@ -10,6 +10,10 @@ ___
 	ENVIRONMENT="ENVIRONMENT"
 	OPENROUTER_API_KEY="API_KEY"
 	```
+	- где:
+      - DATABASE_URL - адрес базы данных
+      - ENVIRONMENT - название окружения
+      - OPENROUTER_API_KEY - ключ для взаимодействия с LLM через API от OpenRouter
 ___
 2. **Установка**:
 	- Доступно несколько способов установки.
@@ -29,6 +33,14 @@ ___
         ```
     	poetry install
     	```
+    	- Сгенерируйте proto файлы, выполнив команду:
+    	```
+    	poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ../shared/proto/user/*.proto ../shared/proto/event_service/*.proto && poetry run protol --create-package --in-place --python-out generated protoc --experimental_allow_proto3_optional --proto-path=../shared/proto ../shared/proto/event_service/*.proto ../shared/proto/user/*.proto
+        ```
+    	- Сгенерируйте prisma клиент, выполнив команду:
+    	```
+    	poetry run prisma generate
+        ```
         - Создайте .env файл в папке микросервиса. Добавьте вызов load_dotenv из модуля dotenv в методе serve в файле main.py и выполните команду:
         ```
         poetry run python main.py
