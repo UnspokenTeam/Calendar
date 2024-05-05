@@ -269,16 +269,16 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             Raises if the notification already exists.
 
         """
-        db_notification = await self._db_client.db.prismanotification.find_first(
-            where={
-                "event_id": notification.event_id,
-                "author_id": notification.author_id,
-            }
-        )
-        if db_notification is not None:
-            if db_notification.enabled:
-                raise UniqueError("Notification already exists")
-            async with self._db_client.db.tx() as transaction:
+        async with self._db_client.db.tx() as transaction:
+            db_notification = await transaction.prismanotification.find_first(
+                where={
+                    "event_id": notification.event_id,
+                    "author_id": notification.author_id,
+                }
+            )
+            if db_notification is not None:
+                if db_notification.enabled:
+                    raise UniqueError("Notification already exists")
                 await transaction.prismanotification.update_many(
                     where={
                         "event_id": notification.event_id,
@@ -299,9 +299,8 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
                         },
                     )
                 )
-        else:
             return Notification.from_prisma_notification(
-                await self._db_client.db.prismanotification.create(
+                await transaction.prismanotification.create(
                     data=notification.to_dict(
                         exclude=["enabled", "created_at", "deleted_at"]
                     )
