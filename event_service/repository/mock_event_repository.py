@@ -375,7 +375,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         for event in events[:]:
             if event.repeating_delay is not None:
                 amount_of_repeats = 1
-                repeating_event = event.copy()
+                repeating_event = event.__copy__()
                 while True:
                     repeating_event.start += (
                         Event.delay_string_to_timedelta(event.repeating_delay)
@@ -392,7 +392,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                     ) and (repeating_event.start <= end if end is not None else True):
                         events.append(repeating_event)
                     amount_of_repeats += 1
-                    repeating_event = event.copy()
+                    repeating_event = event.__copy__()
         events = sorted(events, key=lambda event_sort: event_sort.start)
         events = (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
