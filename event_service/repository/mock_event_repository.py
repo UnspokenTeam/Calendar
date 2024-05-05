@@ -79,8 +79,6 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         Raises
         ------
-        ValueNotFoundError
-            No events were found for given author id.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -131,8 +129,6 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             if items_per_page != -1
             else events
         )
-        if events is None or len(events) == 0:
-            raise ValueNotFoundError("Events not found")
         return events
 
     async def get_event_by_event_id(self, event_id: str) -> Event:
@@ -195,8 +191,6 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         Raises
         ------
-        ValueNotFoundError
-            No events were found for given event ids.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -247,8 +241,6 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             if items_per_page != -1
             else events
         )
-        if events is None or len(events) == 0:
-            raise ValueNotFoundError("Events not found")
         return events
 
     async def get_all_events(
@@ -279,8 +271,6 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         Raises
         ------
-        ValueNotFoundError
-            No events were found.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -326,8 +316,6 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             if items_per_page != -1
             else events
         )
-        if events is None or len(events) == 0:
-            raise ValueNotFoundError("Events not found")
         return events
 
     async def create_event(self, event: Event) -> Event:

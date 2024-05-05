@@ -88,8 +88,6 @@ class EventRepositoryImpl(EventRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No events were found for given author id.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -139,7 +137,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             else ""
         )
         await self._db_client.db.execute_raw("SET datestyle = DMY;")
-        db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
+        db_events = await self._db_client.db.query_raw(
             GET_EVENTS_BY_AUTHOR_ID_QUERY.format(
                 author_id_for_query,
                 event_start_condition,
@@ -152,8 +150,6 @@ class EventRepositoryImpl(EventRepositoryInterface):
             ),
             model=PrismaEvent,
         )
-        if db_events is None or len(db_events) == 0:
-            raise ValueNotFoundError("Events not found")
         return [
             Event.from_prisma_event(prisma_event=db_event) for db_event in db_events
         ]
@@ -222,8 +218,6 @@ class EventRepositoryImpl(EventRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No events were found for given events ids.
 
         """
         if start is not None and end is not None and start > end:
@@ -271,7 +265,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             else ""
         )
         await self._db_client.db.execute_raw("SET datestyle = DMY;")
-        db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
+        db_events = await self._db_client.db.query_raw(
             GET_EVENTS_BY_EVENT_IDS_QUERY.format(
                 events_ids_for_query,
                 event_start_condition,
@@ -284,8 +278,6 @@ class EventRepositoryImpl(EventRepositoryInterface):
             ),
             model=PrismaEvent,
         )
-        if db_events is None or len(db_events) == 0:
-            raise ValueNotFoundError("Events not found")
         return [
             Event.from_prisma_event(prisma_event=db_event) for db_event in db_events
         ]
@@ -320,8 +312,6 @@ class EventRepositoryImpl(EventRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No events were found.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -384,7 +374,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             else ""
         )
         await self._db_client.db.execute_raw("SET datestyle = DMY;")
-        db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
+        db_events = await self._db_client.db.query_raw(
             GET_ALL_EVENTS_QUERY.format(
                 where_condition,
                 time_interval,
@@ -393,8 +383,6 @@ class EventRepositoryImpl(EventRepositoryInterface):
             ),
             model=PrismaEvent,
         )
-        if db_events is None or len(db_events) == 0:
-            raise ValueNotFoundError("Events not found")
         return [
             Event.from_prisma_event(prisma_event=db_event) for db_event in db_events
         ]

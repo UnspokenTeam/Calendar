@@ -74,11 +74,6 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         List[Notification]
             List of notifications that match by author id.
 
-        Raises
-        ------
-        ValueNotFoundError
-            No notifications were found for given author id.
-
         """
         notifications = [
             notification
@@ -92,8 +87,6 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             if items_per_page != -1
             else notifications
         )
-        if notifications is None or len(notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
         return notifications
 
     async def get_notification_by_event_and_author_ids(
@@ -183,11 +176,6 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         List[Notification]
             List of notifications that match by notification id.
 
-        Raises
-        ------
-        ValueNotFoundError
-            No notifications were found for given notification ids.
-
         """
         notifications = [
             notification
@@ -201,8 +189,6 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             if items_per_page != -1
             else notifications
         )
-        if notifications is None or len(notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
         return notifications
 
     async def get_all_notifications(
@@ -223,11 +209,6 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         List[Notification]
             List of notifications.
 
-        Raises
-        ------
-        ValueNotFoundError
-            No notifications were found.
-
         """
         notifications = (
             self._notifications[
@@ -236,8 +217,6 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             if items_per_page != -1
             else self._notifications
         )
-        if notifications is None or len(notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
         return notifications
 
     async def create_notification(self, notification: Notification) -> Notification:

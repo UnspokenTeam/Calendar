@@ -150,11 +150,6 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         List[Invite]
             List of invites that have matching author id.
 
-        Raises
-        ------
-        ValueNotFoundError
-            No invites were found for given author id.
-
         """
         invites = [
             invite
@@ -167,8 +162,6 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invites = invites[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
-        if invites is None or len(invites) == 0:
-            raise ValueNotFoundError("Invites not found")
         return invites
 
     async def get_all_invites(
@@ -191,11 +184,6 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         List[Invite]
             List of all invites.
 
-        Raises
-        ------
-        ValueNotFoundError
-            No invites were found for given author id.
-
         """
         result = [
             invite
@@ -206,9 +194,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             result = result[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
-        if len(result) != 0:
-            return result
-        raise ValueNotFoundError("Invites not found")
+        return result
 
     async def get_invites_by_invitee_id(
         self,
@@ -236,11 +222,6 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         List[Invite]
             List of invitee that have matching invite id.
 
-        Raises
-        ------
-        ValueNotFoundError
-            No invites were found for given author id.
-
         """
         invites = [
             invite
@@ -253,8 +234,6 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invites = invites[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
-        if invites is None or len(invites) == 0:
-            raise ValueNotFoundError("Invites not found")
         return invites
 
     async def create_invite(self, invite: Invite) -> None:

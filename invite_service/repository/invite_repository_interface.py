@@ -70,8 +70,6 @@ class InviteRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No invites were found for given event id.
 
         """
         pass
@@ -107,8 +105,6 @@ class InviteRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No invites were found for given author id.
 
         """
         pass
@@ -163,8 +159,6 @@ class InviteRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No invites were found.
 
         """
         pass
@@ -200,8 +194,6 @@ class InviteRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No invites were found for given invitee id.
 
         """
         pass

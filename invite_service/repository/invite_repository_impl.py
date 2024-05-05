@@ -86,15 +86,11 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
 
         Raises
         ------
-        ValueNotFoundError
-            Invites not found.
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        invites: Optional[
-            List[PrismaInvite]
-        ] = await self._db_client.db.invite.find_many(
+        invites = await self._db_client.db.invite.find_many(
             where={
                 "event_id": event_id,
                 "deleted_at": None,
@@ -103,8 +99,6 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
-        if invites is None or len(invites) == 0:
-            raise ValueNotFoundError("Invites not found")
         return invites
 
     async def get_invites_by_author_id(
@@ -137,13 +131,9 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No invites were found for given author id.
 
         """
-        db_invites: Optional[
-            List[PrismaInvite]
-        ] = await self._db_client.db.invite.find_many(
+        db_invites = await self._db_client.db.invite.find_many(
             where={
                 "author_id": author_id,
                 "deleted_at": None,
@@ -152,8 +142,6 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
-        if db_invites is None or len(db_invites) == 0:
-            raise ValueNotFoundError("Invites not found")
         return [
             Invite.from_prisma_invite(prisma_invite=db_invite)
             for db_invite in db_invites
@@ -212,8 +200,6 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No invites were found.
 
         """
         db_invites: Optional[
@@ -223,8 +209,6 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
-        if db_invites is None or len(db_invites) == 0:
-            raise ValueNotFoundError("Invites not found")
         return [
             Invite.from_prisma_invite(prisma_invite=db_invite)
             for db_invite in db_invites
@@ -260,8 +244,6 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No invites were found for given invitee id.
 
         """
         db_invites: Optional[
@@ -275,8 +257,6 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
-        if db_invites is None or len(db_invites) == 0:
-            raise ValueNotFoundError("Invites not found")
         return [
             Invite.from_prisma_invite(prisma_invite=db_invite)
             for db_invite in db_invites

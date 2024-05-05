@@ -80,19 +80,13 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No notifications were found for given author id.
 
         """
-        db_notifications: Optional[
-            List[PrismaNotification]
-        ] = await self._db_client.db.prismanotification.find_many(
+        db_notifications = await self._db_client.db.prismanotification.find_many(
             where={"author_id": author_id, "deleted_at": None},
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
-        if db_notifications is None or len(db_notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
         return [
             Notification.from_prisma_notification(prisma_notification=db_notification)
             for db_notification in db_notifications
@@ -192,13 +186,9 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No notifications were found for given notifications ids.
 
         """
-        db_notifications: Optional[
-            List[PrismaNotification]
-        ] = await self._db_client.db.prismanotification.find_many(
+        db_notifications = await self._db_client.db.prismanotification.find_many(
             where={
                 "id": {"in": notifications_ids},
                 "deleted_at": None,
@@ -206,8 +196,6 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
-        if db_notifications is None or len(db_notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
         return [
             Notification.from_prisma_notification(prisma_notification=db_notification)
             for db_notification in db_notifications
@@ -235,18 +223,12 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No notifications were found.
 
         """
-        db_notifications: Optional[
-            List[PrismaNotification]
-        ] = await self._db_client.db.prismanotification.find_many(
+        db_notifications = await self._db_client.db.prismanotification.find_many(
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
-        if db_notifications is None or len(db_notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
         return [
             Notification.from_prisma_notification(prisma_notification=db_notification)
             for db_notification in db_notifications

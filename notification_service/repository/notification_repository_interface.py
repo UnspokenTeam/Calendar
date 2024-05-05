@@ -62,8 +62,6 @@ class NotificationRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No notifications were found for given author id.
 
         """
         pass
@@ -147,8 +145,6 @@ class NotificationRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No notifications were found for given notification ids.
 
         """
         pass
@@ -176,8 +172,6 @@ class NotificationRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No notifications were found.
 
         """
         pass
