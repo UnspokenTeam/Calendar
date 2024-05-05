@@ -326,7 +326,11 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
 
             db_invite.deleted_at = None
             db_invite.status = InviteStatus.PENDING
-            return Invite.from_prisma_invite(await self.update_invite(db_invite))
+            return Invite.from_prisma_invite(
+                await transaction.invite.update(
+                    where={"id": invite.id}, data=invite.to_dict()
+                )
+            )
 
     async def create_multiple_invites(self, invites: List[Invite]) -> List[Invite]:
         """
