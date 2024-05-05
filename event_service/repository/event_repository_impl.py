@@ -251,6 +251,8 @@ class EventRepositoryImpl(EventRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
         ValueNotFoundError
             No events were found for given events ids.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
         if start is not None and end is not None and start > end:
