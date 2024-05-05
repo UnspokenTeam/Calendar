@@ -37,7 +37,7 @@ GET_EVENTS_BY_AUTHOR_ID_QUERY = (
     "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM \"PrismaEvent\" as event, "
     "GENERATE_SERIES(event.start, {}, event.repeating_delay::interval) as event_start_series\n\t"
     "WHERE event.repeating_delay IS NOT NULL\n) as pattern\nWHERE\n\tpattern.author_id = {}\n\t"
-    "AND pattern.deleted_at IS NULL{}{}\nORDER BY start{};"
+    "AND pattern.deleted_at IS NULL{}{};"
 )
 
 GET_EVENTS_BY_EVENT_IDS_QUERY = (
@@ -47,7 +47,7 @@ GET_EVENTS_BY_EVENT_IDS_QUERY = (
     "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM \"PrismaEvent\" as event, "
     "GENERATE_SERIES(event.start, {}, event.repeating_delay::interval) as event_start_series\n\t"
     "WHERE event.repeating_delay IS NOT NULL\n) as pattern\nWHERE\n\tpattern.id IN ({})\n\t"
-    "AND pattern.deleted_at IS NULL{}{}\nORDER BY start{};"
+    "AND pattern.deleted_at IS NULL{}{};"
 )
 
 GET_ALL_EVENTS_QUERY = (
@@ -56,6 +56,6 @@ GET_ALL_EVENTS_QUERY = (
     "pattern.\"start\", pattern.\"end\", pattern.\"repeating_delay\", pattern.\"author_id\", "
     "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM \"PrismaEvent\" as event, "
     "GENERATE_SERIES(event.start, {}, event.repeating_delay::interval) as event_start_series\n"
-    "\tWHERE event.repeating_delay IS NOT NULL\n) as pattern{}\nORDER BY start{};"
+    "\tWHERE event.repeating_delay IS NOT NULL\n) as pattern{};"
 )
 # fmt: on

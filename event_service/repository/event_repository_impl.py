@@ -1,6 +1,7 @@
 """Event repository with data from database."""
 
-from datetime import datetime
+from calendar import isleap
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from prisma.models import PrismaEvent
@@ -133,11 +134,6 @@ class EventRepositoryImpl(EventRepositoryInterface):
             if end is not None
             else ""
         )
-        pagination_parameters = (
-            f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
-            if items_per_page != -1
-            else ""
-        )
         await self._db_client.db.execute_raw("SET datestyle = DMY;")
         db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
             GET_EVENTS_BY_AUTHOR_ID_QUERY.format(
@@ -148,15 +144,46 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 author_id_for_query,
                 repeating_event_start_condition,
                 repeating_event_end_condition,
-                pagination_parameters,
             ),
             model=PrismaEvent,
         )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
-        return [
+        events = [
             Event.from_prisma_event(prisma_event=db_event) for db_event in db_events
         ]
+        if start is not None and end is None:
+            end = start + timedelta(days=366 if isleap(start.year) else 365)
+        for event in events[:]:
+            if event.repeating_delay is not None:
+                amount_of_repeats = 1
+                repeating_event = event.__copy__()
+                while True:
+                    repeating_event.start += (
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
+                    )
+                    repeating_event.end += (
+                            Event.delay_string_to_timedelta(event.repeating_delay)
+                            * amount_of_repeats
+                    )
+                    if repeating_event.start > end:
+                        break
+                    if (
+                        start <= repeating_event.start if start is not None else True
+                    ) and (repeating_event.start <= end if end is not None else True):
+                        events.append(repeating_event)
+                    amount_of_repeats += 1
+                    repeating_event = event.__copy__()
+        events = sorted(events, key=lambda event_sort: event_sort.start)
+        events = (
+            events[items_per_page * (page_number - 1) : items_per_page * page_number]
+            if items_per_page != -1
+            else events
+        )
+        if events is None or len(events) == 0:
+            raise ValueNotFoundError("Events not found")
+        return events
 
     async def get_event_by_event_id(self, event_id: str) -> Event:
         """
@@ -265,11 +292,6 @@ class EventRepositoryImpl(EventRepositoryInterface):
             if end is not None
             else ""
         )
-        pagination_parameters = (
-            f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
-            if items_per_page != -1
-            else ""
-        )
         await self._db_client.db.execute_raw("SET datestyle = DMY;")
         db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
             GET_EVENTS_BY_EVENT_IDS_QUERY.format(
@@ -280,15 +302,46 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 events_ids_for_query,
                 repeating_event_start_condition,
                 repeating_event_end_condition,
-                pagination_parameters,
             ),
             model=PrismaEvent,
         )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
-        return [
+        events = [
             Event.from_prisma_event(prisma_event=db_event) for db_event in db_events
         ]
+        if start is not None and end is None:
+            end = start + timedelta(days=366 if isleap(start.year) else 365)
+        for event in events[:]:
+            if event.repeating_delay is not None:
+                amount_of_repeats = 1
+                repeating_event = event.__copy__()
+                while True:
+                    repeating_event.start += (
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
+                    )
+                    repeating_event.end += (
+                            Event.delay_string_to_timedelta(event.repeating_delay)
+                            * amount_of_repeats
+                    )
+                    if repeating_event.start > end:
+                        break
+                    if (
+                        start <= repeating_event.start if start is not None else True
+                    ) and (repeating_event.start <= end if end is not None else True):
+                        events.append(repeating_event)
+                    amount_of_repeats += 1
+                    repeating_event = event.__copy__()
+        events = sorted(events, key=lambda event_sort: event_sort.start)
+        events = (
+            events[items_per_page * (page_number - 1) : items_per_page * page_number]
+            if items_per_page != -1
+            else events
+        )
+        if events is None or len(events) == 0:
+            raise ValueNotFoundError("Events not found")
+        return events
 
     async def get_all_events(
         self,
@@ -378,26 +431,52 @@ class EventRepositoryImpl(EventRepositoryInterface):
             if start is not None or end is not None
             else ""
         )
-        pagination_parameters = (
-            f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
-            if items_per_page != -1
-            else ""
-        )
         await self._db_client.db.execute_raw("SET datestyle = DMY;")
         db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
             GET_ALL_EVENTS_QUERY.format(
                 where_condition,
                 time_interval,
                 where_condition_for_repeating_events,
-                pagination_parameters,
             ),
             model=PrismaEvent,
         )
         if db_events is None or len(db_events) == 0:
             raise ValueNotFoundError("Events not found")
-        return [
+        events = [
             Event.from_prisma_event(prisma_event=db_event) for db_event in db_events
         ]
+        if start is not None and end is None:
+            end = start + timedelta(days=366 if isleap(start.year) else 365)
+        for event in events[:]:
+            if event.repeating_delay is not None:
+                amount_of_repeats = 1
+                repeating_event = event.__copy__()
+                while True:
+                    repeating_event.start += (
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
+                    )
+                    repeating_event.end += (
+                            Event.delay_string_to_timedelta(event.repeating_delay)
+                            * amount_of_repeats
+                    )
+                    if repeating_event.start > end:
+                        break
+                    if (
+                        start <= repeating_event.start if start is not None else True
+                    ) and (repeating_event.start <= end if end is not None else True):
+                        events.append(repeating_event)
+                    amount_of_repeats += 1
+                    repeating_event = event.__copy__()
+        events = sorted(events, key=lambda event_sort: event_sort.start)
+        events = (
+            events[items_per_page * (page_number - 1) : items_per_page * page_number]
+            if items_per_page != -1
+            else events
+        )
+        if events is None or len(events) == 0:
+            raise ValueNotFoundError("Events not found")
+        return events
 
     async def create_event(self, event: Event) -> Event:
         """

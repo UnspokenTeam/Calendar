@@ -167,6 +167,29 @@ class Event:
             if attr not in exclude_set
         }
 
+    def __copy__(self) -> 'Event':
+        """
+        Copies event.
+
+        Returns
+        -------
+        Event
+            Event class instance.
+
+        """
+        return Event(
+            id=self.id,
+            title=self.title,
+            start=self.start,
+            end=self.end,
+            author_id=self.author_id,
+            description=self.description,
+            color=self.color,
+            repeating_delay=self.repeating_delay,
+            created_at=self.created_at,
+            deleted_at=self.deleted_at,
+        )
+
     @classmethod
     def from_prisma_event(cls, prisma_event: PrismaEvent) -> Self:
         """

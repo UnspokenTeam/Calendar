@@ -1,6 +1,7 @@
 """Mock event repository"""
 
-from datetime import datetime
+from calendar import isleap
+from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import uuid4
 
@@ -126,6 +127,30 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                     and event.deleted_at is None
                 ):
                     events.append(event)
+        if start is not None and end is None:
+            end = start + timedelta(days=366 if isleap(start.year) else 365)
+        for event in events[:]:
+            if event.repeating_delay is not None:
+                amount_of_repeats = 1
+                repeating_event = event.__copy__()
+                while True:
+                    repeating_event.start += (
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
+                    )
+                    repeating_event.end += (
+                            Event.delay_string_to_timedelta(event.repeating_delay)
+                            * amount_of_repeats
+                    )
+                    if repeating_event.start > end:
+                        break
+                    if (
+                        start <= repeating_event.start if start is not None else True
+                    ) and (repeating_event.start <= end if end is not None else True):
+                        events.append(repeating_event)
+                    amount_of_repeats += 1
+                    repeating_event = event.__copy__()
+        events = sorted(events, key=lambda event_sort: event_sort.start)
         events = (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
@@ -242,6 +267,30 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                     and event.deleted_at is None
                 ):
                     events.append(event)
+        if start is not None and end is None:
+            end = start + timedelta(days=366 if isleap(start.year) else 365)
+        for event in events[:]:
+            if event.repeating_delay is not None:
+                amount_of_repeats = 1
+                repeating_event = event.__copy__()
+                while True:
+                    repeating_event.start += (
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
+                    )
+                    repeating_event.end += (
+                            Event.delay_string_to_timedelta(event.repeating_delay)
+                            * amount_of_repeats
+                    )
+                    if repeating_event.start > end:
+                        break
+                    if (
+                        start <= repeating_event.start if start is not None else True
+                    ) and (repeating_event.start <= end if end is not None else True):
+                        events.append(repeating_event)
+                    amount_of_repeats += 1
+                    repeating_event = event.__copy__()
+        events = sorted(events, key=lambda event_sort: event_sort.start)
         events = (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
@@ -321,6 +370,30 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                     event.start <= end if end is not None else True
                 ):
                     events.append(event)
+        if start is not None and end is None:
+            end = start + timedelta(days=366 if isleap(start.year) else 365)
+        for event in events[:]:
+            if event.repeating_delay is not None:
+                amount_of_repeats = 1
+                repeating_event = event.copy()
+                while True:
+                    repeating_event.start += (
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
+                    )
+                    repeating_event.end += (
+                            Event.delay_string_to_timedelta(event.repeating_delay)
+                            * amount_of_repeats
+                    )
+                    if repeating_event.start > end:
+                        break
+                    if (
+                        start <= repeating_event.start if start is not None else True
+                    ) and (repeating_event.start <= end if end is not None else True):
+                        events.append(repeating_event)
+                    amount_of_repeats += 1
+                    repeating_event = event.copy()
+        events = sorted(events, key=lambda event_sort: event_sort.start)
         events = (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
@@ -391,7 +464,8 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                 i for i in range(len(self._events)) if self._events[i].id == event.id
             )
             if self._events[index].author_id == event.author_id:
-                self._events[index] = event
+                for key, value in event.to_dict().items():
+                    self._events[index].__setattr__(key, value)
                 return event
             raise ValueNotFoundError("Events authors must be same")
         except StopIteration:
