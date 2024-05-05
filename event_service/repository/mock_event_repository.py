@@ -466,7 +466,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             if self._events[index].author_id == event.author_id:
                 for key, value in event.to_dict().items():
                     self._events[index].__setattr__(key, value)
-                return event
+                return self._events[index]
             raise ValueNotFoundError("Events authors must be same")
         except StopIteration:
             raise ValueNotFoundError("Event not found")
