@@ -6,9 +6,20 @@ ___
 ___
 1. **Образец .env файла**
 	```
+    ACCESS_SECRET="ACCESS_SECRET"
+    REFRESH_SECRET="REFRESH_SECRET"
 	DATABASE_URL="DATABASE_URL"
 	ENVIRONMENT="ENVIRONMENT"
+    REFRESH_TOKEN_EXPIRATION=30
+    ACCESS_TOKEN_EXPIRATION=15
 	```
+    - где:
+        - ACCESS_SECRET - Ключ для генерации Access token
+        - REFRESH_SECRET - Ключ для генерации Refresh token
+        - DATABASE_URL - адрес базы данных
+        - ENVIRONMENT - вид окружения
+        - REFRESH_TOKEN_EXPIRATION - Время истечения срока валидности Refresh token в днях
+        - ACCESS_TOKEN_EXPIRATION - Время истечения срока валидности Access token в минутах
 ___
 2. **Установка**:
 	- Доступно несколько способов установки.
