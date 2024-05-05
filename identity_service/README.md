@@ -28,6 +28,14 @@ ___
         ```
     	poetry install
     	```
+        - Сгенерируйте proto файлы, выполнив команду:
+    	```
+    	poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ../shared/proto/user/*.proto ../shared/proto/identity_service/*.proto && poetry run protol --create-package --in-place --python-out generated protoc --proto-path=../shared/proto ../shared/proto/identity_service/*.proto ../shared/proto/user/*.proto
+        ```
+    	- Сгенерируйте prisma клиент, выполнив команду:
+    	```
+    	poetry run prisma generate
+        ```
         - Создайте .env файл в папке микросервиса. Добавьте вызов load_dotenv из модуля dotenv в методе serve в файле main.py и выполните команду:
         ```
         poetry run python main.py
@@ -39,9 +47,9 @@ ___
 	- Функционал:
         - **login** - **Получение токенов при успешной авторизации**
 
-        - **register** - **Создание токенов при регистрации пользователя**
-
-        - **auth** - **Получение ID аунтефицированного пользователя**
+        - **register** - **Регистрация пользователя**
+poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ../shared/proto/user/*.proto ../shared/proto/notification_service/*.proto && poetry run protol --create-package --in-place --python-out generated protoc --experimental_allow_proto3_optional --proto-path=../shared/proto ../shared/proto/notification_service/*.proto ../shared/proto/user/*.proto
+        - **auth** - **Получение данных пользователя**
 
         - **get_new_access_token** - **Получение токена доступа**
 
