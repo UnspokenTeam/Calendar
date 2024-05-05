@@ -9,6 +9,9 @@ ___
 	DATABASE_URL="DATABASE_URL"
 	ENVIRONMENT="ENVIRONMENT"
 	```
+ 	- где:
+      - DATABASE_URL - адрес базы данных
+      - ENVIRONMENT - название окружения
 ___
 2. **Установка**:
 	- Доступно несколько способов установки.
@@ -18,7 +21,15 @@ ___
 		```
     	docker pull ghcr.io/unspokenteam/notification_service:latest
  		```
-       - Создайте .env файл, укажите его путь в команде и выполните её:
+       - Сгенерируйте proto файлы, выполнив команду:
+    	```
+    	poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ../shared/proto/user/*.proto ../shared/proto/notification_service/*.proto && poetry run protol --create-package --in-place --python-out generated protoc --experimental_allow_proto3_optional --proto-path=../shared/proto ../shared/proto/notification_service/*.proto ../shared/proto/user/*.proto
+        ```
+    	- Сгенерируйте prisma клиент, выполнив команду:
+    	```
+    	poetry run prisma generate
+        ```
+        - Создайте .env файл, укажите его путь в команде и выполните её:
 		```
 		docker run -d -p 8083=8083 —env-file $PATH_TO_ENV ghcr.io/unspokenteam/notification_service:latest
  		```
