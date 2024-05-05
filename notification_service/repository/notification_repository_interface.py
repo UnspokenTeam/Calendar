@@ -1,7 +1,8 @@
 """Notification repository interface"""
 
 from abc import ABC, abstractmethod
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 
 from src.models.notification import Notification
 
@@ -39,7 +40,12 @@ class NotificationRepositoryInterface(ABC):
 
     @abstractmethod
     async def get_notifications_by_author_id(
-        self, author_id: str, page_number: int, items_per_page: int
+        self,
+        author_id: str,
+        page_number: int,
+        items_per_page: int,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
     ) -> List[Notification]:
         """
         Get notifications by author id.
@@ -52,6 +58,10 @@ class NotificationRepositoryInterface(ABC):
             Number of page to get.
         items_per_page : int
             Number of items per page to load.
+        start : Optional[datetime]
+            Start of time interval for search.
+        end : Optional[datetime]
+            End of time interval for search.
 
         Returns
         -------

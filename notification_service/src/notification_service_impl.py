@@ -1,5 +1,7 @@
 """Notification Service Controller."""
 
+from datetime import datetime
+
 import grpc
 
 from errors.permission_denied_error import PermissionDeniedError
@@ -94,6 +96,16 @@ class NotificationServiceImpl(GrpcServicer):
                 author_id=request.author_id,
                 page_number=request.page_number,
                 items_per_page=request.items_per_page,
+                start=datetime.fromtimestamp(
+                    request.start.seconds + request.start.nanos / 1e9
+                )
+                if request.WhichOneof("optional_start") is not None
+                else None,
+                end=datetime.fromtimestamp(
+                    request.end.seconds + request.end.nanos / 1e9
+                )
+                if request.WhichOneof("optional_end") is not None
+                else None,
             )
         )
         context.set_code(grpc.StatusCode.OK)

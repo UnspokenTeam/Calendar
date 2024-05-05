@@ -8,10 +8,12 @@ generator client {
 }
 
 model PrismaNotification {
-  id         String    @id @default(uuid())
-  event_id   String
-  author_id  String
-  enabled    Boolean   @default(true)
-  created_at DateTime  @default(now())
-  deleted_at DateTime?
+  id              String    @id @default(uuid())
+  event_id        String
+  author_id       String
+  enabled         Boolean   @default(true)
+  start           DateTime
+  repeating_delay String?
+  created_at      DateTime  @default(now())
+  deleted_at      DateTime?
 }

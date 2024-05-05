@@ -22,8 +22,16 @@ service NotificationService {
 message NotificationsRequestByAuthorId {
   string author_id = 1;
   GrpcUser requesting_user = 2;
-  uint64 page_number = 3;
-  int64 items_per_page = 4;
+  oneof optional_start {
+    google.protobuf.NullValue start_null = 3;
+    google.protobuf.Timestamp start = 4;
+  }
+  oneof optional_end {
+    google.protobuf.NullValue end_null = 5;
+    google.protobuf.Timestamp end = 6;
+  }
+  uint64 page_number = 7;
+  int64 items_per_page = 8;
 }
 
 message NotificationRequestByEventAndAuthorIds {
@@ -49,10 +57,15 @@ message GrpcNotification {
   string event_id = 2;
   string author_id = 3;
   bool enabled = 4;
-  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp start = 5;
+  oneof optional_repeating_delay {
+    google.protobuf.NullValue repeating_delay_null = 6;
+    Interval repeating_delay = 7;
+  }
+  google.protobuf.Timestamp created_at = 8;
   oneof optional_deleted_at {
-    google.protobuf.NullValue deleted_at_null = 6;
-    google.protobuf.Timestamp deleted_at = 7;
+    google.protobuf.NullValue deleted_at_null = 9;
+    google.protobuf.Timestamp deleted_at = 10;
   }
 }
 
@@ -94,4 +107,14 @@ message DeleteNotificationsByEventIdRequest {
 message DeleteNotificationsByAuthorIdRequest {
   string author_id = 1;
   GrpcUser requesting_user = 2;
+}
+
+message Interval {
+  optional uint64 years = 1;
+  optional uint64 months = 2;
+  optional uint64 weeks = 3;
+  optional uint64 days = 4;
+  optional uint64 hours = 5;
+  optional uint64 minutes = 6;
+  optional uint64 seconds = 7;
 }

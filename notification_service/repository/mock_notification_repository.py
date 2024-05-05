@@ -1,7 +1,8 @@
 """Mock notification repository"""
 
-from datetime import datetime
-from typing import List
+from calendar import isleap
+from datetime import datetime, timedelta
+from typing import List, Optional
 from uuid import uuid4
 
 from errors.unique_error import UniqueError
@@ -55,7 +56,12 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         self._notifications = []
 
     async def get_notifications_by_author_id(
-        self, author_id: str, page_number: int, items_per_page: int
+        self,
+        author_id: str,
+        page_number: int,
+        items_per_page: int,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
     ) -> List[Notification]:
         """
         Get notifications by author id.
@@ -68,6 +74,10 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             Number of page to get.
         items_per_page : int
             Number of items per page to load.
+        start : Optional[datetime]
+            Start of time interval for search.
+        end : Optional[datetime]
+            End of time interval for search.
 
         Returns
         -------
@@ -85,16 +95,41 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             for notification in self._notifications
             if notification.author_id == author_id and notification.deleted_at is None
         ]
-        notifications = (
+        if start is not None and end is None:
+            end = start + timedelta(days=366 if isleap(start.year) else 365)
+        for notification in notifications[:]:
+            if notification.repeating_delay is not None:
+                amount_of_repeats = 1
+                repeating_notification = notification.__copy__()
+                while True:
+                    repeating_notification.start += (
+                            Notification.delay_string_to_timedelta(
+                                notification.repeating_delay
+                            )
+                            * amount_of_repeats
+                    )
+                    if repeating_notification.start > end:
+                        break
+                    if (
+                            start <= repeating_notification.start
+                            if start is not None
+                            else True
+                    ) and (
+                            repeating_notification.start <= end if end is not None else True
+                    ):
+                        notifications.append(repeating_notification)
+                    amount_of_repeats += 1
+                    repeating_notification = notification.__copy__()
+        notifications = sorted(
+            notifications, key=lambda notification_sort: notification_sort.start
+        )
+        return (
             notifications[
-                items_per_page * (page_number - 1) : items_per_page * page_number
+                items_per_page * (page_number - 1): items_per_page * page_number
             ]
             if items_per_page != -1
             else notifications
         )
-        if notifications is None or len(notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
-        return notifications
 
     async def get_notification_by_event_and_author_ids(
         self, event_id: str, author_id: str

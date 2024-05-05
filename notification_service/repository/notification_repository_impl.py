@@ -1,6 +1,7 @@
 """Notification repository with data from database."""
 
-from datetime import datetime
+from calendar import isleap
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from prisma.models import PrismaNotification
@@ -8,9 +9,11 @@ from prisma.models import PrismaNotification
 from db.postgres_client import PostgresClient
 from errors.unique_error import UniqueError
 from errors.value_not_found_error import ValueNotFoundError
+from errors.wrong_inerval_error import WrongIntervalError
 from src.models.notification import Notification
 from utils.singleton import singleton
 
+from constants import GET_NOTIFICATIONS_BY_AUTHOR_ID_QUERY
 from repository.notification_repository_interface import NotificationRepositoryInterface
 
 
@@ -57,7 +60,12 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         self._db_client = PostgresClient()
 
     async def get_notifications_by_author_id(
-        self, author_id: str, page_number: int, items_per_page: int
+        self,
+        author_id: str,
+        page_number: int,
+        items_per_page: int,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
     ) -> List[Notification]:
         """
         Get notifications by author id.
@@ -70,6 +78,10 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             Number of page to get.
         items_per_page : int
             Number of items per page to load.
+        start : Optional[datetime]
+            Start of time interval for search.
+        end : Optional[datetime]
+            End of time interval for search.
 
         Returns
         -------
@@ -80,23 +92,107 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No notifications were found for given author id.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
+        if start is not None and end is not None and start > end:
+            raise WrongIntervalError("Request failed. Wrong time interval.")
+        start_date, end_date = None, None
+        # fmt: off
+        if start is not None:
+            start_date = (
+                f"\'{start.day:02d}/{start.month:02d}/{start.year:04d} "
+                f"{start.hour:02d}:{start.minute:02d}:{start.second:02d}\'"
+            )
+        if end is not None:
+            end_date = (
+                f"\'{end.day:02d}/{end.month:02d}/{end.year:04d} "
+                f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}\'"
+            )
+        author_id_for_query = f"\'{author_id}\'"
+        # fmt: on
+        notification_start_condition = (
+            f"\n\tAND {start_date}::timestamp <= notification.start"
+            if start is not None
+            else ""
+        )
+        notification_end_condition = (
+            f"\n\tAND notification.start <= {end_date}::timestamp"
+            if end is not None
+            else ""
+        )
+        time_interval = (
+            f"timestamp {end_date}"
+            if end is not None
+            else f"{start_date}::timestamp + notification.repeating_delay::interval"
+        )
+        repeating_notification_start_condition = (
+            f"\n\tAND {start_date}::timestamp <= pattern.notification_start_series"
+            if start is not None
+            else ""
+        )
+        repeating_notification_end_condition = (
+            f"\n\tAND pattern.notification_start_series <= {end_date}::timestamp"
+            if end is not None
+            else ""
+        )
+        await self._db_client.db.execute_raw("SET datestyle = DMY;")
         db_notifications: Optional[
             List[PrismaNotification]
-        ] = await self._db_client.db.prismanotification.find_many(
-            where={"author_id": author_id, "deleted_at": None},
-            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
-            take=items_per_page if items_per_page != -1 else None,
+        ] = await self._db_client.db.query_raw(
+            GET_NOTIFICATIONS_BY_AUTHOR_ID_QUERY.format(
+                author_id_for_query,
+                notification_start_condition,
+                notification_end_condition,
+                time_interval,
+                author_id_for_query,
+                repeating_notification_start_condition,
+                repeating_notification_end_condition,
+            ),
+            model=PrismaNotification,
         )
         if db_notifications is None or len(db_notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
-        return [
+            return []
+        notifications = [
             Notification.from_prisma_notification(prisma_notification=db_notification)
             for db_notification in db_notifications
         ]
+        if start is not None and end is None:
+            end = start + timedelta(days=366 if isleap(start.year) else 365)
+        for notification in notifications[:]:
+            if notification.repeating_delay is not None:
+                amount_of_repeats = 1
+                repeating_notification = notification.__copy__()
+                while True:
+                    repeating_notification.start += (
+                        Notification.delay_string_to_timedelta(
+                            notification.repeating_delay
+                        )
+                        * amount_of_repeats
+                    )
+                    if repeating_notification.start > end:
+                        break
+                    if (
+                        start <= repeating_notification.start
+                        if start is not None
+                        else True
+                    ) and (
+                        repeating_notification.start <= end if end is not None else True
+                    ):
+                        notifications.append(repeating_notification)
+                    amount_of_repeats += 1
+                    repeating_notification = notification.__copy__()
+        notifications = sorted(
+            notifications, key=lambda notification_sort: notification_sort.start
+        )
+        return (
+            notifications[
+                items_per_page * (page_number - 1) : items_per_page * page_number
+            ]
+            if items_per_page != -1
+            else notifications
+        )
 
     async def get_notification_by_event_and_author_ids(
         self, event_id: str, author_id: str
