@@ -5,52 +5,59 @@ ___
 **Установка и описание**
 ___
 1. **Образец .env файла**
-	```
+	```env
+    ; Ключ для генерации Access token
     ACCESS_SECRET="ACCESS_SECRET"
+    ; Ключ для генерации Refresh token
     REFRESH_SECRET="REFRESH_SECRET"
+    ; Адрес базы данных
 	DATABASE_URL="DATABASE_URL"
+    ; Вид окружения
 	ENVIRONMENT="ENVIRONMENT"
+    ; Время истечения срока валидности Refresh token в днях
     REFRESH_TOKEN_EXPIRATION=30
+    ; Время истечения срока валидности Access token в минутах
     ACCESS_TOKEN_EXPIRATION=15
 	```
-    - где:
-        - ACCESS_SECRET - Ключ для генерации Access token
-        - REFRESH_SECRET - Ключ для генерации Refresh token
-        - DATABASE_URL - адрес базы данных
-        - ENVIRONMENT - вид окружения
-        - REFRESH_TOKEN_EXPIRATION - Время истечения срока валидности Refresh token в днях
-        - ACCESS_TOKEN_EXPIRATION - Время истечения срока валидности Access token в минутах
 ___
 2. **Установка**:
-	- Доступно несколько способов установки.
+___  
+    **Перед установкой**
+    1. Сделать ```docker pull``` для custom_postgres или подготовить собственный instance PostgreSQL
+       ```bash
+       docker pull ghcr.io/unspokenteam/custom_postgres:latest
+       ```
+    2. Подготовить локальный инстанс redis ([Setup redis with docker](https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/docker/))
+___  
+   - Далее доступно несколько способов установки:
 
-    1. **Через docker**
-       - Установка осуществляется через **docker**, для установки пакета микросервиса введите и выполните команду:
-		```
-    	docker pull ghcr.io/unspokenteam/identity_service:latest
- 		```
-       - Создайте .env файл, укажите его путь в команде и выполните её:
-		```
-		docker run -d -p 8080=8080 —env-file $PATH_TO_ENV ghcr.io/unspokenteam/identity_service:latest
- 		```
+     1. **Через docker**
+        - Установка осуществляется через **docker**, для установки пакета микросервиса введите и выполните команду:
+         ```
+         docker pull ghcr.io/unspokenteam/identity_service:latest
+          ```
+        - Создайте .env файл, укажите его путь в команде и выполните её:
+         ```
+         docker run -d -p 8080=8080 —env-file $PATH_TO_ENV ghcr.io/unspokenteam/identity_service:latest
+          ```
 
-	2. **Через poetry**
-        - Также возможен локальный запуск при помощи утилиты poetry **без использования docker'a**. Для этого введите и выполните команду:
-        ```
-    	poetry install
-    	```
-        - Сгенерируйте proto файлы, выполнив команду:
-    	```
-    	poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ../shared/proto/user/*.proto ../shared/proto/identity_service/*.proto && poetry run protol --create-package --in-place --python-out generated protoc --proto-path=../shared/proto ../shared/proto/identity_service/*.proto ../shared/proto/user/*.proto
-        ```
-    	- Сгенерируйте prisma клиент, выполнив команду:
-    	```
-    	poetry run prisma generate
-        ```
-        - Создайте .env файл в папке микросервиса. Добавьте вызов load_dotenv из модуля dotenv в методе serve в файле main.py и выполните команду:
-        ```
-        poetry run python main.py
-        ```
+     2. **Через poetry**
+         - Также возможен локальный запуск при помощи утилиты poetry **без использования docker'a**. Для этого введите и выполните команду:
+         ```
+         poetry install
+         ```
+         - Сгенерируйте proto файлы, выполнив команду:
+         ```
+         poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ../shared/proto/user/*.proto ../shared/proto/identity_service/*.proto && poetry run protol --create-package --in-place --python-out generated protoc --proto-path=../shared/proto ../shared/proto/identity_service/*.proto ../shared/proto/user/*.proto
+         ```
+         - Сгенерируйте prisma клиент, выполнив команду:
+         ```
+         poetry run prisma generate
+         ```
+         - Создайте .env файл в папке микросервиса. Добавьте вызов load_dotenv из модуля dotenv в методе serve в файле main.py и выполните команду:
+         ```
+         poetry run python main.py
+         ```
 ---
 3. **О микросервисе**:
 	- Сервис полностью осуществляет взаимодействие с аккаунтами пользователей в календаре.
@@ -59,7 +66,7 @@ ___
         - **login** - **Получение токенов при успешной авторизации**
 
         - **register** - **Регистрация пользователя**
-poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ../shared/proto/user/*.proto ../shared/proto/notification_service/*.proto && poetry run protol --create-package --in-place --python-out generated protoc --experimental_allow_proto3_optional --proto-path=../shared/proto ../shared/proto/notification_service/*.proto ../shared/proto/user/*.proto
+
         - **auth** - **Получение данных пользователя**
 
         - **get_new_access_token** - **Получение токена доступа**
