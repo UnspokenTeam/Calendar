@@ -31,31 +31,29 @@ AI_ROLE_FOR_PROMPT = (
 )
 
 GET_EVENTS_BY_AUTHOR_ID_QUERY = (
-    "SELECT *\nFROM \"PrismaEvent\" as event\nWHERE\n\tevent.author_id = {}\n\tAND event.deleted_at IS NULL{}{}\n"
-    "UNION\nSELECT DISTINCT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", "
-    "pattern.\"start\", pattern.\"end\", pattern.\"repeating_delay\", pattern.\"author_id\", "
-    "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM \"PrismaEvent\" as event, "
-    "GENERATE_SERIES(event.start, {}, event.repeating_delay::interval) as event_start_series\n\t"
-    "WHERE event.repeating_delay IS NOT NULL\n) as pattern\nWHERE\n\tpattern.author_id = {}\n\t"
-    "AND pattern.deleted_at IS NULL{}{};"
+    "SELECT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", pattern.\"event_start\" as "
+    "\"start\", (pattern.\"event_start\" + (pattern.\"end\" - pattern.\"start\")) as \"end\", "
+    "pattern.\"repeating_delay\", pattern.\"author_id\", pattern.\"created_at\", pattern.\"deleted_at\"\n"
+    "FROM (\n\tSELECT *\n\tFROM \"PrismaEvent\" as event,\n\t\tGENERATE_SERIES(event.start, {}, "
+    "event.repeating_delay::interval) as \"event_start\"\n\tWHERE event.repeating_delay IS NOT NULL\n) as pattern\n"
+    "WHERE\n\tpattern.author_id = {}\n\tAND pattern.deleted_at IS NULL{}{}\nORDER BY start{};"
 )
 
 GET_EVENTS_BY_EVENT_IDS_QUERY = (
-    "SELECT *\nFROM \"PrismaEvent\" as event\nWHERE\n\tevent.id IN ({})\n\tAND event.deleted_at IS NULL{}{}\n"
-    "UNION\nSELECT DISTINCT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", "
-    "pattern.\"start\", pattern.\"end\", pattern.\"repeating_delay\", pattern.\"author_id\", "
-    "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM \"PrismaEvent\" as event, "
-    "GENERATE_SERIES(event.start, {}, event.repeating_delay::interval) as event_start_series\n\t"
-    "WHERE event.repeating_delay IS NOT NULL\n) as pattern\nWHERE\n\tpattern.id IN ({})\n\t"
-    "AND pattern.deleted_at IS NULL{}{};"
+    "SELECT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", pattern.\"event_start\" as "
+    "\"start\", (pattern.\"event_start\" + (pattern.\"end\" - pattern.\"start\")) as \"end\", "
+    "pattern.\"repeating_delay\", pattern.\"author_id\", pattern.\"created_at\", pattern.\"deleted_at\"\n"
+    "FROM (\n\tSELECT *\n\tFROM \"PrismaEvent\" as event,\n\t\tGENERATE_SERIES(event.start, {}, "
+    "event.repeating_delay::interval) as \"event_start\"\n\tWHERE event.repeating_delay IS NOT NULL\n) as pattern\n"
+    "WHERE\n\tpattern.id IN ({})\n\tAND pattern.deleted_at IS NULL{}{}\nORDER BY start{};"
 )
 
 GET_ALL_EVENTS_QUERY = (
-    "SELECT *\nFROM \"PrismaEvent\" as event{}\nUNION\n"
-    "SELECT DISTINCT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", "
-    "pattern.\"start\", pattern.\"end\", pattern.\"repeating_delay\", pattern.\"author_id\", "
-    "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM \"PrismaEvent\" as event, "
-    "GENERATE_SERIES(event.start, {}, event.repeating_delay::interval) as event_start_series\n"
-    "\tWHERE event.repeating_delay IS NOT NULL\n) as pattern{};"
+    "SELECT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", pattern.\"event_start\" as "
+    "\"start\", (pattern.\"event_start\" + (pattern.\"end\" - pattern.\"start\")) as \"end\", "
+    "pattern.\"repeating_delay\", pattern.\"author_id\", pattern.\"created_at\", pattern.\"deleted_at\"\n"
+    "FROM (\n\tSELECT *\n\tFROM \"PrismaEvent\" as event,\n\t\tGENERATE_SERIES(event.start, {}, "
+    "event.repeating_delay::interval) as \"event_start\"\n\tWHERE event.repeating_delay IS NOT NULL\n) as pattern\n"
+    "{}\nORDER BY start{};"
 )
 # fmt: on

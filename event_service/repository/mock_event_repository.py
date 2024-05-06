@@ -80,8 +80,6 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         Raises
         ------
-        ValueNotFoundError
-            No events were found for given author id.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -127,6 +125,8 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                     and event.deleted_at is None
                 ):
                     events.append(event)
+        if events is None or len(events) == 0:
+            return []
         if start is not None and end is None:
             end = start + timedelta(days=366 if isleap(start.year) else 365)
         for event in events[:]:
@@ -139,8 +139,8 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                         * amount_of_repeats
                     )
                     repeating_event.end += (
-                            Event.delay_string_to_timedelta(event.repeating_delay)
-                            * amount_of_repeats
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
                     )
                     if repeating_event.start > end:
                         break
@@ -151,14 +151,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                     amount_of_repeats += 1
                     repeating_event = event.__copy__()
         events = sorted(events, key=lambda event_sort: event_sort.start)
-        events = (
+        return (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
             else events
         )
-        if events is None or len(events) == 0:
-            raise ValueNotFoundError("Events not found")
-        return events
 
     async def get_event_by_event_id(self, event_id: str) -> Event:
         """
@@ -220,8 +217,6 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         Raises
         ------
-        ValueNotFoundError
-            No events were found for given event ids.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -267,6 +262,8 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                     and event.deleted_at is None
                 ):
                     events.append(event)
+        if events is None or len(events) == 0:
+            return []
         if start is not None and end is None:
             end = start + timedelta(days=366 if isleap(start.year) else 365)
         for event in events[:]:
@@ -279,8 +276,8 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                         * amount_of_repeats
                     )
                     repeating_event.end += (
-                            Event.delay_string_to_timedelta(event.repeating_delay)
-                            * amount_of_repeats
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
                     )
                     if repeating_event.start > end:
                         break
@@ -291,14 +288,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                     amount_of_repeats += 1
                     repeating_event = event.__copy__()
         events = sorted(events, key=lambda event_sort: event_sort.start)
-        events = (
+        return (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
             else events
         )
-        if events is None or len(events) == 0:
-            raise ValueNotFoundError("Events not found")
-        return events
 
     async def get_all_events(
         self,
@@ -328,8 +322,6 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
 
         Raises
         ------
-        ValueNotFoundError
-            No events were found.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -370,6 +362,8 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                     event.start <= end if end is not None else True
                 ):
                     events.append(event)
+        if events is None or len(events) == 0:
+            return []
         if start is not None and end is None:
             end = start + timedelta(days=366 if isleap(start.year) else 365)
         for event in events[:]:
@@ -382,8 +376,8 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                         * amount_of_repeats
                     )
                     repeating_event.end += (
-                            Event.delay_string_to_timedelta(event.repeating_delay)
-                            * amount_of_repeats
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
                     )
                     if repeating_event.start > end:
                         break
@@ -394,14 +388,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                     amount_of_repeats += 1
                     repeating_event = event.__copy__()
         events = sorted(events, key=lambda event_sort: event_sort.start)
-        events = (
+        return (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
             else events
         )
-        if events is None or len(events) == 0:
-            raise ValueNotFoundError("Events not found")
-        return events
 
     async def create_event(self, event: Event) -> Event:
         """

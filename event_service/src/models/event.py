@@ -167,7 +167,7 @@ class Event:
             if attr not in exclude_set
         }
 
-    def __copy__(self) -> 'Event':
+    def __copy__(self) -> "Event":
         """
         Copies event.
 
@@ -237,10 +237,10 @@ class Event:
         return cls(
             id=grpc_event.id,
             title=grpc_event.title,
-            start=datetime.fromtimestamp(
+            start=datetime.utcfromtimestamp(
                 grpc_event.start.seconds + grpc_event.start.nanos / 1e9
             ),
-            end=datetime.fromtimestamp(
+            end=datetime.utcfromtimestamp(
                 grpc_event.end.seconds + grpc_event.end.nanos / 1e9
             ),
             author_id=grpc_event.author_id,
@@ -263,11 +263,11 @@ class Event:
                 if grpc_event.WhichOneof("optional_repeating_delay") is not None
                 else None
             ),
-            created_at=datetime.fromtimestamp(
+            created_at=datetime.utcfromtimestamp(
                 grpc_event.created_at.seconds + grpc_event.created_at.nanos / 1e9
             ),
             deleted_at=(
-                datetime.fromtimestamp(
+                datetime.utcfromtimestamp(
                     grpc_event.deleted_at.seconds + grpc_event.deleted_at.nanos / 1e9
                 )
                 if grpc_event.WhichOneof("optional_deleted_at") is not None
