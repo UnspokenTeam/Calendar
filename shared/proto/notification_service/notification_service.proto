@@ -9,6 +9,7 @@ service NotificationService {
   rpc get_notification_by_notification_id(NotificationRequestByNotificationId) returns (GrpcNotification){}
   rpc get_notifications_by_notifications_ids(NotificationsRequestByNotificationsIds) returns (ListOfNotifications){}
   rpc get_notifications_by_author_id(NotificationsRequestByAuthorId) returns (ListOfNotifications){}
+  rpc get_notifications_by_event_id(NotificationsRequestByEventId) returns (ListOfNotifications){}
   rpc get_notification_by_event_and_author_ids(NotificationRequestByEventAndAuthorIds) returns (GrpcNotification){}
   rpc get_all_notifications(GetAllNotificationsRequest) returns (ListOfNotifications){}
   rpc create_notification(NotificationRequest) returns (GrpcNotification){}
@@ -32,6 +33,13 @@ message NotificationsRequestByAuthorId {
   }
   uint64 page_number = 7;
   int64 items_per_page = 8;
+}
+
+message NotificationsRequestByEventId {
+  string event_id = 1;
+  GrpcUser requesting_user = 2;
+  uint64 page_number = 3;
+  int64 items_per_page = 4;
 }
 
 message NotificationRequestByEventAndAuthorIds {

@@ -13,8 +13,10 @@ class NotificationRepositoryInterface(ABC):
 
     Methods
     -------
-    async get_notifications_by_author_id(author_id, page_number, items_per_page)
+    async get_notifications_by_author_id(author_id, page_number, items_per_page, start, end)
         Returns page with notifications that have matches with given author id.
+    async get_notifications_by_event_id(event_id, page_number, items_per_page)
+        Returns page with notifications that have matches with given event id.
     async get_notification_by_event_and_author_ids(event_id, author_id)
         Returns notification that has matches with given event and author ids.
     async get_notification_by_notification_id(notification_id)
@@ -72,8 +74,35 @@ class NotificationRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No notifications were found for given author id.
+
+        """
+        pass
+
+    @abstractmethod
+    async def get_notifications_by_event_id(
+        self, event_id: str, page_number: int, items_per_page: int
+    ) -> List[Notification]:
+        """
+        Get notifications by author id.
+
+        Parameters
+        ----------
+        event_id : str
+            Event's id.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
+
+        Returns
+        -------
+        List[Notification]
+            List of notifications that match by event id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
 
         """
         pass

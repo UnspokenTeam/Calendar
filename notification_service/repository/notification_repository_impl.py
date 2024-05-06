@@ -29,8 +29,10 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
 
     Methods
     -------
-    async get_notifications_by_author_id(author_id, page_number, items_per_page)
+    async get_notifications_by_author_id(author_id, page_number, items_per_page, start, end)
         Returns page with notifications that have matches with given author id.
+    async get_notifications_by_event_id(event_id, page_number, items_per_page)
+        Returns page with notifications that have matches with given event id.
     async get_notification_by_event_and_author_ids(event_id, author_id)
         Returns notification that has matches with given event and author ids.
     async get_notification_by_notification_id(notification_id)
@@ -192,6 +194,48 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             ]
             if items_per_page != -1
             else notifications
+        )
+
+    async def get_notifications_by_event_id(
+        self, event_id: str, page_number: int, items_per_page: int
+    ) -> List[Notification]:
+        """
+        Get notifications by author id.
+
+        Parameters
+        ----------
+        event_id : str
+            Event's id.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
+
+        Returns
+        -------
+        List[Notification]
+            List of notifications that match by event id.
+
+        Raises
+        ------
+        prisma.errors.PrismaError
+            Catch all for every exception raised by Prisma Client Python.
+
+        """
+        db_notifications = await self._db_client.db.prismanotification.find_many(
+            where={"event_id": event_id, "deleted_at": None},
+            skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
+            take=items_per_page if items_per_page != -1 else None,
+        )
+        return (
+            []
+            if db_notifications is None or len(db_notifications) == 0
+            else [
+                Notification.from_prisma_notification(
+                    prisma_notification=db_notification
+                )
+                for db_notification in db_notifications
+            ]
         )
 
     async def get_notification_by_event_and_author_ids(
