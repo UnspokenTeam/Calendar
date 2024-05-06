@@ -419,7 +419,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                 "Request failed. Can't create event with wrong time interval."
             )
         event.id = str(uuid4())
-        event.created_at = datetime.now()
+        event.created_at = datetime.utcnow()
         event.deleted_at = None
         self._events.append(event)
         return event
@@ -482,7 +482,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                 for i in range(len(self._events))
                 if self._events[i].id == event_id and self._events[i].deleted_at is None
             )
-            self._events[index].deleted_at = datetime.now()
+            self._events[index].deleted_at = datetime.utcnow()
         except StopIteration:
             raise ValueNotFoundError("Event not found")
 
@@ -510,4 +510,4 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         if len(indexes) == 0:
             raise ValueNotFoundError("Events not found")
         for index in indexes:
-            self._events[index].deleted_at = datetime.now()
+            self._events[index].deleted_at = datetime.utcnow()

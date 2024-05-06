@@ -464,7 +464,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
         """
         await self._db_client.db.prismaevent.update_many(
             where={"id": event_id, "deleted_at": None},
-            data={"deleted_at": datetime.now()},
+            data={"deleted_at": datetime.utcnow()},
         )
 
     async def delete_events_by_author_id(self, author_id: str) -> None:
@@ -484,5 +484,5 @@ class EventRepositoryImpl(EventRepositoryInterface):
         """
         await self._db_client.db.prismaevent.update_many(
             where={"author_id": author_id, "deleted_at": None},
-            data={"deleted_at": datetime.now()},
+            data={"deleted_at": datetime.utcnow()},
         )
