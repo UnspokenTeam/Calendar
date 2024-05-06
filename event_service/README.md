@@ -6,45 +6,53 @@ ___
 ___
 1. **Образец .env файла**
 	```
+	; Адрес базы данных
 	DATABASE_URL="DATABASE_URL"
+	; Вид окружения
 	ENVIRONMENT="ENVIRONMENT"
+	; Ключ для взаимодействия с LLM через API от OpenRouter
 	OPENROUTER_API_KEY="API_KEY"
 	```
-	- где:
-      - DATABASE_URL - адрес базы данных
-      - ENVIRONMENT - вид окружения
-      - OPENROUTER_API_KEY - ключ для взаимодействия с LLM через API от OpenRouter
 ___
 2. **Установка**:
-	- Доступно несколько способов установки.
+___  
+**Перед установкой**:
 
-    1. **Через docker**
-       - Установка осуществляется через **docker**, для установки пакета микросервиса введите и выполните команду:
-		```
-    	docker pull ghcr.io/unspokenteam/event_service:latest
- 		```
-       - Создайте .env файл, укажите его путь в команде и выполните её:
-		```
-		docker run -d -p 8081=8081 —env-file $PATH_TO_ENV ghcr.io/unspokenteam/event_service:latest
- 		```
+1. Сделать ```docker pull``` для custom_postgres или подготовить собственный instance PostgreSQL
+```bash
+docker pull ghcr.io/unspokenteam/custom_postgres:latest
+```
+2. Подготовить локальный инстанс redis ([Setup redis with docker](https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/docker/))
+___  
+- Далее доступно несколько способов установки.
 
-	2. **Через poetry**
-        - Также возможен локальный запуск при помощи утилиты poetry **без использования docker'a**. Для этого введите и выполните команду:
-        ```
-    	poetry install
-    	```
-    	- Сгенерируйте proto файлы, выполнив команду:
-    	```
-    	poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ../shared/proto/user/*.proto ../shared/proto/event_service/*.proto && poetry run protol --create-package --in-place --python-out generated protoc --experimental_allow_proto3_optional --proto-path=../shared/proto ../shared/proto/event_service/*.proto ../shared/proto/user/*.proto
-        ```
-    	- Сгенерируйте prisma клиент, выполнив команду:
-    	```
-    	poetry run prisma generate
-        ```
-        - Создайте .env файл в папке микросервиса. Добавьте вызов load_dotenv из модуля dotenv в методе serve в файле main.py и выполните команду:
-        ```
-        poetry run python main.py
-        ```
+  1. **Через docker**
+     - Установка осуществляется через **docker**, для установки пакета микросервиса введите и выполните команду:
+      ```bash
+      docker pull ghcr.io/unspokenteam/event_service:latest
+      ```
+     - Создайте .env файл, укажите его путь в команде и выполните её:
+      ```bash
+      docker run -d -p 8081=8081 —env-file $PATH_TO_ENV ghcr.io/unspokenteam/event_service:latest
+      ```
+
+  2. **Через poetry**
+      - Также возможен локальный запуск при помощи утилиты poetry **без использования docker'a**. Для этого введите и выполните команду:
+      ```bash
+      poetry install
+      ```
+      - Сгенерируйте proto файлы, выполнив команду:
+      ```bash
+      poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ../shared/proto/user/*.proto ../shared/proto/event_service/*.proto && poetry run protol --create-package --in-place --python-out generated protoc --experimental_allow_proto3_optional --proto-path=../shared/proto ../shared/proto/event_service/*.proto ../shared/proto/user/*.proto
+      ```
+      - Сгенерируйте prisma клиент, выполнив команду:
+      ```bash
+      poetry run prisma generate
+      ```
+      - Создайте .env файл в папке микросервиса. Добавьте вызов load_dotenv из модуля dotenv в методе serve в файле main.py и выполните команду:
+      ```bash
+      poetry run python main.py
+      ```
 ---
 3. **О микросервисе**:
 	- Сервис полностью осуществляет взаимодействие с событиями (**event**'ами) в календаре.
