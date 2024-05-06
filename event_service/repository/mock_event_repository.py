@@ -29,7 +29,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         Returns page with events that have matches with given author id.
     async get_event_by_event_id(event_id)
         Returns event that has matches with given event id.
-    async get_events_by_events_ids(events_ids, page_number, items_per_page)
+    async get_events_by_events_ids(events_ids, page_number, items_per_page, start, end)
         Returns page of events that have matches with given list of event ids.
     async get_all_events(page_number, items_per_page, start, end)
         Returns page that contains part of all events.
