@@ -103,19 +103,19 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
                 repeating_notification = notification.__copy__()
                 while True:
                     repeating_notification.start += (
-                            Notification.delay_string_to_timedelta(
-                                notification.repeating_delay
-                            )
-                            * amount_of_repeats
+                        Notification.delay_string_to_timedelta(
+                            notification.repeating_delay
+                        )
+                        * amount_of_repeats
                     )
                     if repeating_notification.start > end:
                         break
                     if (
-                            start <= repeating_notification.start
-                            if start is not None
-                            else True
+                        start <= repeating_notification.start
+                        if start is not None
+                        else True
                     ) and (
-                            repeating_notification.start <= end if end is not None else True
+                        repeating_notification.start <= end if end is not None else True
                     ):
                         notifications.append(repeating_notification)
                     amount_of_repeats += 1
@@ -125,7 +125,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         )
         return (
             notifications[
-                items_per_page * (page_number - 1): items_per_page * page_number
+                items_per_page * (page_number - 1) : items_per_page * page_number
             ]
             if items_per_page != -1
             else notifications
@@ -308,12 +308,12 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
                 raise UniqueError("Notifications already exists")
             self._notifications[index].enabled = True
             if self._notifications[index].deleted_at is not None:
-                self._notifications[index].created_at = datetime.now()
+                self._notifications[index].created_at = datetime.utcnow()
                 self._notifications[index].deleted_at = None
             return self._notifications[index]
         except StopIteration:
             notification.id = str(uuid4())
-            notification.created_at = datetime.now()
+            notification.created_at = datetime.utcnow()
             notification.deleted_at = None
             notification.enabled = True
             self._notifications.append(notification)
@@ -375,7 +375,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
                 and self._notifications[i].deleted_at is None
             )
             self._notifications[index].enabled = False
-            self._notifications[index].deleted_at = datetime.now()
+            self._notifications[index].deleted_at = datetime.utcnow()
         except StopIteration:
             raise ValueNotFoundError("Notification not found")
 
@@ -409,7 +409,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             raise ValueNotFoundError("Notifications not found")
         for index in indexes:
             self._notifications[index].enabled = False
-            self._notifications[index].deleted_at = datetime.now()
+            self._notifications[index].deleted_at = datetime.utcnow()
 
     async def delete_notifications_by_author_id(self, author_id: str) -> None:
         """
@@ -436,7 +436,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             raise ValueNotFoundError("Notifications not found")
         for index in indexes:
             self._notifications[index].enabled = False
-            self._notifications[index].deleted_at = datetime.now()
+            self._notifications[index].deleted_at = datetime.utcnow()
 
     async def delete_notifications_by_event_id(self, event_id: str) -> None:
         """
@@ -463,4 +463,4 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             raise ValueNotFoundError("Notifications not found")
         for index in indexes:
             self._notifications[index].enabled = False
-            self._notifications[index].deleted_at = datetime.now()
+            self._notifications[index].deleted_at = datetime.utcnow()

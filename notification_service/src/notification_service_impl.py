@@ -96,12 +96,12 @@ class NotificationServiceImpl(GrpcServicer):
                 author_id=request.author_id,
                 page_number=request.page_number,
                 items_per_page=request.items_per_page,
-                start=datetime.fromtimestamp(
+                start=datetime.utcfromtimestamp(
                     request.start.seconds + request.start.nanos / 1e9
                 )
                 if request.WhichOneof("optional_start") is not None
                 else None,
-                end=datetime.fromtimestamp(
+                end=datetime.utcfromtimestamp(
                     request.end.seconds + request.end.nanos / 1e9
                 )
                 if request.WhichOneof("optional_end") is not None

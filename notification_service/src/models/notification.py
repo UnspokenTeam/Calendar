@@ -12,7 +12,6 @@ from generated.notification_service.notification_service_pb2 import (
     GrpcNotification,
     Interval,
 )
-from pytz import utc
 
 
 @dataclass
@@ -133,10 +132,14 @@ class Notification:
             if self.repeating_delay is not None
             else None,
         )
-        notification.start.FromDatetime(self.start.astimezone(utc))
-        notification.created_at.FromDatetime(self.created_at.astimezone(utc))
+        notification.start.FromDatetime(self.start)
+        notification.created_at.FromDatetime(
+            self.created_at - (datetime.now() - datetime.utcnow())
+        )
         if self.deleted_at is not None:
-            notification.deleted_at.FromDatetime(self.deleted_at.astimezone(utc))
+            notification.deleted_at.FromDatetime(
+                self.deleted_at - (datetime.now() - datetime.utcnow())
+            )
 
         return notification
 
@@ -232,7 +235,7 @@ class Notification:
             event_id=grpc_notification.event_id,
             author_id=grpc_notification.author_id,
             enabled=grpc_notification.enabled,
-            start=datetime.fromtimestamp(
+            start=datetime.utcfromtimestamp(
                 grpc_notification.start.seconds + grpc_notification.start.nanos / 1e9
             ),
             repeating_delay=(
@@ -249,12 +252,12 @@ class Notification:
                 if grpc_notification.WhichOneof("optional_repeating_delay") is not None
                 else None
             ),
-            created_at=datetime.fromtimestamp(
+            created_at=datetime.utcfromtimestamp(
                 grpc_notification.created_at.seconds
                 + grpc_notification.created_at.nanos / 1e9
             ),
             deleted_at=(
-                datetime.fromtimestamp(
+                datetime.utcfromtimestamp(
                     grpc_notification.deleted_at.seconds
                     + grpc_notification.deleted_at.nanos / 1e9
                 )

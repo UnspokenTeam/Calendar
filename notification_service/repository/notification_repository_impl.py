@@ -382,7 +382,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
                     },
                     data={"enabled": True}
                     | (
-                        {"created_at": datetime.now(), "deleted_at": None}
+                        {"created_at": datetime.utcnow(), "deleted_at": None}
                         if db_notification.deleted_at is not None
                         else {}
                     ),
@@ -442,7 +442,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         """
         await self._db_client.db.prismanotification.update_many(
             where={"id": notification_id, "deleted_at": None},
-            data={"enabled": False, "deleted_at": datetime.now()},
+            data={"enabled": False, "deleted_at": datetime.utcnow()},
         )
 
     async def delete_notifications_by_events_and_author_ids(
@@ -470,7 +470,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
                 "author_id": author_id,
                 "deleted_at": None,
             },
-            data={"enabled": False, "deleted_at": datetime.now()},
+            data={"enabled": False, "deleted_at": datetime.utcnow()},
         )
 
     async def delete_notifications_by_author_id(self, author_id: str) -> None:
@@ -490,7 +490,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         """
         await self._db_client.db.prismanotification.update_many(
             where={"author_id": author_id, "deleted_at": None},
-            data={"enabled": False, "deleted_at": datetime.now()},
+            data={"enabled": False, "deleted_at": datetime.utcnow()},
         )
 
     async def delete_notifications_by_event_id(self, event_id: str) -> None:
@@ -510,5 +510,5 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         """
         await self._db_client.db.prismanotification.update_many(
             where={"event_id": event_id, "deleted_at": None},
-            data={"enabled": False, "deleted_at": datetime.now()},
+            data={"enabled": False, "deleted_at": datetime.utcnow()},
         )
