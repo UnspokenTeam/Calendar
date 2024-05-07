@@ -133,12 +133,15 @@ class Notification:
             else None,
         )
         notification.start.FromDatetime(self.start)
-        notification.created_at.FromDatetime(
-            self.created_at - (datetime.now() - datetime.utcnow())
+        notification.created_at.FromNanoseconds(
+            int(self.created_at.replace(tzinfo=datetime.now().tzinfo).timestamp() * 1e9)
         )
         if self.deleted_at is not None:
-            notification.deleted_at.FromDatetime(
-                self.deleted_at - (datetime.now() - datetime.utcnow())
+            notification.deleted_at.FromNanoseconds(
+                int(
+                    self.deleted_at.replace(tzinfo=datetime.now().tzinfo).timestamp()
+                    * 1e9
+                )
             )
 
         return notification
