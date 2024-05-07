@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from errors.unique_error import UniqueError
 from errors.value_not_found_error import ValueNotFoundError
+from errors.wrong_inerval_error import WrongIntervalError
 from src.models.notification import Notification
 from utils.singleton import singleton
 
@@ -86,7 +87,14 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         List[Notification]
             List of notifications that match by author id.
 
+        Raises
+        ------
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
+
         """
+        if start is not None and end is not None and start > end:
+            raise WrongIntervalError("Request failed. Wrong time interval.")
         notifications = [
             notification
             for notification in self._notifications

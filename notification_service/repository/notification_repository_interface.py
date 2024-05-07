@@ -74,6 +74,8 @@ class NotificationRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
         pass
