@@ -74,27 +74,19 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         List[Notification]
             List of notifications that match by author id.
 
-        Raises
-        ------
-        ValueNotFoundError
-            No notifications were found for given author id.
-
         """
         notifications = [
             notification
             for notification in self._notifications
             if notification.author_id == author_id and notification.deleted_at is None
         ]
-        notifications = (
+        return (
             notifications[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
             if items_per_page != -1
             else notifications
         )
-        if notifications is None or len(notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
-        return notifications
 
     async def get_notification_by_event_and_author_ids(
         self, event_id: str, author_id: str
@@ -183,27 +175,19 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         List[Notification]
             List of notifications that match by notification id.
 
-        Raises
-        ------
-        ValueNotFoundError
-            No notifications were found for given notification ids.
-
         """
         notifications = [
             notification
             for notification in self._notifications
             if notification.id in notifications_ids and notification.deleted_at is None
         ]
-        notifications = (
+        return (
             notifications[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
             if items_per_page != -1
             else notifications
         )
-        if notifications is None or len(notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
-        return notifications
 
     async def get_all_notifications(
         self, page_number: int, items_per_page: int
@@ -223,22 +207,14 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         List[Notification]
             List of notifications.
 
-        Raises
-        ------
-        ValueNotFoundError
-            No notifications were found.
-
         """
-        notifications = (
+        return (
             self._notifications[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
             if items_per_page != -1
             else self._notifications
         )
-        if notifications is None or len(notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
-        return notifications
 
     async def create_notification(self, notification: Notification) -> Notification:
         """

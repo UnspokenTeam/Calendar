@@ -335,31 +335,34 @@ async def create_multiple_invites(
         If some users or events does not exist or user does not have permission to them
 
     """
+    invitee_ids = list(set([str(invite.invitee_id) for invite in invites]))
     users: GrpcListOfUsers = (
         await grpc_clients.identity_service_client.request().get_users_by_id(
             GrpcGetUsersByIdRequest(
-                page=1, items_per_page=-1, id=[str(invite.invitee_id) for invite in invites]
+                page=1, items_per_page=-1, id=invitee_ids
             )
         )
     )
-    if len(users.users) != len(invites):
+    if len(users.users) != len(invitee_ids):
         raise ValueError("Some users do not exist")
 
+    event_ids = list(set([str(invite.event_id) for invite in invites]))
     events: GrpcListOfEvents = (
         await grpc_clients.event_service_client.request().get_events_by_events_ids(
             GrpcGetEventsByEventIdsRequest(
                 page_number=1,
                 items_per_page=-1,
                 events_ids=GrpcListOfEventsIds(
-                    ids=[str(invite.event_id) for invite in invites]
+                    ids=event_ids
                 ),
             )
         )
     )
-    if len(events.events) != len(invites) and all(
-        [event.author_id == user.id for event in events.events]
-    ):
+    if len(events.events) != len(event_ids):
         raise ValueError("Some events do not exist")
+
+    if any([event.author_id != user.id for event in events.events]):
+        raise PermissionDeniedError("Permission denied")
 
     await grpc_clients.invite_service_client.request().create_multiple_invites(
         GrpcInvitesRequest(
@@ -529,7 +532,7 @@ async def check_permission_for_event(
                 )
             )
         )
-        if not any([invite.event_id == event_id for invite in invites.invites.invites]):
+        if len(invites.invites.invites) == 0 or not any([invite.event_id == event_id for invite in invites.invites.invites]) :
             raise PermissionDeniedError("Permission denied")
 
 
