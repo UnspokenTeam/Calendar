@@ -120,16 +120,16 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
                 else "notification.start::timestamp + \'1 MONTH\'::interval"
             )
         )
-        # fmt: on
         author_id_for_query = f"'{author_id}'"
         repeating_notification_start_condition = (
-            f"\n\tAND {start_date}::timestamp <= pattern.start"
+            f"\n\tAND {start_date}::timestamp <= pattern.\"notification_start\""
             if start is not None
             else ""
         )
         repeating_notification_end_condition = (
-            f"\n\tAND pattern.start <= {end_date}::timestamp" if end is not None else ""
+            f"\n\tAND pattern.\"notification_start\" <= {end_date}::timestamp" if end is not None else ""
         )
+        # fmt: on
         pagination_parameters = (
             f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
             if items_per_page != -1
@@ -188,7 +188,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
 
         """
         db_notifications = await self._db_client.db.prismanotification.find_many(
-            where={"event_id": event_id, "deleted_at": None},
+            where={"event_id": event_id, "enabled": True, "deleted_at": None},
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
@@ -230,7 +230,12 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         db_notification: Optional[
             PrismaNotification
         ] = await self._db_client.db.prismanotification.find_first(
-            where={"event_id": event_id, "author_id": author_id, "deleted_at": None}
+            where={
+                "event_id": event_id,
+                "author_id": author_id,
+                "enabled": True,
+                "deleted_at": None,
+            }
         )
         if db_notification is None:
             raise ValueNotFoundError("Notification not found")
@@ -265,7 +270,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         db_notification: Optional[
             PrismaNotification
         ] = await self._db_client.db.prismanotification.find_first(
-            where={"id": notification_id, "deleted_at": None}
+            where={"id": notification_id, "enabled": True, "deleted_at": None}
         )
         if db_notification is None:
             raise ValueNotFoundError("Notification not found")
@@ -306,6 +311,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         ] = await self._db_client.db.prismanotification.find_many(
             where={
                 "id": {"in": notifications_ids},
+                "enabled": True,
                 "deleted_at": None,
             },
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),

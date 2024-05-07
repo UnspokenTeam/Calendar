@@ -90,7 +90,9 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         notifications = [
             notification
             for notification in self._notifications
-            if notification.author_id == author_id and notification.deleted_at is None
+            if notification.author_id == author_id
+            and notification.enabled
+            and notification.deleted_at is None
         ]
         if notifications is None or len(notifications) == 0:
             return []
@@ -154,7 +156,9 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         notifications = [
             notification
             for notification in self._notifications
-            if notification.event_id == event_id and notification.deleted_at is None
+            if notification.event_id == event_id
+            and notification.enabled
+            and notification.deleted_at is None
         ]
         notifications = (
             notifications[
@@ -195,6 +199,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
                 for notification in self._notifications
                 if notification.author_id == author_id
                 and notification.event_id == event_id
+                and notification.enabled
                 and notification.deleted_at is None
             )
         except StopIteration:
@@ -227,6 +232,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
                 notification
                 for notification in self._notifications
                 if notification.id == notification_id
+                and notification.enabled
                 and notification.deleted_at is None
             )
         except StopIteration:
@@ -261,7 +267,9 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         notifications = [
             notification
             for notification in self._notifications
-            if notification.id in notifications_ids and notification.deleted_at is None
+            if notification.id in notifications_ids
+            and notification.enabled
+            and notification.deleted_at is None
         ]
         notifications = (
             notifications[
