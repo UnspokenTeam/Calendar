@@ -3,6 +3,8 @@ from datetime import datetime
 from typing import List
 from uuid import uuid4
 
+from pytz import utc
+
 from errors.unique_error import UniqueError
 from errors.value_not_found_error import ValueNotFoundError
 from src.models.user import User
@@ -181,6 +183,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             raise UniqueError("User with this data already exists")
 
         user.id = str(uuid4())
+        user.created_at = datetime.now().astimezone(utc)
         self._users.append(user)
         return user
 
@@ -232,7 +235,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
                 for i in range(len(self._users))
                 if self._users[i].id == user_id and self._users[i].suspended_at is None
             )
-            self._users[index].suspended_at = datetime.now()
+            self._users[index].suspended_at = datetime.now().astimezone(utc)
         except StopIteration:
             raise ValueNotFoundError("No user found")
 
