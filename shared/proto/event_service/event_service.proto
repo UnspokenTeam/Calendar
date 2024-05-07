@@ -39,7 +39,7 @@ message EventRequestByEventId {
 
 message EventsRequestByEventsIds {
   ListOfEventsIds events_ids = 1;
-    oneof optional_start {
+  oneof optional_start {
     google.protobuf.NullValue start_null = 2;
     google.protobuf.Timestamp start = 3;
   }
