@@ -115,16 +115,16 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 else "event.start::timestamp + \'1 MONTH\'::interval"
             )
         )
-        # fmt: on
         author_id_for_query = f"'{author_id}'"
         repeating_event_start_condition = (
-            f"\n\tAND {start_date}::timestamp <= pattern.start"
+            f"\n\tAND {start_date}::timestamp <= pattern.\"event_start\""
             if start is not None
             else ""
         )
         repeating_event_end_condition = (
-            f"\n\tAND pattern.start <= {end_date}::timestamp" if end is not None else ""
+            f"\n\tAND pattern.\"event_start\" <= {end_date}::timestamp" if end is not None else ""
         )
+        # fmt: on
         pagination_parameters = (
             f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
             if items_per_page != -1
@@ -245,16 +245,16 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 else "event.start::timestamp + \'1 MONTH\'::interval"
             )
         )
-        # fmt: on
         events_ids_for_query = ", ".join(f"'{event_id}'" for event_id in events_ids)
         repeating_event_start_condition = (
-            f"\n\tAND {start_date}::timestamp <= pattern.start"
+            f"\n\tAND {start_date}::timestamp <= pattern.\"event_start\""
             if start is not None
             else ""
         )
         repeating_event_end_condition = (
-            f"\n\tAND pattern.start <= {end_date}::timestamp" if end is not None else ""
+            f"\n\tAND pattern.\"event_start\" <= {end_date}::timestamp" if end is not None else ""
         )
+        # fmt: on
         pagination_parameters = (
             f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
             if items_per_page != -1
@@ -341,21 +341,21 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 else "event.start::timestamp + \'1 MONTH\'::interval"
             )
         )
-        # fmt: on
         where_condition_for_repeating_events = (
             (
                 "\nWHERE\n\t"
                 + (
-                    f"{start_date}::timestamp <= pattern.start"
+                    f"{start_date}::timestamp <= pattern.\"event_start\""
                     if start is not None
                     else ""
                 )
                 + ("\n\tAND " if start is not None and end is not None else "")
-                + (f"pattern.start <= {end_date}::timestamp" if end is not None else "")
+                + (f"pattern.\"event_start\" <= {end_date}::timestamp" if end is not None else "")
             )
             if start is not None or end is not None
             else ""
         )
+        # fmt: on
         pagination_parameters = (
             f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
             if items_per_page != -1
