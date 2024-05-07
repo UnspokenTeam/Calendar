@@ -138,12 +138,15 @@ class Event:
         )
         event.start.FromDatetime(self.start)
         event.end.FromDatetime(self.end)
-        event.created_at.FromDatetime(
-            self.created_at - (datetime.now() - datetime.utcnow())
+        event.created_at.FromNanoseconds(
+            int(self.created_at.replace(tzinfo=datetime.now().tzinfo).timestamp() * 1e9)
         )
         if self.deleted_at is not None:
-            event.deleted_at.FromDatetime(
-                self.deleted_at - (datetime.now() - datetime.utcnow())
+            event.deleted_at.FromNanoseconds(
+                int(
+                    self.deleted_at.replace(tzinfo=datetime.now().tzinfo).timestamp()
+                    * 1e9
+                )
             )
         return event
 
