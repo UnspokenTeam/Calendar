@@ -20,7 +20,6 @@ ___
 ```bash
 docker pull ghcr.io/unspokenteam/custom_postgres:latest
 ```
-2. Подготовить локальный инстанс redis ([Setup redis with docker](https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/docker/))
 ___  
 - Далее доступно несколько способов установки.
 
