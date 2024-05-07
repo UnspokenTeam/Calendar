@@ -105,7 +105,7 @@ class CreateEventRequest(BaseModel):
     end: datetime
     description: Optional[str]
     color: Optional[str]
-    repeating_delay: Optional[Interval]
+    repeating_delay: Optional[Interval] = None
 
 
 @router.get("/my/created")
@@ -239,7 +239,7 @@ async def get_my_invited_events(
     return [Event.from_proto(event) for event in invited_events_request.events]
 
 
-@router.get("/{event-id}")
+@router.get("/{event_id}")
 async def get_event(
         event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
         user: Annotated[GrpcUser, Depends(auth)],

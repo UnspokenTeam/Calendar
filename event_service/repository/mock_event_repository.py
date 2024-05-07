@@ -1,6 +1,7 @@
 """Mock event repository"""
 
-from datetime import datetime
+from calendar import isleap
+from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import uuid4
 
@@ -28,7 +29,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         Returns page with events that have matches with given author id.
     async get_event_by_event_id(event_id)
         Returns event that has matches with given event id.
-    async get_events_by_events_ids(events_ids, page_number, items_per_page)
+    async get_events_by_events_ids(events_ids, page_number, items_per_page, start, end)
         Returns page of events that have matches with given list of event ids.
     async get_all_events(page_number, items_per_page, start, end)
         Returns page that contains part of all events.
@@ -124,12 +125,37 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                     and event.deleted_at is None
                 ):
                     events.append(event)
-        events = (
+        if events is None or len(events) == 0:
+            return []
+        if start is not None and end is None:
+            end = start + timedelta(days=366 if isleap(start.year) else 365)
+        for event in events[:]:
+            if event.repeating_delay is not None:
+                amount_of_repeats = 1
+                repeating_event = event.__copy__()
+                while True:
+                    repeating_event.start += (
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
+                    )
+                    repeating_event.end += (
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
+                    )
+                    if repeating_event.start > end:
+                        break
+                    if (
+                        start <= repeating_event.start if start is not None else True
+                    ) and (repeating_event.start <= end if end is not None else True):
+                        events.append(repeating_event)
+                    amount_of_repeats += 1
+                    repeating_event = event.__copy__()
+        events = sorted(events, key=lambda event_sort: event_sort.start)
+        return (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
             else events
         )
-        return events
 
     async def get_event_by_event_id(self, event_id: str) -> Event:
         """
@@ -236,12 +262,37 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                     and event.deleted_at is None
                 ):
                     events.append(event)
-        events = (
+        if events is None or len(events) == 0:
+            return []
+        if start is not None and end is None:
+            end = start + timedelta(days=366 if isleap(start.year) else 365)
+        for event in events[:]:
+            if event.repeating_delay is not None:
+                amount_of_repeats = 1
+                repeating_event = event.__copy__()
+                while True:
+                    repeating_event.start += (
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
+                    )
+                    repeating_event.end += (
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
+                    )
+                    if repeating_event.start > end:
+                        break
+                    if (
+                        start <= repeating_event.start if start is not None else True
+                    ) and (repeating_event.start <= end if end is not None else True):
+                        events.append(repeating_event)
+                    amount_of_repeats += 1
+                    repeating_event = event.__copy__()
+        events = sorted(events, key=lambda event_sort: event_sort.start)
+        return (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
             else events
         )
-        return events
 
     async def get_all_events(
         self,
@@ -311,12 +362,37 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                     event.start <= end if end is not None else True
                 ):
                     events.append(event)
-        events = (
+        if events is None or len(events) == 0:
+            return []
+        if start is not None and end is None:
+            end = start + timedelta(days=366 if isleap(start.year) else 365)
+        for event in events[:]:
+            if event.repeating_delay is not None:
+                amount_of_repeats = 1
+                repeating_event = event.__copy__()
+                while True:
+                    repeating_event.start += (
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
+                    )
+                    repeating_event.end += (
+                        Event.delay_string_to_timedelta(event.repeating_delay)
+                        * amount_of_repeats
+                    )
+                    if repeating_event.start > end:
+                        break
+                    if (
+                        start <= repeating_event.start if start is not None else True
+                    ) and (repeating_event.start <= end if end is not None else True):
+                        events.append(repeating_event)
+                    amount_of_repeats += 1
+                    repeating_event = event.__copy__()
+        events = sorted(events, key=lambda event_sort: event_sort.start)
+        return (
             events[items_per_page * (page_number - 1) : items_per_page * page_number]
             if items_per_page != -1
             else events
         )
-        return events
 
     async def create_event(self, event: Event) -> Event:
         """
@@ -343,7 +419,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                 "Request failed. Can't create event with wrong time interval."
             )
         event.id = str(uuid4())
-        event.created_at = datetime.now()
+        event.created_at = datetime.utcnow()
         event.deleted_at = None
         self._events.append(event)
         return event
@@ -406,7 +482,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
                 for i in range(len(self._events))
                 if self._events[i].id == event_id and self._events[i].deleted_at is None
             )
-            self._events[index].deleted_at = datetime.now()
+            self._events[index].deleted_at = datetime.utcnow()
         except StopIteration:
             raise ValueNotFoundError("Event not found")
 
@@ -434,4 +510,4 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         if len(indexes) == 0:
             raise ValueNotFoundError("Events not found")
         for index in indexes:
-            self._events[index].deleted_at = datetime.now()
+            self._events[index].deleted_at = datetime.utcnow()
