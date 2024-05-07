@@ -141,18 +141,10 @@ class EventRepositoryImpl(EventRepositoryInterface):
             ),
             model=PrismaEvent,
         )
-        return (
-            []
-            if (
-                events := [
-                    Event.from_prisma_event(prisma_event=db_event)
-                    for db_event in db_events
-                ]
-            )
-            is None
-            or len(events) == 0
-            else events
-        )
+        return [
+            Event.from_prisma_event(prisma_event=db_event)
+            for db_event in db_events
+        ]
 
     async def get_event_by_event_id(self, event_id: str) -> Event:
         """
@@ -271,18 +263,10 @@ class EventRepositoryImpl(EventRepositoryInterface):
             ),
             model=PrismaEvent,
         )
-        return (
-            []
-            if (
-                events := [
-                    Event.from_prisma_event(prisma_event=db_event)
-                    for db_event in db_events
-                ]
-            )
-            is None
-            or len(events) == 0
-            else events
-        )
+        return [
+            Event.from_prisma_event(prisma_event=db_event)
+            for db_event in db_events
+        ]
 
     async def get_all_events(
         self,
@@ -370,18 +354,10 @@ class EventRepositoryImpl(EventRepositoryInterface):
             ),
             model=PrismaEvent,
         )
-        return (
-            []
-            if (
-                events := [
-                    Event.from_prisma_event(prisma_event=db_event)
-                    for db_event in db_events
-                ]
-            )
-            is None
-            or len(events) == 0
-            else events
-        )
+        return [
+            Event.from_prisma_event(prisma_event=db_event)
+            for db_event in db_events
+        ]
 
     async def create_event(self, event: Event) -> Event:
         """

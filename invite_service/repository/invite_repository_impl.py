@@ -99,7 +99,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
-        return invites
+        return [Invite.from_prisma_invite(invite) for invite in invites]
 
     async def get_invites_by_author_id(
         self,
@@ -202,9 +202,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        db_invites: Optional[
-            List[PrismaInvite]
-        ] = await self._db_client.db.invite.find_many(
+        db_invites = await self._db_client.db.invite.find_many(
             where={"status": str(status)} if status is not None else None,
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
@@ -246,9 +244,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
             Catch all for every exception raised by Prisma Client Python.
 
         """
-        db_invites: Optional[
-            List[PrismaInvite]
-        ] = await self._db_client.db.invite.find_many(
+        db_invites = await self._db_client.db.invite.find_many(
             where={
                 "invitee_id": invitee_id,
                 "deleted_at": None,

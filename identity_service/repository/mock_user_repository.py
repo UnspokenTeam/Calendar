@@ -133,13 +133,12 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             for user in self._users
             if user.id in user_ids and user.suspended_at is None
         ]
-        values = (
+
+        return (
             values[(page - 1) * items_per_page : page * items_per_page]
             if items_per_page != -1
             else values
         )
-
-        return values
 
     async def create_user(self, user: User) -> User:
         """
@@ -247,13 +246,11 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             All existing users
 
         """
-        result = (
+        return (
             self._users[(page - 1) * items_per_page : page * items_per_page]
             if items_per_page != -1
             else self._users
         )
-
-        return result
 
     async def get_user_by_session_id(self, session_id: str) -> User:
         """
