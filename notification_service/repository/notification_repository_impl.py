@@ -146,20 +146,10 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             ),
             model=PrismaNotification,
         )
-        return (
-            []
-            if (
-                notifications := [
-                    Notification.from_prisma_notification(
-                        prisma_notification=db_notification
-                    )
-                    for db_notification in db_notifications
-                ]
-            )
-            is None
-            or len(notifications) == 0
-            else notifications
-        )
+        return [
+            Notification.from_prisma_notification(prisma_notification=db_notification)
+            for db_notification in db_notifications
+        ]
 
     async def get_notifications_by_event_id(
         self, event_id: str, page_number: int, items_per_page: int
