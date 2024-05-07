@@ -9,7 +9,6 @@ from prisma.models import PrismaEvent
 from constants import INTERVAL_SLOTS
 from dateutil.relativedelta import relativedelta
 from generated.event_service.event_service_pb2 import GrpcEvent, Interval
-from pytz import utc
 
 
 @dataclass
@@ -137,11 +136,18 @@ class Event:
             if self.repeating_delay is not None
             else None,
         )
-        event.start.FromDatetime(self.start.astimezone(utc))
-        event.end.FromDatetime(self.end.astimezone(utc))
-        event.created_at.FromDatetime(self.created_at.astimezone(utc))
+        event.start.FromDatetime(self.start)
+        event.end.FromDatetime(self.end)
+        event.created_at.FromNanoseconds(
+            int(self.created_at.replace(tzinfo=datetime.now().tzinfo).timestamp() * 1e9)
+        )
         if self.deleted_at is not None:
-            event.deleted_at.FromDatetime(self.deleted_at.astimezone(utc))
+            event.deleted_at.FromNanoseconds(
+                int(
+                    self.deleted_at.replace(tzinfo=datetime.now().tzinfo).timestamp()
+                    * 1e9
+                )
+            )
         return event
 
     def to_dict(self, exclude: Optional[List[str]] = None) -> Dict[str, Any]:
@@ -166,6 +172,29 @@ class Event:
             for attr, value in attrs.items()
             if attr not in exclude_set
         }
+
+    def __copy__(self) -> "Event":
+        """
+        Copies event.
+
+        Returns
+        -------
+        Event
+            Event class instance.
+
+        """
+        return Event(
+            id=self.id,
+            title=self.title,
+            start=self.start,
+            end=self.end,
+            author_id=self.author_id,
+            description=self.description,
+            color=self.color,
+            repeating_delay=self.repeating_delay,
+            created_at=self.created_at,
+            deleted_at=self.deleted_at,
+        )
 
     @classmethod
     def from_prisma_event(cls, prisma_event: PrismaEvent) -> Self:
@@ -214,10 +243,10 @@ class Event:
         return cls(
             id=grpc_event.id,
             title=grpc_event.title,
-            start=datetime.fromtimestamp(
+            start=datetime.utcfromtimestamp(
                 grpc_event.start.seconds + grpc_event.start.nanos / 1e9
             ),
-            end=datetime.fromtimestamp(
+            end=datetime.utcfromtimestamp(
                 grpc_event.end.seconds + grpc_event.end.nanos / 1e9
             ),
             author_id=grpc_event.author_id,
@@ -240,11 +269,11 @@ class Event:
                 if grpc_event.WhichOneof("optional_repeating_delay") is not None
                 else None
             ),
-            created_at=datetime.fromtimestamp(
+            created_at=datetime.utcfromtimestamp(
                 grpc_event.created_at.seconds + grpc_event.created_at.nanos / 1e9
             ),
             deleted_at=(
-                datetime.fromtimestamp(
+                datetime.utcfromtimestamp(
                     grpc_event.deleted_at.seconds + grpc_event.deleted_at.nanos / 1e9
                 )
                 if grpc_event.WhichOneof("optional_deleted_at") is not None

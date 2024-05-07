@@ -10,3 +10,4 @@ spec:
       port: 8082
       targetPort: ins-port
   clusterIP: None
+  type: ClusterIP

@@ -127,25 +127,18 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
         List[User]
             Users that has matching id
 
-        Raises
-        ------
-        ValueNotFoundError
-            Users does not exist
-
         """
         values = [
             user
             for user in self._users
             if user.id in user_ids and user.suspended_at is None
         ]
-        values = (
+
+        return (
             values[(page - 1) * items_per_page : page * items_per_page]
             if items_per_page != -1
             else values
         )
-        if len(values) == 0:
-            raise ValueNotFoundError("Users with these ids not exist")
-        return values
 
     async def create_user(self, user: User) -> User:
         """
@@ -253,14 +246,11 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             All existing users
 
         """
-        result = (
+        return (
             self._users[(page - 1) * items_per_page : page * items_per_page]
             if items_per_page != -1
             else self._users
         )
-        if len(result) == 0:
-            raise ValueNotFoundError("No users found")
-        return result
 
     async def get_user_by_session_id(self, session_id: str) -> User:
         """

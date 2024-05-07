@@ -259,7 +259,7 @@ async def update_notification_as_author(
 
     """
     if str(notification.author_id) != user.id:
-        raise PermissionDeniedError
+        raise PermissionDeniedError("Permission denied")
 
     stored_notification_response: GrpcNotification = (
         grpc_clients.notification_service_client.request().get_notification_by_notification_id(
@@ -287,7 +287,7 @@ async def update_notification_as_author(
 
 
 @router.put("/admin/")
-async def update_notification(
+async def update_notification_as_admin(
         notification: Notification,
         user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
@@ -318,7 +318,7 @@ async def update_notification(
 
     """
     if user.type != UserType.ADMIN:
-        raise PermissionDeniedError
+        raise PermissionDeniedError("Permission denied")
 
     _ = grpc_clients.event_service_client.request().get_event_by_event_id(
         GrpcGetEventByEventIdRequest(
@@ -404,5 +404,9 @@ async def check_permission_for_event(
                 items_per_page=-1
             )
         )
-        if not any([invite for invite in invites.invites.invites]):
+
+        if (
+            len(invites.invites.invites) == 0 or
+            not any([invite.event_id == event_id for invite in invites.invites.invites])
+        ):
             raise PermissionDeniedError("Permission denied")

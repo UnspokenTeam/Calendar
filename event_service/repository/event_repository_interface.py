@@ -17,7 +17,7 @@ class EventRepositoryInterface(ABC):
         Returns page with events that have matches with given author id.
     async get_event_by_event_id(event_id)
         Returns event that has matches with given event id.
-    async get_events_by_events_ids(events_ids, page_number, items_per_page)
+    async get_events_by_events_ids(events_ids, page_number, items_per_page, start, end)
         Returns page of events that have matches with given list of event ids.
     async get_all_events(page_number, items_per_page, start, end)
         Returns page that contains part of all events.
@@ -66,8 +66,6 @@ class EventRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No events were found for given author id.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -133,8 +131,8 @@ class EventRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No events were found for given event ids.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
         pass
@@ -170,8 +168,6 @@ class EventRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No events were found.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 

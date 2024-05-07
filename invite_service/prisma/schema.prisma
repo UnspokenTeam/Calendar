@@ -12,7 +12,7 @@ model Invite {
   event_id   String
   author_id  String
   invitee_id String
-  status     InviteStatus
+  status     InviteStatus @default(PENDING)
   created_at DateTime     @default(now())
   deleted_at DateTime?
 }

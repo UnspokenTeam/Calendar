@@ -192,16 +192,10 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
-        return (
-            []
-            if db_notifications is None or len(db_notifications) == 0
-            else [
-                Notification.from_prisma_notification(
-                    prisma_notification=db_notification
-                )
-                for db_notification in db_notifications
-            ]
-        )
+        return [
+            Notification.from_prisma_notification(prisma_notification=db_notification)
+            for db_notification in db_notifications
+        ]
 
     async def get_notification_by_event_and_author_ids(
         self, event_id: str, author_id: str
@@ -302,13 +296,9 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No notifications were found for given notifications ids.
 
         """
-        db_notifications: Optional[
-            List[PrismaNotification]
-        ] = await self._db_client.db.prismanotification.find_many(
+        db_notifications = await self._db_client.db.prismanotification.find_many(
             where={
                 "id": {"in": notifications_ids},
                 "enabled": True,
@@ -317,8 +307,6 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
-        if db_notifications is None or len(db_notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
         return [
             Notification.from_prisma_notification(prisma_notification=db_notification)
             for db_notification in db_notifications
@@ -346,18 +334,12 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No notifications were found.
 
         """
-        db_notifications: Optional[
-            List[PrismaNotification]
-        ] = await self._db_client.db.prismanotification.find_many(
+        db_notifications = await self._db_client.db.prismanotification.find_many(
             skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
             take=items_per_page if items_per_page != -1 else None,
         )
-        if db_notifications is None or len(db_notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
         return [
             Notification.from_prisma_notification(prisma_notification=db_notification)
             for db_notification in db_notifications
@@ -380,16 +362,16 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             Raises if the notification already exists.
 
         """
-        db_notification = await self._db_client.db.prismanotification.find_first(
-            where={
-                "event_id": notification.event_id,
-                "author_id": notification.author_id,
-            }
-        )
-        if db_notification is not None:
-            if db_notification.enabled:
-                raise UniqueError("Notification already exists")
-            async with self._db_client.db.tx() as transaction:
+        async with self._db_client.db.tx() as transaction:
+            db_notification = await transaction.prismanotification.find_first(
+                where={
+                    "event_id": notification.event_id,
+                    "author_id": notification.author_id,
+                }
+            )
+            if db_notification is not None:
+                if db_notification.enabled:
+                    raise UniqueError("Notification already exists")
                 await transaction.prismanotification.update_many(
                     where={
                         "event_id": notification.event_id,
@@ -410,9 +392,8 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
                         },
                     )
                 )
-        else:
             return Notification.from_prisma_notification(
-                await self._db_client.db.prismanotification.create(
+                await transaction.prismanotification.create(
                     data=notification.to_dict(
                         exclude=["enabled", "created_at", "deleted_at"]
                     )

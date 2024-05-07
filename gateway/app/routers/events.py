@@ -105,7 +105,7 @@ class CreateEventRequest(BaseModel):
     end: datetime
     description: Optional[str]
     color: Optional[str]
-    repeating_delay: Optional[Interval]
+    repeating_delay: Optional[Interval] = None
 
 
 @router.get("/my/created")
@@ -211,9 +211,12 @@ async def get_my_invited_events(
         )
     )
 
-    invited_events_id_list = set(
+    invited_events_id_list = list(
         item.event_id for item in invite_result.invites.invites
     )
+
+    if len(invited_events_id_list) == 0:
+        return []
 
     events_request = GrpcGetEventsRequestByEventsIdsRequest(
         events_ids=ListOfEventsIds(ids=invited_events_id_list),
@@ -236,7 +239,7 @@ async def get_my_invited_events(
     return [Event.from_proto(event) for event in invited_events_request.events]
 
 
-@router.get("/{event-id}")
+@router.get("/{event_id}")
 async def get_event(
         event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
         user: Annotated[GrpcUser, Depends(auth)],
@@ -277,33 +280,34 @@ async def get_event(
         notification_turned_on=False,
     )
 
-    try:
-        invited_people_request: GrpcGetInvitesResponse = (
-            grpc_clients.invite_service_client.request().get_invites_by_event_id(
-                GrpcInvitesByEventIdRequest(
-                    event_id=str(event_id),
-                    invite_status=GrpcInviteStatus.ACCEPTED
-                )
+    invited_people_request: GrpcGetInvitesResponse = (
+        grpc_clients.invite_service_client.request().get_invites_by_event_id(
+            GrpcInvitesByEventIdRequest(
+                event_id=str(event_id),
+                invite_status=GrpcInviteStatus.ACCEPTED
             )
         )
+    )
 
+    invited_people_ids = [
+        invite.event_id
+        for invite in invited_people_request.invites.invites
+    ]
+
+    if len(invited_people_ids) != 0:
         invited_people_response: GrpcListOfUsers = (
             grpc_clients.identity_service_client.request().get_users_by_id(
                 GrpcGetUsersByIdsRequest(
                     page=-1,
                     items_per_page=-1,
-                    id=[
-                        invite.event_id
-                        for invite in invited_people_request.invites.invites
-                    ],
+                    id=invited_people_ids,
                 )
             )
         )
+
         response.invited_users = [
             User.from_proto(person) for person in invited_people_response.users
         ]
-    except RpcError:
-        pass
 
     notification_request: GrpcNotification = (
         grpc_clients.notification_service_client.request().get_notification_by_event_and_author_ids(
