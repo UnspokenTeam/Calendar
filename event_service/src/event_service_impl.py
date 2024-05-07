@@ -79,12 +79,12 @@ class EventServiceImpl(GrpcServicer):
             author_id=request.author_id,
             page_number=request.page_number,
             items_per_page=request.items_per_page,
-            start=datetime.fromtimestamp(
+            start=datetime.utcfromtimestamp(
                 request.start.seconds + request.start.nanos / 1e9
             )
             if request.WhichOneof("optional_start") is not None
             else None,
-            end=datetime.fromtimestamp(request.end.seconds + request.end.nanos / 1e9)
+            end=datetime.utcfromtimestamp(request.end.seconds + request.end.nanos / 1e9)
             if request.WhichOneof("optional_end") is not None
             else None,
         )
@@ -114,7 +114,7 @@ class EventServiceImpl(GrpcServicer):
             event_id=request.event_id
         )
         if (
-            request.requesting_user.type != GrpcUserType.USER
+            request.requesting_user.type != GrpcUserType.ADMIN
             and request.requesting_user.id != event.author_id
         ):
             raise PermissionDeniedError("Permission denied.")
@@ -144,12 +144,12 @@ class EventServiceImpl(GrpcServicer):
             events_ids=list(request.events_ids.ids),
             page_number=request.page_number,
             items_per_page=request.items_per_page,
-            start=datetime.fromtimestamp(
+            start=datetime.utcfromtimestamp(
                 request.start.seconds + request.start.nanos / 1e9
             )
             if request.WhichOneof("optional_start") is not None
             else None,
-            end=datetime.fromtimestamp(request.end.seconds + request.end.nanos / 1e9)
+            end=datetime.utcfromtimestamp(request.end.seconds + request.end.nanos / 1e9)
             if request.WhichOneof("optional_end") is not None
             else None,
         )
@@ -185,12 +185,12 @@ class EventServiceImpl(GrpcServicer):
         events = await self._event_repository.get_all_events(
             page_number=request.page_number,
             items_per_page=request.items_per_page,
-            start=datetime.fromtimestamp(
+            start=datetime.utcfromtimestamp(
                 request.start.seconds + request.start.nanos / 1e9
             )
             if request.WhichOneof("optional_start") is not None
             else None,
-            end=datetime.fromtimestamp(request.end.seconds + request.end.nanos / 1e9)
+            end=datetime.utcfromtimestamp(request.end.seconds + request.end.nanos / 1e9)
             if request.WhichOneof("optional_end") is not None
             else None,
         )

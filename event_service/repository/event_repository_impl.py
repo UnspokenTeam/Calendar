@@ -35,7 +35,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
         Returns page with events that have matches with given author id.
     async get_event_by_event_id(event_id)
         Returns event that has matches with given event id.
-    async get_events_by_events_ids(events_ids, page_number, items_per_page)
+    async get_events_by_events_ids(events_ids, page_number, items_per_page, start, end)
         Returns page of events that have matches with given list of event ids.
     async get_all_events(page_number, items_per_page, start, end)
         Returns page that contains part of all events.
@@ -88,8 +88,6 @@ class EventRepositoryImpl(EventRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No events were found for given author id.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -108,30 +106,24 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 f"\'{end.day:02d}/{end.month:02d}/{end.year:04d} "
                 f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}\'"
             )
-        author_id_for_query = f"\'{author_id}\'"
-        # fmt: on
-        event_start_condition = (
-            f"\n\tAND {start_date}::timestamp <= event.start"
-            if start is not None
-            else ""
-        )
-        event_end_condition = (
-            f"\n\tAND event.start <= {end_date}::timestamp" if end is not None else ""
-        )
         time_interval = (
-            f"timestamp {end_date}"
+            f"{end_date}::timestamp"
             if end is not None
-            else f"{start_date}::timestamp + event.repeating_delay::interval"
+            else (
+                f"{start_date}::timestamp + \'1 MONTH\'::interval"
+                if start_date is not None
+                else "event.start::timestamp + \'1 MONTH\'::interval"
+            )
         )
+        # fmt: on
+        author_id_for_query = f"'{author_id}'"
         repeating_event_start_condition = (
-            f"\n\tAND {start_date}::timestamp <= pattern.event_start_series"
+            f"\n\tAND {start_date}::timestamp <= pattern.start"
             if start is not None
             else ""
         )
         repeating_event_end_condition = (
-            f"\n\tAND pattern.event_start_series <= {end_date}::timestamp"
-            if end is not None
-            else ""
+            f"\n\tAND pattern.start <= {end_date}::timestamp" if end is not None else ""
         )
         pagination_parameters = (
             f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
@@ -139,11 +131,8 @@ class EventRepositoryImpl(EventRepositoryInterface):
             else ""
         )
         await self._db_client.db.execute_raw("SET datestyle = DMY;")
-        db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
+        db_events = await self._db_client.db.query_raw(
             GET_EVENTS_BY_AUTHOR_ID_QUERY.format(
-                author_id_for_query,
-                event_start_condition,
-                event_end_condition,
                 time_interval,
                 author_id_for_query,
                 repeating_event_start_condition,
@@ -152,11 +141,18 @@ class EventRepositoryImpl(EventRepositoryInterface):
             ),
             model=PrismaEvent,
         )
-        if db_events is None or len(db_events) == 0:
-            raise ValueNotFoundError("Events not found")
-        return [
-            Event.from_prisma_event(prisma_event=db_event) for db_event in db_events
-        ]
+        return (
+            []
+            if (
+                events := [
+                    Event.from_prisma_event(prisma_event=db_event)
+                    for db_event in db_events
+                ]
+            )
+            is None
+            or len(events) == 0
+            else events
+        )
 
     async def get_event_by_event_id(self, event_id: str) -> Event:
         """
@@ -222,8 +218,8 @@ class EventRepositoryImpl(EventRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No events were found for given events ids.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
         if start is not None and end is not None and start > end:
@@ -240,30 +236,24 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 f"\'{end.day:02d}/{end.month:02d}/{end.year:04d} "
                 f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}\'"
             )
-        events_ids_for_query = ", ".join(f"\'{event_id}\'" for event_id in events_ids)
-        # fmt: on
-        event_start_condition = (
-            f"\n\tAND {start_date}::timestamp <= event.start"
-            if start is not None
-            else ""
-        )
-        event_end_condition = (
-            f"\n\tAND event.start <= {end_date}::timestamp" if end is not None else ""
-        )
         time_interval = (
-            f"timestamp {end_date}"
+            f"{end_date}::timestamp"
             if end is not None
-            else f"{start_date}::timestamp + event.repeating_delay::interval"
+            else (
+                f"{start_date}::timestamp + \'1 MONTH\'::interval"
+                if start_date is not None
+                else "event.start::timestamp + \'1 MONTH\'::interval"
+            )
         )
+        # fmt: on
+        events_ids_for_query = ", ".join(f"'{event_id}'" for event_id in events_ids)
         repeating_event_start_condition = (
-            f"\n\tAND {start_date}::timestamp <= pattern.event_start_series"
+            f"\n\tAND {start_date}::timestamp <= pattern.start"
             if start is not None
             else ""
         )
         repeating_event_end_condition = (
-            f"\n\tAND pattern.event_start_series <= {end_date}::timestamp"
-            if end is not None
-            else ""
+            f"\n\tAND pattern.start <= {end_date}::timestamp" if end is not None else ""
         )
         pagination_parameters = (
             f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
@@ -271,11 +261,8 @@ class EventRepositoryImpl(EventRepositoryInterface):
             else ""
         )
         await self._db_client.db.execute_raw("SET datestyle = DMY;")
-        db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
+        db_events = await self._db_client.db.query_raw(
             GET_EVENTS_BY_EVENT_IDS_QUERY.format(
-                events_ids_for_query,
-                event_start_condition,
-                event_end_condition,
                 time_interval,
                 events_ids_for_query,
                 repeating_event_start_condition,
@@ -284,11 +271,18 @@ class EventRepositoryImpl(EventRepositoryInterface):
             ),
             model=PrismaEvent,
         )
-        if db_events is None or len(db_events) == 0:
-            raise ValueNotFoundError("Events not found")
-        return [
-            Event.from_prisma_event(prisma_event=db_event) for db_event in db_events
-        ]
+        return (
+            []
+            if (
+                events := [
+                    Event.from_prisma_event(prisma_event=db_event)
+                    for db_event in db_events
+                ]
+            )
+            is None
+            or len(events) == 0
+            else events
+        )
 
     async def get_all_events(
         self,
@@ -320,8 +314,6 @@ class EventRepositoryImpl(EventRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python.
-        ValueNotFoundError
-            No events were found.
         WrongIntervalError
             Start of time interval is later than end of time interval.
 
@@ -340,40 +332,26 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 f"\'{end.day:02d}/{end.month:02d}/{end.year:04d} "
                 f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}\'"
             )
-        # fmt: on
-        where_condition = (
-            (
-                "\nWHERE\n\t"
-                + (
-                    f"{start_date}::timestamp <= event.start"
-                    if start is not None
-                    else ""
-                )
-                + ("\n\tAND " if start is not None and end is not None else "")
-                + (f"event.start <= {end_date}::timestamp" if end is not None else "")
-            )
-            if start is not None or end is not None
-            else ""
-        )
         time_interval = (
-            f"timestamp {end_date}"
+            f"{end_date}::timestamp"
             if end is not None
-            else f"{start_date}::timestamp + event.repeating_delay::interval"
+            else (
+                f"{start_date}::timestamp + \'1 MONTH\'::interval"
+                if start_date is not None
+                else "event.start::timestamp + \'1 MONTH\'::interval"
+            )
         )
+        # fmt: on
         where_condition_for_repeating_events = (
             (
                 "\nWHERE\n\t"
                 + (
-                    f"{start_date}::timestamp <= pattern.event_start_series"
+                    f"{start_date}::timestamp <= pattern.start"
                     if start is not None
                     else ""
                 )
                 + ("\n\tAND " if start is not None and end is not None else "")
-                + (
-                    f"pattern.event_start_series <= {end_date}::timestamp"
-                    if end is not None
-                    else ""
-                )
+                + (f"pattern.start <= {end_date}::timestamp" if end is not None else "")
             )
             if start is not None or end is not None
             else ""
@@ -384,20 +362,26 @@ class EventRepositoryImpl(EventRepositoryInterface):
             else ""
         )
         await self._db_client.db.execute_raw("SET datestyle = DMY;")
-        db_events: Optional[List[PrismaEvent]] = await self._db_client.db.query_raw(
+        db_events = await self._db_client.db.query_raw(
             GET_ALL_EVENTS_QUERY.format(
-                where_condition,
                 time_interval,
                 where_condition_for_repeating_events,
                 pagination_parameters,
             ),
             model=PrismaEvent,
         )
-        if db_events is None or len(db_events) == 0:
-            raise ValueNotFoundError("Events not found")
-        return [
-            Event.from_prisma_event(prisma_event=db_event) for db_event in db_events
-        ]
+        return (
+            []
+            if (
+                events := [
+                    Event.from_prisma_event(prisma_event=db_event)
+                    for db_event in db_events
+                ]
+            )
+            is None
+            or len(events) == 0
+            else events
+        )
 
     async def create_event(self, event: Event) -> Event:
         """
@@ -480,7 +464,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
         """
         await self._db_client.db.prismaevent.update_many(
             where={"id": event_id, "deleted_at": None},
-            data={"deleted_at": datetime.now()},
+            data={"deleted_at": datetime.utcnow()},
         )
 
     async def delete_events_by_author_id(self, author_id: str) -> None:
@@ -500,5 +484,5 @@ class EventRepositoryImpl(EventRepositoryInterface):
         """
         await self._db_client.db.prismaevent.update_many(
             where={"author_id": author_id, "deleted_at": None},
-            data={"deleted_at": datetime.now()},
+            data={"deleted_at": datetime.utcnow()},
         )
