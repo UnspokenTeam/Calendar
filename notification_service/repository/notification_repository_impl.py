@@ -1,7 +1,6 @@
 """Notification repository with data from database."""
 
-from calendar import isleap
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List, Optional
 
 from prisma.models import PrismaNotification
@@ -70,7 +69,7 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
         end: Optional[datetime] = None,
     ) -> List[Notification]:
         """
-        Get notifications by author id.
+        Get notifications by author id and optionally timestamp.
 
         Parameters
         ----------
@@ -112,87 +111,53 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
                 f"\'{end.day:02d}/{end.month:02d}/{end.year:04d} "
                 f"{end.hour:02d}:{end.minute:02d}:{end.second:02d}\'"
             )
-        author_id_for_query = f"\'{author_id}\'"
-        # fmt: on
-        notification_start_condition = (
-            f"\n\tAND {start_date}::timestamp <= notification.start"
-            if start is not None
-            else ""
-        )
-        notification_end_condition = (
-            f"\n\tAND notification.start <= {end_date}::timestamp"
-            if end is not None
-            else ""
-        )
         time_interval = (
-            f"timestamp {end_date}"
+            f"{end_date}::timestamp"
             if end is not None
-            else f"{start_date}::timestamp + notification.repeating_delay::interval"
+            else (
+                f"{start_date}::timestamp + \'1 MONTH\'::interval"
+                if start_date is not None
+                else "notification.start::timestamp + \'1 MONTH\'::interval"
+            )
         )
+        # fmt: on
+        author_id_for_query = f"'{author_id}'"
         repeating_notification_start_condition = (
-            f"\n\tAND {start_date}::timestamp <= pattern.notification_start_series"
+            f"\n\tAND {start_date}::timestamp <= pattern.start"
             if start is not None
             else ""
         )
         repeating_notification_end_condition = (
-            f"\n\tAND pattern.notification_start_series <= {end_date}::timestamp"
-            if end is not None
+            f"\n\tAND pattern.start <= {end_date}::timestamp" if end is not None else ""
+        )
+        pagination_parameters = (
+            f"\nLIMIT {items_per_page}\nOFFSET {items_per_page * (page_number - 1)}"
+            if items_per_page != -1
             else ""
         )
         await self._db_client.db.execute_raw("SET datestyle = DMY;")
-        db_notifications: Optional[
-            List[PrismaNotification]
-        ] = await self._db_client.db.query_raw(
+        db_notifications = await self._db_client.db.query_raw(
             GET_NOTIFICATIONS_BY_AUTHOR_ID_QUERY.format(
-                author_id_for_query,
-                notification_start_condition,
-                notification_end_condition,
                 time_interval,
                 author_id_for_query,
                 repeating_notification_start_condition,
                 repeating_notification_end_condition,
+                pagination_parameters,
             ),
             model=PrismaNotification,
         )
-        if db_notifications is None or len(db_notifications) == 0:
-            return []
-        notifications = [
-            Notification.from_prisma_notification(prisma_notification=db_notification)
-            for db_notification in db_notifications
-        ]
-        if start is not None and end is None:
-            end = start + timedelta(days=366 if isleap(start.year) else 365)
-        for notification in notifications[:]:
-            if notification.repeating_delay is not None:
-                amount_of_repeats = 1
-                repeating_notification = notification.__copy__()
-                while True:
-                    repeating_notification.start += (
-                        Notification.delay_string_to_timedelta(
-                            notification.repeating_delay
-                        )
-                        * amount_of_repeats
-                    )
-                    if repeating_notification.start > end:
-                        break
-                    if (
-                        start <= repeating_notification.start
-                        if start is not None
-                        else True
-                    ) and (
-                        repeating_notification.start <= end if end is not None else True
-                    ):
-                        notifications.append(repeating_notification)
-                    amount_of_repeats += 1
-                    repeating_notification = notification.__copy__()
-        notifications = sorted(
-            notifications, key=lambda notification_sort: notification_sort.start
-        )
         return (
-            notifications[
-                items_per_page * (page_number - 1) : items_per_page * page_number
-            ]
-            if items_per_page != -1
+            []
+            if (
+                notifications := [
+                    Notification.from_prisma_notification(
+                        prisma_notification=db_notification
+                    )
+                    for db_notification in db_notifications
+                ]
+            )
+            is None
+            or len(notifications) == 0
             else notifications
         )
 

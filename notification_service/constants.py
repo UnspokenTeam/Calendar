@@ -12,13 +12,11 @@ INTERVAL_SLOTS = (
 
 # fmt: off
 GET_NOTIFICATIONS_BY_AUTHOR_ID_QUERY = (
-    "SELECT *\nFROM \"PrismaNotification\" as notification\nWHERE\n\tnotification.author_id = {}\n\tAND "
-    "notification.deleted_at IS NULL{}{}\nUNION\nSELECT DISTINCT pattern.\"id\", pattern.\"event_id\", "
+    "SELECT pattern.\"id\", pattern.\"event_id\", "
     "pattern.\"author_id\", pattern.\"start\", pattern.\"repeating_delay\", pattern.\"enabled\", "
-    "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\t"
-    "FROM \"PrismaNotification\" as notification, GENERATE_SERIES(notification.start, {}, "
-    "notification.repeating_delay::interval) as notification_start_series\n\t"
-    "WHERE notification.repeating_delay IS NOT NULL\n) as pattern\nWHERE\n\tpattern.author_id = {}\n\t"
-    "AND pattern.deleted_at IS NULL{}{};"
+    "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM "
+    "\"PrismaNotification\" as notification\n\t\tGENERATE_SERIES(notification.start, {}, "
+    "notification.repeating_delay::interval) as \"notification_start\"\n\tWHERE notification.repeating_delay IS"
+    " NOT NULL\n) as pattern\nWHERE\n\tpattern.author_id = {}\n\tAND pattern.deleted_at IS NULL{}{}\nORDER BY start{};"
 )
 # fmt: on
