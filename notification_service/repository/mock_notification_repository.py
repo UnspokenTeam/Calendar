@@ -1,6 +1,6 @@
 """Mock notification repository"""
 
-from calendar import isleap
+from calendar import monthrange
 from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import uuid4
@@ -95,7 +95,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         if notifications is None or len(notifications) == 0:
             return []
         if start is not None and end is None:
-            end = start + timedelta(days=366 if isleap(start.year) else 365)
+            end = start + timedelta(days=monthrange(start.year, start.month)[1])
         for notification in notifications[:]:
             if notification.repeating_delay is not None:
                 amount_of_repeats = 1
@@ -149,11 +149,6 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         -------
         List[Notification]
             List of notifications that match by event id.
-
-        Raises
-        ------
-        prisma.errors.PrismaError
-            Catch all for every exception raised by Prisma Client Python.
 
         """
         notifications = [
