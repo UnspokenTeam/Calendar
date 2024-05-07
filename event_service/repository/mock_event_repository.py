@@ -1,6 +1,6 @@
 """Mock event repository"""
 
-from calendar import isleap
+from calendar import monthrange
 from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import uuid4
@@ -128,7 +128,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         if events is None or len(events) == 0:
             return []
         if start is not None and end is None:
-            end = start + timedelta(days=366 if isleap(start.year) else 365)
+            end = start + timedelta(days=monthrange(start.year, start.month)[1])
         for event in events[:]:
             if event.repeating_delay is not None:
                 amount_of_repeats = 1
@@ -265,7 +265,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         if events is None or len(events) == 0:
             return []
         if start is not None and end is None:
-            end = start + timedelta(days=366 if isleap(start.year) else 365)
+            end = start + timedelta(days=monthrange(start.year, start.month)[1])
         for event in events[:]:
             if event.repeating_delay is not None:
                 amount_of_repeats = 1
@@ -365,7 +365,7 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         if events is None or len(events) == 0:
             return []
         if start is not None and end is None:
-            end = start + timedelta(days=366 if isleap(start.year) else 365)
+            end = start + timedelta(days=monthrange(start.year, start.month)[1])
         for event in events[:]:
             if event.repeating_delay is not None:
                 amount_of_repeats = 1
