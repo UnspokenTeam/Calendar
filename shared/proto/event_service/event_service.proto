@@ -4,6 +4,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
 import "user/user.proto";
+import "interval/interval.proto";
 
 service EventService {
   rpc get_event_by_event_id(EventRequestByEventId) returns (GrpcEvent){}
@@ -119,14 +120,4 @@ message GenerateDescriptionRequest {
 
 message GenerateDescriptionResponse {
   string event_description = 1;
-}
-
-message Interval {
-  optional uint64 years = 1;
-  optional uint64 months = 2;
-  optional uint64 weeks = 3;
-  optional uint64 days = 4;
-  optional uint64 hours = 5;
-  optional uint64 minutes = 6;
-  optional uint64 seconds = 7;
 }

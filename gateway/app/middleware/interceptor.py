@@ -10,6 +10,8 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
+from app.errors.unauthenticated_error import UnauthenticatedError
+
 
 class InterceptorMiddleware(BaseHTTPMiddleware):
     """Interceptor middleware"""
@@ -68,6 +70,10 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
                     return JSONResponse(
                         status_code=500, content={"message": "Internal server error"}
                     )
+        except UnauthenticatedError:
+            return JSONResponse(
+                status_code=401, content={"message": "Unauthenticated"}
+            )
         except PermissionDeniedError:
             return JSONResponse(
                 status_code=403, content={"message": "Permission denied"}

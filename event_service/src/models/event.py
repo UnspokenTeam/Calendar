@@ -8,7 +8,8 @@ from prisma.models import PrismaEvent
 
 from constants import INTERVAL_SLOTS
 from dateutil.relativedelta import relativedelta
-from generated.event_service.event_service_pb2 import GrpcEvent, Interval
+from generated.event_service.event_service_pb2 import GrpcEvent
+from generated.interval.interval_pb2 import Interval
 
 
 @dataclass
