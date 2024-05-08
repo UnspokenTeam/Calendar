@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated, Optional, Self
 from uuid import UUID
 
@@ -197,10 +197,10 @@ class Event(BaseModel):
             repeating_delay=self.repeating_delay.to_proto() if self.repeating_delay is not None else None,
         )
 
-        event.created_at.FromDatetime(self.created_at.astimezone(utc))
+        event.created_at.FromDatetime(self.created_at)
         event.start.FromDatetime(self.start)
         event.end.FromDatetime(self.end)
         if self.deleted_at is not None:
-            event.deleted_at.FromDatetime(self.deleted_at.astimezone(utc))
+            event.deleted_at.FromDatetime(self.deleted_at)
 
         return event
