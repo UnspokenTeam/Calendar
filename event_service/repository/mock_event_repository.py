@@ -128,7 +128,12 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         if events is None or len(events) == 0:
             return []
         if start is not None and end is None:
-            end = start + timedelta(days=monthrange(start.year, start.month)[1])
+            end = start + timedelta(
+                days=current_month_len
+                if (current_month_len := monthrange(start.year, start.month)[1])
+                >= (next_month_len := monthrange(start.year, start.month + 1)[1])
+                else next_month_len
+            )
         for event in events[:]:
             if event.repeating_delay is not None:
                 amount_of_repeats = 1
@@ -265,7 +270,12 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         if events is None or len(events) == 0:
             return []
         if start is not None and end is None:
-            end = start + timedelta(days=monthrange(start.year, start.month)[1])
+            end = start + timedelta(
+                days=current_month_len
+                if (current_month_len := monthrange(start.year, start.month)[1])
+                >= (next_month_len := monthrange(start.year, start.month + 1)[1])
+                else next_month_len
+            )
         for event in events[:]:
             if event.repeating_delay is not None:
                 amount_of_repeats = 1
@@ -365,7 +375,12 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
         if events is None or len(events) == 0:
             return []
         if start is not None and end is None:
-            end = start + timedelta(days=monthrange(start.year, start.month)[1])
+            end = start + timedelta(
+                days=current_month_len
+                if (current_month_len := monthrange(start.year, start.month)[1])
+                >= (next_month_len := monthrange(start.year, start.month + 1)[1])
+                else next_month_len
+            )
         for event in events[:]:
             if event.repeating_delay is not None:
                 amount_of_repeats = 1
