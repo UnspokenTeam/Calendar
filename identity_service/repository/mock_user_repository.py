@@ -182,7 +182,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             raise UniqueError("User with this data already exists")
 
         user.id = str(uuid4())
-        user.created_at = datetime.now().astimezone(utc)
+        user.created_at = datetime.utcnow()
         self._users.append(user)
         return user
 
