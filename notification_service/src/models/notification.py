@@ -6,8 +6,12 @@ from typing import Any, Dict, List, Optional, Self
 
 from prisma.models import PrismaNotification
 
-from generated.notification_service.notification_service_pb2 import GrpcNotification
-from pytz import utc
+from constants import INTERVAL_SLOTS
+from dateutil.relativedelta import relativedelta
+from generated.notification_service.notification_service_pb2 import (
+    GrpcNotification,
+    Interval,
+)
 
 
 @dataclass
@@ -25,6 +29,10 @@ class Notification:
         User id.
     enabled : bool
         Enable notification flag.
+    start : datetime
+        Start time of notification.
+    repeating_delay : Optional[str]
+        The delay between the same event.
     created_at : datetime
         Time when the notification was created.
     deleted_at : Optional[datetime]
@@ -32,6 +40,10 @@ class Notification:
 
     Methods
     -------
+    static delay_string_to_interval(delay)
+        Converts notification repeating delay into interval.
+    static delay_string_to_timedelta(delay)
+        Converts notification repeating delay into timedelta.
     to_grpc_notification()
         Converts notification to grpc notification.
     to_dict(exclude)
@@ -46,9 +58,60 @@ class Notification:
     id: str
     event_id: str
     author_id: str
+    start: datetime
     created_at: datetime
+    repeating_delay: Optional[str] = None
     deleted_at: Optional[datetime] = None
     enabled: bool = True
+
+    @staticmethod
+    def delay_string_to_interval(delay: str) -> Interval:
+        """
+        Converts notification repeating delay into interval.
+
+        Parameters
+        ----------
+        delay : str
+            Notification repeating delay.
+
+        Returns
+        -------
+        Interval
+            Interval object.
+
+        """
+        delay_objects = delay.split()
+        interval = Interval()
+        for i in range(1, len(delay_objects), 2):
+            interval.__setattr__(delay_objects[i].lower(), int(delay_objects[i - 1]))
+        return interval
+
+    @staticmethod
+    def delay_string_to_timedelta(delay: str) -> relativedelta:
+        """
+        Converts notification repeating delay into interval.
+
+        Parameters
+        ----------
+        delay : str
+            Notification repeating delay.
+
+        Returns
+        -------
+        relativedelta
+            relativedelta object.
+
+        """
+        delay_interval = Notification.delay_string_to_interval(delay)
+        return relativedelta(
+            years=delay_interval.years,
+            months=delay_interval.months,
+            weeks=delay_interval.weeks,
+            days=delay_interval.days,
+            hours=delay_interval.hours,
+            minutes=delay_interval.minutes,
+            seconds=delay_interval.seconds,
+        )
 
     def to_grpc_notification(self) -> GrpcNotification:
         """
@@ -65,10 +128,21 @@ class Notification:
             event_id=self.event_id,
             author_id=self.author_id,
             enabled=self.enabled,
+            repeating_delay=self.delay_string_to_interval(self.repeating_delay)
+            if self.repeating_delay is not None
+            else None,
         )
-        notification.created_at.FromDatetime(self.created_at.astimezone(utc))
+        notification.start.FromDatetime(self.start)
+        notification.created_at.FromNanoseconds(
+            int(self.created_at.replace(tzinfo=datetime.now().tzinfo).timestamp() * 1e9)
+        )
         if self.deleted_at is not None:
-            notification.deleted_at.FromDatetime(self.deleted_at.astimezone(utc))
+            notification.deleted_at.FromNanoseconds(
+                int(
+                    self.deleted_at.replace(tzinfo=datetime.now().tzinfo).timestamp()
+                    * 1e9
+                )
+            )
 
         return notification
 
@@ -95,6 +169,27 @@ class Notification:
             if attr not in exclude_set
         }
 
+    def __copy__(self) -> "Notification":
+        """
+        Copies notification.
+
+        Returns
+        -------
+        Notification
+            Notification class instance.
+
+        """
+        return Notification(
+            id=self.id,
+            event_id=self.event_id,
+            author_id=self.author_id,
+            enabled=self.enabled,
+            start=self.start,
+            repeating_delay=self.repeating_delay,
+            created_at=self.created_at,
+            deleted_at=self.deleted_at,
+        )
+
     @classmethod
     def from_prisma_notification(cls, prisma_notification: PrismaNotification) -> Self:
         """
@@ -116,6 +211,8 @@ class Notification:
             event_id=prisma_notification.event_id,
             author_id=prisma_notification.author_id,
             enabled=prisma_notification.enabled,
+            start=prisma_notification.start,
+            repeating_delay=prisma_notification.repeating_delay,
             created_at=prisma_notification.created_at,
             deleted_at=prisma_notification.deleted_at,
         )
@@ -141,12 +238,29 @@ class Notification:
             event_id=grpc_notification.event_id,
             author_id=grpc_notification.author_id,
             enabled=grpc_notification.enabled,
-            created_at=datetime.fromtimestamp(
+            start=datetime.utcfromtimestamp(
+                grpc_notification.start.seconds + grpc_notification.start.nanos / 1e9
+            ),
+            repeating_delay=(
+                None
+                if not (
+                    delay := " ".join(
+                        f"{value} {name.upper()}"
+                        for name in INTERVAL_SLOTS
+                        if (value := getattr(grpc_notification.repeating_delay, name))
+                        != 0
+                    )
+                )
+                else delay
+                if grpc_notification.WhichOneof("optional_repeating_delay") is not None
+                else None
+            ),
+            created_at=datetime.utcfromtimestamp(
                 grpc_notification.created_at.seconds
                 + grpc_notification.created_at.nanos / 1e9
             ),
             deleted_at=(
-                datetime.fromtimestamp(
+                datetime.utcfromtimestamp(
                     grpc_notification.deleted_at.seconds
                     + grpc_notification.deleted_at.nanos / 1e9
                 )
