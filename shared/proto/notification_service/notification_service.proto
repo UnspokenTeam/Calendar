@@ -55,9 +55,8 @@ message NotificationRequestByNotificationId {
 
 message NotificationsRequestByNotificationsIds {
   ListOfIds notifications_ids = 1;
-  GrpcUser requesting_user = 2;
-  uint64 page_number = 3;
-  int64 items_per_page = 4;
+  uint64 page_number = 2;
+  int64 items_per_page = 3;
 }
 
 message GrpcNotification {
