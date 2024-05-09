@@ -5,17 +5,13 @@ import sys
 
 import grpc
 
-from src.identity_service_impl import IdentityServiceImpl
-
 from db import PostgresClient
-from src.repository import MockTokenRepositoryImpl
-from src.repository import MockUserRepositoryImpl
-from src.repository import TokenRepositoryImpl
-from src.repository import UserRepositoryImpl
-from src.utilities import CustomInterceptor
-from src.utilities import JwtController
-import dotenv
+from src.identity_service_impl import IdentityServiceImpl
+from src.repository import MockTokenRepositoryImpl, MockUserRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl
+from src.utilities import CustomInterceptor, JwtController
 import src.generated.identity_service.identity_service_pb2_grpc as identity_service_grpc
+
+import dotenv
 
 
 async def serve() -> None:

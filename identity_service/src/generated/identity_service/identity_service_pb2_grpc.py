@@ -1,12 +1,14 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
-from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
+
 from ..identity_service import auth_pb2 as identity__service_dot_auth__pb2
 from ..identity_service import delete_user_pb2 as identity__service_dot_delete__user__pb2
 from ..identity_service import get_access_token_pb2 as identity__service_dot_get__access__token__pb2
 from ..identity_service import get_user_pb2 as identity__service_dot_get__user__pb2
 from ..identity_service import update_user_pb2 as identity__service_dot_update__user__pb2
 from ..user import user_pb2 as user_dot_user__pb2
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
+
 
 class IdentityServiceStub(object):
     """Missing associated documentation comment in .proto file."""

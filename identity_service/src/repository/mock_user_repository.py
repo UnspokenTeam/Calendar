@@ -3,9 +3,8 @@ from datetime import datetime
 from typing import List
 from uuid import uuid4
 
-from src.models import User
-
 from errors import UniqueError, ValueNotFoundError
+from src.models import User
 from src.repository.mock_token_repository import MockTokenRepositoryImpl
 from src.repository.user_repository_interface import UserRepositoryInterface
 from src.utilities import JwtController, TokenType

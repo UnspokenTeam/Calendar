@@ -6,9 +6,10 @@ import datetime
 import os
 
 from errors import InvalidTokenError
+from utils import singleton
+
 from jwt import decode, encode
 from jwt.exceptions import DecodeError, ExpiredSignatureError
-from utils import singleton
 
 
 class TokenType(Enum):

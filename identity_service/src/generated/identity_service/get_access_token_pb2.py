@@ -3,6 +3,7 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
+
 _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\'identity_service/get_access_token.proto"1\n\x18GetNewAccessTokenRequest\x12\x15\n\rrefresh_token\x18\x01 \x01(\t"1\n\x19GetNewAccessTokenResponse\x12\x14\n\x0caccess_token\x18\x01 \x01(\tb\x06proto3')
 _globals = globals()
