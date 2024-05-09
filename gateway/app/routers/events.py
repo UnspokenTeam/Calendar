@@ -108,7 +108,7 @@ class CreateEventRequest(BaseModel):
     repeating_delay: Optional[Interval] = None
 
 
-@router.get("/my/created")
+@router.get("/my/created/")
 async def get_my_created_events(
         page: Annotated[int, Field(1, ge=1)],
         items_per_page: Annotated[int, Field(-1, ge=-1)],

@@ -199,10 +199,7 @@ async def get_my_notifications(
         .notification_service_client
         .request()
         .get_notifications_by_author_id(
-            GrpcGetNotificationsByAuthorIdRequest(
-                author_id=user.id,
-                requesting_user=user
-            )
+            request
         )
     )
 
