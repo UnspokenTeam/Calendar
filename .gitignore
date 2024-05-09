@@ -391,7 +391,7 @@ invite_service/.idea
 invite_service/generate.bat
 invite_service/generate.sh
 invite_service/generate.ps1
-invite_service/generated
+invite_service/src/generated
 invite_service/.env
 
 notification_service/.idea
