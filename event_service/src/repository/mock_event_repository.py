@@ -5,11 +5,10 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import uuid4
 
+from errors import ValueNotFoundError, WrongIntervalError
 from src.models.event import Event
-
-from errors_package.errors import ValueNotFoundError, WrongIntervalError
-from repository.event_repository_interface import EventRepositoryInterface
-from utils_package.utils import singleton
+from src.repository.event_repository_interface import EventRepositoryInterface
+from utils import singleton
 
 
 @singleton
@@ -130,7 +129,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             end = start + timedelta(
                 days=current_month_len - start.day + next_month_len
                 if (current_month_len := monthrange(start.year, start.month)[1])
-                > (next_month_len := monthrange(start.year + start.month // 12, start.month % 12 + 1)[1])
+                > (
+                    next_month_len := monthrange(
+                        start.year + start.month // 12, start.month % 12 + 1
+                    )[1]
+                )
                 and start.day > next_month_len
                 else current_month_len
             )
@@ -273,7 +276,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             end = start + timedelta(
                 days=current_month_len - start.day + next_month_len
                 if (current_month_len := monthrange(start.year, start.month)[1])
-                > (next_month_len := monthrange(start.year + start.month // 12, start.month % 12 + 1)[1])
+                > (
+                    next_month_len := monthrange(
+                        start.year + start.month // 12, start.month % 12 + 1
+                    )[1]
+                )
                 and start.day > next_month_len
                 else current_month_len
             )
@@ -379,7 +386,11 @@ class MockEventRepositoryImpl(EventRepositoryInterface):
             end = start + timedelta(
                 days=current_month_len - start.day + next_month_len
                 if (current_month_len := monthrange(start.year, start.month)[1])
-                > (next_month_len := monthrange(start.year + start.month // 12, start.month % 12 + 1)[1])
+                > (
+                    next_month_len := monthrange(
+                        start.year + start.month // 12, start.month % 12 + 1
+                    )[1]
+                )
                 and start.day > next_month_len
                 else current_month_len
             )

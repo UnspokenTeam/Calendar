@@ -5,17 +5,16 @@ from typing import List, Optional
 
 from prisma.models import PrismaEvent
 
-from src.models.event import Event
-
-from constants import (
+from db import PostgresClient
+from errors import ValueNotFoundError, WrongIntervalError
+from src.constants.constants import (
     GET_ALL_EVENTS_QUERY,
     GET_EVENTS_BY_AUTHOR_ID_QUERY,
     GET_EVENTS_BY_EVENT_IDS_QUERY,
 )
-from db_package.db import PostgresClient
-from errors_package.errors import ValueNotFoundError, WrongIntervalError
-from repository.event_repository_interface import EventRepositoryInterface
-from utils_package.utils import singleton
+from src.models.event import Event
+from src.repository.event_repository_interface import EventRepositoryInterface
+from utils import singleton
 
 
 @singleton
@@ -94,7 +93,9 @@ class EventRepositoryImpl(EventRepositoryInterface):
         if start is None and end is None:
             db_events = await self._db_client.db.prismaevent.find_many(
                 where={"author_id": author_id, "deleted_at": None},
-                skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
+                skip=(
+                    items_per_page * (page_number - 1) if items_per_page != -1 else None
+                ),
                 take=items_per_page if items_per_page != -1 else None,
             )
         else:
@@ -221,7 +222,9 @@ class EventRepositoryImpl(EventRepositoryInterface):
                     "id": {"in": events_ids},
                     "deleted_at": None,
                 },
-                skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
+                skip=(
+                    items_per_page * (page_number - 1) if items_per_page != -1 else None
+                ),
                 take=items_per_page if items_per_page != -1 else None,
             )
         else:
@@ -310,7 +313,9 @@ class EventRepositoryImpl(EventRepositoryInterface):
         """
         if start is None and end is None:
             db_events = await self._db_client.db.prismaevent.find_many(
-                skip=(items_per_page * (page_number - 1) if items_per_page != -1 else None),
+                skip=(
+                    items_per_page * (page_number - 1) if items_per_page != -1 else None
+                ),
                 take=items_per_page if items_per_page != -1 else None,
             )
         else:

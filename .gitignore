@@ -374,7 +374,7 @@ cython_debug/
 .idea
 
 event_service/.idea
-event_service/generated
+event_service/src/generated
 event_service/generate.bat
 event_service/generate.sh
 event_service/generate.ps1
