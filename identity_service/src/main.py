@@ -7,15 +7,15 @@ import grpc
 
 from src.identity_service_impl import IdentityServiceImpl
 
-from db_package.db import PostgresClient
-from repository.mock_token_repository import MockTokenRepositoryImpl
-from repository.mock_user_repository import MockUserRepositoryImpl
-from repository.token_repository_impl import TokenRepositoryImpl
-from repository.user_repository_impl import UserRepositoryImpl
-from utilities.custom_interceptor import CustomInterceptor
-from utilities.jwt_controller import JwtController
+from db import PostgresClient
+from src.repository import MockTokenRepositoryImpl
+from src.repository import MockUserRepositoryImpl
+from src.repository import TokenRepositoryImpl
+from src.repository import UserRepositoryImpl
+from src.utilities import CustomInterceptor
+from src.utilities import JwtController
 import dotenv
-import generated.identity_service.identity_service_pb2_grpc as identity_service_grpc
+import src.generated.identity_service.identity_service_pb2_grpc as identity_service_grpc
 
 
 async def serve() -> None:

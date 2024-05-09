@@ -3,13 +3,13 @@ from datetime import datetime
 from typing import List
 from uuid import uuid4
 
-from src.models.user import User
+from src.models import User
 
-from errors_package.errors import UniqueError, ValueNotFoundError
-from repository.mock_token_repository import MockTokenRepositoryImpl
-from repository.user_repository_interface import UserRepositoryInterface
-from utilities.jwt_controller import JwtController, TokenType
-from utils_package.utils import singleton
+from errors import UniqueError, ValueNotFoundError
+from src.repository.mock_token_repository import MockTokenRepositoryImpl
+from src.repository.user_repository_interface import UserRepositoryInterface
+from src.utilities import JwtController, TokenType
+from utils import singleton
 
 
 @singleton

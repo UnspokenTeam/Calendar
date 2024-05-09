@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from src.models.user import User
+from src.models import User
 
 
 class UserRepositoryInterface(ABC):

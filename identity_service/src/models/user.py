@@ -7,8 +7,8 @@ from typing import Any, List, Optional, Self
 
 from prisma.models import User as PrismaUser
 
-from generated.identity_service.update_user_pb2 import UserToModify as GrpcUserToModify
-from generated.user.user_pb2 import GrpcUser, GrpcUserType
+from src.generated.identity_service.update_user_pb2 import UserToModify as GrpcUserToModify
+from src.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from pytz import utc
 
 

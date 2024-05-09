@@ -5,17 +5,19 @@ from typing import Tuple
 import datetime
 import os
 
-from errors_package.errors import InvalidTokenError
+from errors import InvalidTokenError
 from jwt import decode, encode
 from jwt.exceptions import DecodeError, ExpiredSignatureError
-from utils_package.utils import singleton
+from utils import singleton
 
 
 class TokenType(Enum):
     """Token type enum"""
 
     ACCESS_TOKEN = 1
+    """Access token type"""
     REFRESH_TOKEN = 2
+    """Refresh token type"""
 
 
 @singleton
