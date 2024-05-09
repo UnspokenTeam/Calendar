@@ -71,6 +71,7 @@ class EventResponse(BaseModel):
         Generated widget classname
 
     """
+
     event: Event
     classname: str
 
