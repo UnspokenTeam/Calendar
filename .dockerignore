@@ -4,7 +4,7 @@ identity_service/.env
 identity_service/generate.bat
 identity_service/generate.sh
 
-event_service/generated
+event_service/src/generated
 event_service/.idea
 event_service/.env
 event_service/generate.bat

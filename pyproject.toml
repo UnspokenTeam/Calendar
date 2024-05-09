@@ -17,13 +17,13 @@ disallow_untyped_decorators = false
 exclude = [
     ".venv",
     "__pycache__",
-    "event_service/generated",
+    "event_service/src/generated",
     "notification_service/generated",
     "invite_service/generated",
     "identity_service/generated",
     "gateway/generated",
     "singleton.py",
-    "event_service/constants.py"
+    "event_service/src/constants/constants.py"
 ]
 
 line-length = 119

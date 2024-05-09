@@ -1,0 +1,17 @@
+"""Constants module."""
+
+from .constants import (
+    AI_ROLE_FOR_PROMPT,
+    GET_ALL_EVENTS_QUERY,
+    GET_EVENTS_BY_AUTHOR_ID_QUERY,
+    GET_EVENTS_BY_EVENT_IDS_QUERY,
+    INTERVAL_SLOTS,
+)
+
+__all__ = [
+    "AI_ROLE_FOR_PROMPT",
+    "GET_ALL_EVENTS_QUERY",
+    "GET_EVENTS_BY_AUTHOR_ID_QUERY",
+    "GET_EVENTS_BY_EVENT_IDS_QUERY",
+    "INTERVAL_SLOTS",
+]

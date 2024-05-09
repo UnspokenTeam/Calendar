@@ -3,17 +3,17 @@ from datetime import datetime
 
 import grpc
 
-from src.models.event import Event
-
-from errors_package.errors import PermissionDeniedError
-from generated.event_service.event_service_pb2_grpc import (
+from errors import PermissionDeniedError
+from src.generated.event_service.event_service_pb2_grpc import (
     EventServiceServicer as GrpcServicer,
 )
-from generated.user.user_pb2 import GrpcUserType
+from src.generated.user.user_pb2 import GrpcUserType
+from src.models.event import Event
+from src.repository.event_repository_interface import EventRepositoryInterface
+from src.utilities.ai_client import AIClient
+import src.generated.event_service.event_service_pb2 as proto
+
 from google.protobuf.empty_pb2 import Empty
-from repository.event_repository_interface import EventRepositoryInterface
-from utilities.ai_client import AIClient
-import generated.event_service.event_service_pb2 as proto
 
 
 class EventServiceImpl(GrpcServicer):

@@ -8,6 +8,7 @@ packages = [{include = "db"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 prisma = "^0.13.1"
+utils-package = {path="../utils_package"}
 
 
 [build-system]

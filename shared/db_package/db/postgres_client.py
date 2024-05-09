@@ -4,7 +4,7 @@ import logging
 
 from prisma import Client, Prisma
 
-from utils_package.utils import singleton
+from utils import singleton
 
 
 @singleton
