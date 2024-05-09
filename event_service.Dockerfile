@@ -41,4 +41,4 @@ RUN poetry run prisma generate
 
 EXPOSE 8081
 
-CMD poetry run python main.py
+CMD poetry run python ./src/main.py
