@@ -395,7 +395,7 @@ invite_service/generated
 invite_service/.env
 
 notification_service/.idea
-notification_service/generated
+notification_service/src/generated
 notification_service/generate.bat
 notification_service/generate.sh
 notification_service/generate.ps1

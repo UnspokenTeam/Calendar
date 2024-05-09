@@ -5,11 +5,12 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import uuid4
 
+from errors import UniqueError, ValueNotFoundError, WrongIntervalError
 from src.models.notification import Notification
-
-from errors_package.errors import UniqueError, ValueNotFoundError, WrongIntervalError
-from repository.notification_repository_interface import NotificationRepositoryInterface
-from utils_package.utils import singleton
+from src.repository.notification_repository_interface import (
+    NotificationRepositoryInterface,
+)
+from utils import singleton
 
 
 @singleton

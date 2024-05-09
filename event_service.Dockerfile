@@ -30,7 +30,7 @@ COPY event_service/poetry.lock ./event_service/pyproject.toml ./
 
 RUN poetry install --no-interaction --no-cache --without dev
 
-RUN mkdir generated
+RUN mkdir ./src/generated
 
 COPY event_service ./
 

@@ -30,7 +30,7 @@ ___
  		```
        - Сгенерируйте proto файлы, выполнив команду:
     	```bash
-    	poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ../shared/proto/user/*.proto ../shared/proto/notification_service/*.proto && poetry run protol --create-package --in-place --python-out generated protoc --experimental_allow_proto3_optional --proto-path=../shared/proto ../shared/proto/notification_service/*.proto ../shared/proto/user/*.proto
+    	poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=./src/generated --grpc_python_out=./src/generated --pyi_out=./src/generated ../shared/proto/user/*.proto ../shared/proto/notification_service/*.proto ../shared/proto/interval/*.proto && poetry run protol --create-package --in-place --python-out ./src/generated protoc --experimental_allow_proto3_optional --proto-path=../shared/proto ../shared/proto/notification_service/*.proto ../shared/proto/user/*.proto ../shared/proto/interval/*.proto
         ```
     	- Сгенерируйте prisma клиент, выполнив команду:
     	```bash

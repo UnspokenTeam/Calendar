@@ -4,15 +4,17 @@ from datetime import datetime
 
 import grpc
 
-from src.models.notification import Notification
-
-from errors_package.errors import PermissionDeniedError
-from generated.notification_service.notification_service_pb2_grpc import (
+from errors import PermissionDeniedError
+from src.generated.notification_service.notification_service_pb2_grpc import (
     NotificationServiceServicer as GrpcServicer,
 )
-from generated.user.user_pb2 import GrpcUserType
+from src.generated.user.user_pb2 import GrpcUserType
+from src.models.notification import Notification
+from src.repository.notification_repository_interface import (
+    NotificationRepositoryInterface,
+)
+
 from google.protobuf.empty_pb2 import Empty
-from repository.notification_repository_interface import NotificationRepositoryInterface
 import generated.notification_service.notification_service_pb2 as proto
 
 
@@ -260,8 +262,7 @@ class NotificationServiceImpl(GrpcServicer):
         context.set_code(grpc.StatusCode.OK)
         return proto.ListOfNotifications(
             notifications=[
-                notification.to_grpc_notification()
-                for notification in notifications
+                notification.to_grpc_notification() for notification in notifications
             ]
         )
 
