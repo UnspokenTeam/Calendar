@@ -6,6 +6,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends
 from grpc import RpcError
 from pydantic import UUID4, AfterValidator, Field, BaseModel
+from pytz import utc
 
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
@@ -58,6 +59,7 @@ class ModifyNotificationRequest(BaseModel):
     interval: Optional[Interval]
     created_at: datetime
     deleted_at: Optional[datetime] = None
+
 
 @router.get("/{notification_id}")
 async def get_notification_by_id(
@@ -187,16 +189,20 @@ async def get_my_notifications(
     )
 
     if start is not None:
-        request.start.FromDatetime(start)
+        request.start.FromDatetime(start.astimezone(utc))
 
     if end is not None:
-        request.end.FromDatetime(end)
+        request.end.FromDatetime(end.astimezone(utc))
 
     notifications_request: GrpcListOfNotifications = (
         grpc_clients
         .notification_service_client
         .request()
         .get_notifications_by_author_id(
+            GrpcGetNotificationsByAuthorIdRequest(
+                author_id=user.id,
+                requesting_user=user
+            )
         )
     )
 
@@ -242,7 +248,7 @@ async def create_notification(
         event_id=event_id,
         author_id=user.id,
         created_at=datetime.now(),
-        start=convert_event_start_to_notification_start(event.start, interval),
+        start=convert_event_start_to_notification_start(event.start.astimezone(tz=utc), interval),
         repeating_delay=event.repeating_delay,
         deleted_at=None,
         enabled=True,
@@ -307,11 +313,15 @@ async def update_notification_as_author(
         grpc_clients=grpc_clients
     )
 
+    stored_notification.start = stored_notification.start.astimezone(tz=utc)
+
     if modify_notification_request.event_id != stored_notification.event_id:
-        stored_notification.start = convert_event_start_to_notification_start(
-            event.start,
-            modify_notification_request.interval
-        )
+        stored_notification.start = event.start.astimezone(tz=utc)
+
+    stored_notification.start = convert_event_start_to_notification_start(
+        stored_notification.start,
+        modify_notification_request.interval
+    )
 
     stored_notification.event_id = modify_notification_request.event_id
     stored_notification.enabled = modify_notification_request.enabled
