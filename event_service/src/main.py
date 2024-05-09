@@ -10,8 +10,7 @@ from src.event_service_impl import EventServiceImpl
 from src.repository.event_repository_impl import EventRepositoryImpl
 from src.repository.mock_event_repository import MockEventRepositoryImpl
 from src.utilities.custom_interceptor import CustomInterceptor
-
-import generated.event_service.event_service_pb2_grpc as event_service_grpc
+import src.generated.event_service.event_service_pb2_grpc as event_service_grpc
 
 
 async def serve() -> None:

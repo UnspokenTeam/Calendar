@@ -13,9 +13,9 @@ from src.models.notification import Notification
 from src.repository.notification_repository_interface import (
     NotificationRepositoryInterface,
 )
+import src.generated.notification_service.notification_service_pb2 as proto
 
 from google.protobuf.empty_pb2 import Empty
-import generated.notification_service.notification_service_pb2 as proto
 
 
 class NotificationServiceImpl(GrpcServicer):
