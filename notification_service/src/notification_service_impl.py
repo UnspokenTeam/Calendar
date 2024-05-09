@@ -262,8 +262,6 @@ class NotificationServiceImpl(GrpcServicer):
             notifications=[
                 notification.to_grpc_notification()
                 for notification in notifications
-                if notification.author_id == request.requesting_user.id
-                or request.requesting_user.id == GrpcUserType.ADMIN
             ]
         )
 
