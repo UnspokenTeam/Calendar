@@ -4,11 +4,10 @@ from typing import Annotated, Optional, Self
 from uuid import UUID
 
 from app.generated.notification_service.notification_service_pb2 import GrpcNotification
+from app.models.Interval import Interval
 
 from pydantic import UUID4, AfterValidator, BaseModel, Field
 from pytz import utc
-
-from app.models.Interval import Interval
 
 
 class Notification(BaseModel):

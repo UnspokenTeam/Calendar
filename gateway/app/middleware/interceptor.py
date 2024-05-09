@@ -4,13 +4,12 @@ import logging
 from grpc import RpcError, StatusCode
 
 from app.errors import PermissionDeniedError
+from app.errors.unauthenticated_error import UnauthenticatedError
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
-
-from app.errors.unauthenticated_error import UnauthenticatedError
 
 
 class InterceptorMiddleware(BaseHTTPMiddleware):

@@ -8,8 +8,8 @@ from prisma.models import PrismaNotification
 
 from constants import INTERVAL_SLOTS
 from dateutil.relativedelta import relativedelta
-from generated.notification_service.notification_service_pb2 import GrpcNotification
 from generated.interval.interval_pb2 import Interval
+from generated.notification_service.notification_service_pb2 import GrpcNotification
 
 
 @dataclass

@@ -3,26 +3,26 @@ from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends
 from grpc import RpcError
-from pydantic import UUID4, AfterValidator, Field, BaseModel
-from pytz import utc
 
 from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
-    EventRequestByEventId as GrpcGetEventByEventIdRequest, GrpcEvent,
+    EventRequestByEventId as GrpcGetEventByEventIdRequest,
 )
 from app.generated.event_service.event_service_pb2 import EventsRequestByEventsIds as GrpcEventsByEventsIdsRequest
+from app.generated.event_service.event_service_pb2 import (
+    GrpcEvent,
+)
 from app.generated.event_service.event_service_pb2 import ListOfEvents as GrpcListOfEvents
 from app.generated.event_service.event_service_pb2 import ListOfEventsIds as GrpcListOfEventsIds
 from app.generated.invite_service.invite_service_pb2 import (
     GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
 )
 from app.generated.invite_service.invite_service_pb2 import (
-    InviteStatus as GrpcInviteStatus,
+    InvitesResponse as GrpcInvitesResponse,
 )
 from app.generated.invite_service.invite_service_pb2 import (
-    InvitesResponse as GrpcInvitesResponse,
+    InviteStatus as GrpcInviteStatus,
 )
 from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationByIdRequest as GrpcDeleteNotificationByIdRequest,
@@ -43,10 +43,14 @@ from app.generated.notification_service.notification_service_pb2 import (
 )
 from app.generated.user.user_pb2 import GrpcUser
 from app.middleware import auth
-from app.models import Notification, UserType, Event
+from app.models import Event, Notification, UserType
 from app.models.Interval import Interval
 from app.params import GrpcClientParams
 from app.validators.int_validators import int_not_equal_zero_validator
+
+from fastapi import APIRouter, Depends
+from pydantic import UUID4, AfterValidator, BaseModel, Field
+from pytz import utc
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 

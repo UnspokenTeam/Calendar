@@ -3,11 +3,10 @@ from typing import Annotated, Optional, Self
 from uuid import UUID
 
 from app.generated.event_service.event_service_pb2 import GrpcEvent
-
-from pydantic import UUID4, AfterValidator, BaseModel, Field
-from pytz import utc
-
 from app.models.Interval import Interval
+
+from pydantic import UUID4, AfterValidator, BaseModel
+from pytz import utc
 
 
 class Event(BaseModel):

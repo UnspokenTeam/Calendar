@@ -1,9 +1,9 @@
-from typing import Self, Annotated
-from datetime import datetime
+from typing import Annotated, Self
+
+from app.generated.interval.interval_pb2 import Interval as GrpcInterval
 
 from dateutil.relativedelta import relativedelta
 from pydantic import BaseModel, Field
-from app.generated.interval.interval_pb2 import Interval as GrpcInterval
 
 
 class Interval(BaseModel):
