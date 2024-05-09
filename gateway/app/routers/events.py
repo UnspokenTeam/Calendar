@@ -108,7 +108,7 @@ class CreateEventRequest(BaseModel):
     repeating_delay: Optional[Interval] = None
 
 
-@router.get("/my/created")
+@router.get("/my/created/")
 async def get_my_created_events(
         page: Annotated[int, Field(1, ge=1)],
         items_per_page: Annotated[int, Field(-1, ge=-1)],
@@ -133,9 +133,9 @@ async def get_my_created_events(
     items_per_page : int
         Number of items per page. If -1 then all items are returned.
     start : Optional[datetime]
-        Start date and time.
+        Start date and time of the interval.
     end : Optional[datetime]
-        End date and time.
+        End date and time of the interval.
 
     Returns
     -------
@@ -189,9 +189,9 @@ async def get_my_invited_events(
     items_per_page : int
         Number of items per page. If -1 then all items are returned.
     start : Optional[datetime]
-        Start date and time.
+        Start date and time of the interval.
     end : Optional[datetime]
-        End date and time.
+        End date and time of the interval.
 
     Returns
     -------
@@ -349,9 +349,9 @@ async def get_all_events(
     items_per_page : int
         Number of items per page. If -1 then all items are returned.
     start : Optional[datetime]
-        Start date and time.
+        Start date and time of the interval.
     end : Optional[datetime]
-        End date and time.
+        End date and time of the interval.
 
     Raises
     ------

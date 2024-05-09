@@ -4,6 +4,7 @@ from typing import Annotated, Optional, Self
 from uuid import UUID
 
 from app.generated.notification_service.notification_service_pb2 import GrpcNotification
+from app.models.Interval import Interval
 
 from pydantic import UUID4, AfterValidator, BaseModel, Field
 from pytz import utc
@@ -27,6 +28,10 @@ class Notification(BaseModel):
         Timestamp when notification was created
     deleted_at : Optional[datetime]
         Timestamp when notification was deleted
+    start : datetime
+        Start date from where notification will work
+    repeating_delay : Optional[Interval]
+        Repeating delay between notifications
 
     Methods
     -------
@@ -41,6 +46,8 @@ class Notification(BaseModel):
     event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     author_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     enabled: Annotated[bool, Field(True)]
+    start: datetime
+    repeating_delay: Optional[Interval]
     created_at: datetime
     deleted_at: Optional[datetime] = None
 
@@ -65,6 +72,12 @@ class Notification(BaseModel):
             event_id=proto.event_id,
             author_id=proto.author_id,
             enabled=proto.enabled,
+            start=datetime.fromtimestamp(
+                proto.start.seconds + proto.start.nanos / 1e9
+            ),
+            repeating_delay=Interval.from_proto(proto.repeating_delay)
+            if proto.WhichOneof("optional_repeating_delay") is not None
+            else None,
             created_at=datetime.fromtimestamp(
                 proto.created_at.seconds + proto.created_at.nanos / 1e9
             ),
@@ -90,8 +103,9 @@ class Notification(BaseModel):
             event_id=str(self.event_id),
             author_id=str(self.author_id),
             enabled=self.enabled,
+            repeating_delay=self.repeating_delay.to_proto() if self.repeating_delay is not None else None,
         )
-
+        notification.start.FromDatetime(self.start)
         notification.created_at.FromDatetime(self.created_at.astimezone(utc))
         if self.deleted_at is not None:
             notification.deleted_at.FromDatetime(self.deleted_at.astimezone(utc))

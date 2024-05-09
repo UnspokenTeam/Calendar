@@ -4,6 +4,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
 import "user/user.proto";
+import "interval/interval.proto";
 
 service NotificationService {
   rpc get_notification_by_notification_id(NotificationRequestByNotificationId) returns (GrpcNotification){}
@@ -115,14 +116,4 @@ message DeleteNotificationsByEventIdRequest {
 message DeleteNotificationsByAuthorIdRequest {
   string author_id = 1;
   GrpcUser requesting_user = 2;
-}
-
-message Interval {
-  optional uint64 years = 1;
-  optional uint64 months = 2;
-  optional uint64 weeks = 3;
-  optional uint64 days = 4;
-  optional uint64 hours = 5;
-  optional uint64 minutes = 6;
-  optional uint64 seconds = 7;
 }

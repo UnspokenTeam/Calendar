@@ -1,6 +1,9 @@
 """Auth middleware"""
 from typing import Annotated
 
+from grpc import RpcError
+
+from app.errors.unauthenticated_error import UnauthenticatedError
 from app.generated.identity_service.auth_pb2 import AccessToken
 from app.generated.user.user_pb2 import GrpcUser
 from app.params import GrpcClientParams
@@ -31,8 +34,11 @@ async def auth(
         The authenticated user
 
     """
-    user: GrpcUser = grpc_client_params.identity_service_client.request().auth(
-        AccessToken(access_token=access_token)
-    )
+    try:
+        user: GrpcUser = grpc_client_params.identity_service_client.request().auth(
+            AccessToken(access_token=access_token)
+        )
 
-    return user
+        return user
+    except RpcError as e:
+        raise UnauthenticatedError(f"Wrong credentials - {e}")
