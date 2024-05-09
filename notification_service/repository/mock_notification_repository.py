@@ -106,10 +106,15 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             return []
         if start is not None and end is None:
             end = start + timedelta(
-                days=current_month_len
+                days=current_month_len - start.day + next_month_len
                 if (current_month_len := monthrange(start.year, start.month)[1])
-                >= (next_month_len := monthrange(start.year, start.month + 1)[1])
-                else next_month_len
+                > (
+                    next_month_len := monthrange(
+                        start.year + start.month // 12, start.month % 12 + 1
+                    )[1]
+                )
+                and start.day > next_month_len
+                else current_month_len
             )
         for notification in notifications[:]:
             if notification.repeating_delay is not None:
