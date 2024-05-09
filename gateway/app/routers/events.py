@@ -61,6 +61,22 @@ router = APIRouter(prefix="/events", tags=["events"])
 
 class EventResponse(BaseModel):
     """
+    Event response with generated classname
+
+    Attributes
+    ----------
+    event : Event
+        Event data
+    classname : str
+        Generated widget classname
+
+    """
+    event: Event
+    classname: str
+
+
+class DetailedEventResponse(BaseModel):
+    """
     Detailed information about an event.
 
     Attributes
@@ -116,7 +132,7 @@ async def get_my_created_events(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
-) -> List[Event]:
+) -> List[EventResponse]:
     """
     \f
 
@@ -139,7 +155,7 @@ async def get_my_created_events(
 
     Returns
     -------
-    List[Event]
+    List[EventResponse]
         List of events created by a user.
 
     """
@@ -161,7 +177,9 @@ async def get_my_created_events(
         )
     )
 
-    return [Event.from_proto(event_proto) for event_proto in my_events_result.events]
+    events = [Event.from_proto(event_proto) for event_proto in my_events_result.events]
+
+    return [EventResponse(event=event, classname=generate_classname(event.color)) for event in events]
 
 
 @router.get("/my/invited/")
@@ -172,7 +190,7 @@ async def get_my_invited_events(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
-) -> List[Event]:
+) -> List[EventResponse]:
     """
     \f
 
@@ -195,7 +213,7 @@ async def get_my_invited_events(
 
     Returns
     -------
-    List[Event]
+    List[EventResponse]
         List of events where user is invited.
 
     """
@@ -236,7 +254,9 @@ async def get_my_invited_events(
         )
     )
 
-    return [Event.from_proto(event) for event in invited_events_request.events]
+    events = [Event.from_proto(event_proto) for event_proto in invited_events_request.events]
+
+    return [EventResponse(event=event, classname=generate_classname(event.color)) for event in events]
 
 
 @router.get("/{event_id}")
@@ -244,7 +264,7 @@ async def get_event(
         event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
         user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> EventResponse:
+) -> DetailedEventResponse:
     """
     \f
 
@@ -261,7 +281,7 @@ async def get_event(
 
     Returns
     -------
-    EventResponse
+    DetailedEventResponse
         Event response containing event, all invitees and notification status.
 
     """
@@ -274,7 +294,7 @@ async def get_event(
         )
     )
 
-    response = EventResponse(
+    response = DetailedEventResponse(
         event=Event.from_proto(event_response),
         invited_users=[],
         notification_turned_on=False,
@@ -332,7 +352,7 @@ async def get_all_events(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
-) -> List[Event]:
+) -> List[EventResponse]:
     """
     \f
 
@@ -360,7 +380,7 @@ async def get_all_events(
 
     Returns
     -------
-    List[Event]
+    List[EventResponse]
         List of all events.
 
     """
@@ -382,7 +402,9 @@ async def get_all_events(
         events_request
     )
 
-    return [Event.from_proto(event) for event in events_response.events]
+    events = [Event.from_proto(event_proto) for event_proto in events_response.events]
+
+    return [EventResponse(event=event, classname=generate_classname(event.color)) for event in events]
 
 
 @router.get("/description/")
@@ -424,7 +446,7 @@ async def create_event(
         event_data: CreateEventRequest,
         user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> Event:
+) -> EventResponse:
     """
     \f
 
@@ -441,7 +463,7 @@ async def create_event(
 
     Returns
     -------
-    Event
+    EventResponse
         Created event object.
 
     """
@@ -462,7 +484,9 @@ async def create_event(
         GrpcEventRequest(event=event.to_proto(), requesting_user=user)
     )
 
-    return Event.from_proto(proto_event)
+    event = Event.from_proto(proto_event)
+
+    return EventResponse(event=event, classname=generate_classname(event.color))
 
 
 @router.put("/")
@@ -470,7 +494,7 @@ async def update_event(
         event: Event,
         user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> Event:
+) -> EventResponse:
     """
     \f
 
@@ -492,7 +516,7 @@ async def update_event(
 
     Returns
     -------
-    Event
+    EventResponse
         Updated event object.
 
     """
@@ -514,7 +538,9 @@ async def update_event(
         GrpcEventRequest(event=event.to_proto(), requesting_user=user)
     )
 
-    return Event.from_proto(event_proto)
+    event = Event.from_proto(event_proto)
+
+    return EventResponse(event=event, classname=generate_classname(event.color))
 
 
 @router.put("/admin/")
@@ -522,7 +548,7 @@ async def update_event_as_admin(
         event: Event,
         user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> Event:
+) -> EventResponse:
     """
     \f
 
@@ -544,7 +570,7 @@ async def update_event_as_admin(
 
     Returns
     -------
-    Event
+    EventResponse
         Updated event object.
 
     """
@@ -554,8 +580,9 @@ async def update_event_as_admin(
     event_proto: GrpcEvent = grpc_clients.event_service_client.request().update_event(
         GrpcEventRequest(event=event.to_proto(), requesting_user=user)
     )
+    event = Event.from_proto(event_proto)
 
-    return Event.from_proto(event_proto)
+    return EventResponse(event=event, classname=generate_classname(event.color))
 
 
 @router.delete("/")
@@ -598,3 +625,22 @@ async def delete_event(
     grpc_clients.event_service_client.request().delete_event_by_id(
         GrpcDeleteEventByIdRequest(event_id=str(event_id), requesting_user=user)
     )
+
+
+def generate_classname(color: Optional[str]) -> str:
+    """
+    Generate class name from color.
+
+    Parameters
+    ----------
+    color : Optional[str]
+        Color name.
+
+    Returns
+    -------
+    str
+        Class name.
+
+    """
+    color = color if color is not None else "RED"
+    return f"!bg-{color}-100/50 !border-l-4 !border-r-0 !border-y-0 !border-{color}-500 !text-{color}-500 text-xl"
