@@ -275,7 +275,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             self._invites[old_invite_index] = invite
         except StopIteration:
             invite.id = str(uuid4())
-            invite.created_at = datetime.now()
+            invite.created_at = datetime.utcnow()
             invite.deleted_at = None
             invite.status = InviteStatus.PENDING
             self._invites.append(invite)
@@ -329,7 +329,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
         for invite in invites:
             invite.id = str(uuid4())
-            invite.created_at = datetime.now()
+            invite.created_at = datetime.utcnow()
             invite.deleted_at = None
             invite.status = InviteStatus.PENDING
             self._invites.append(invite)
@@ -390,7 +390,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             )
         except StopIteration:
             raise ValueNotFoundError("Invite not found")
-        self._invites[index].deleted_at = datetime.now()
+        self._invites[index].deleted_at = datetime.utcnow()
 
     async def delete_invites_by_event_id(self, event_id: str) -> None:
         """
@@ -417,10 +417,10 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         if len(indexes) == 0:
             raise ValueNotFoundError("No invites found")
 
-        now = datetime.now()
+        current_time = datetime.utcnow()
 
         for index in indexes:
-            self._invites[index].deleted_at = now
+            self._invites[index].deleted_at = current_time
 
     async def delete_invites_by_author_id(self, author_id: str) -> None:
         """
@@ -447,10 +447,10 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         if len(indexes) == 0:
             raise ValueNotFoundError("No invites found")
 
-        now = datetime.now()
+        current_time = datetime.utcnow()
 
         for index in indexes:
-            self._invites[index].deleted_at = now
+            self._invites[index].deleted_at = current_time
 
     async def delete_invites_by_invitee_id(self, invitee_id: str) -> None:
         """
@@ -477,7 +477,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         if len(indexes) == 0:
             raise ValueNotFoundError("No invites found")
 
-        now = datetime.now()
+        current_time = datetime.utcnow()
 
         for index in indexes:
-            self._invites[index].deleted_at = now
+            self._invites[index].deleted_at = current_time

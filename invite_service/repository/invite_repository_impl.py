@@ -412,7 +412,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         """
         await self._db_client.db.invite.update_many(
             where={"id": invite_id, "deleted_at": None},
-            data={"deleted_at": datetime.now()},
+            data={"deleted_at": datetime.utcnow()},
         )
 
     async def delete_invites_by_event_id(self, event_id: str) -> None:
@@ -432,7 +432,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         """
         await self._db_client.db.invite.update_many(
             where={"event_id": event_id, "deleted_at": None},
-            data={"deleted_at": datetime.now()},
+            data={"deleted_at": datetime.utcnow()},
         )
 
     async def delete_invites_by_author_id(self, author_id: str) -> None:
@@ -452,7 +452,7 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         """
         await self._db_client.db.invite.update_many(
             where={"author_id": author_id, "deleted_at": None},
-            data={"deleted_at": datetime.now()},
+            data={"deleted_at": datetime.utcnow()},
         )
 
     async def delete_invites_by_invitee_id(self, invitee_id: str) -> None:
@@ -472,5 +472,5 @@ class InviteRepositoryImpl(InviteRepositoryInterface):
         """
         await self._db_client.db.invite.update_many(
             where={"invitee_id": invitee_id, "deleted_at": None},
-            data={"deleted_at": datetime.now()},
+            data={"deleted_at": datetime.utcnow()},
         )
