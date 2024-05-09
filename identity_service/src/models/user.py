@@ -111,7 +111,7 @@ class User:
         )
         user.created_at.FromNanoseconds(int(self.created_at.replace(tzinfo=datetime.now().tzinfo).timestamp() * 1e9))
         if self.suspended_at is not None:
-            user.suspended_at.FromDatetime(dt=self.suspended_at)
+            user.suspended_at.FromNanoseconds(int(self.created_at.replace(tzinfo=datetime.now().tzinfo).timestamp() * 1e9))
         return user
 
     @classmethod
