@@ -4,10 +4,12 @@ from enum import StrEnum
 from typing import Annotated, Optional, Self
 from uuid import UUID
 
+from app.constants import MIN_USERNAME_LENGTH
 from app.generated.identity_service.update_user_pb2 import UserToModify
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
+from app.validators import str_special_characters_validator
 
-from pydantic import UUID4, AfterValidator, BaseModel, EmailStr
+from pydantic import UUID4, AfterValidator, BaseModel, EmailStr, Field
 
 
 class UserType(StrEnum):
@@ -58,7 +60,7 @@ class UserType(StrEnum):
             Proto user type
 
         """
-        if self == GrpcUserType.USER:
+        if self == UserType.USER:
             return GrpcUserType.USER
         return GrpcUserType.ADMIN
 
@@ -69,7 +71,7 @@ class User(BaseModel):
 
     Attributes
     ----------
-    id : str
+    id : UUID4 | str
         ID of the user
     username : str
         User's name
@@ -94,9 +96,13 @@ class User(BaseModel):
     """
 
     id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
-    username: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
+    username: Annotated[
+        str,
+        Field("", min_length=MIN_USERNAME_LENGTH),
+        AfterValidator(str_special_characters_validator)
+    ]
     email: EmailStr
-    password: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
+    password: Annotated[str, AfterValidator(str_special_characters_validator)]
     created_at: datetime
     suspended_at: Optional[datetime]
     type: UserType
@@ -144,7 +150,7 @@ class User(BaseModel):
 
         """
         user = UserToModify(
-            id=self.id,
+            id=str(self.id),
             username=self.username,
             password=self.password,
             type=self.type.to_proto(),

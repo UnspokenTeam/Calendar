@@ -34,15 +34,11 @@ RUN mkdir generated
 
 COPY event_service ./
 
-RUN poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ../shared/proto/user/*.proto ../shared/proto/event_service/*.proto
-RUN poetry run protol --create-package --in-place --python-out generated protoc --proto-path=../shared/proto ../shared/proto/event_service/*.proto ../shared/proto/user/*.proto
+RUN poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ../shared/proto/user/*.proto ../shared/proto/event_service/*.proto ../shared/proto/interval/*.proto
+RUN poetry run protol --create-package --in-place --python-out generated protoc --proto-path=../shared/proto ../shared/proto/event_service/*.proto ../shared/proto/user/*.proto ../shared/proto/interval/*.proto
 
 RUN poetry run prisma generate
 
 EXPOSE 8081
 
-CMD if [ "$ENVIRONMENT" = "PRODUCTION" ]; then \
-        exec poetry run prisma db push && poetry run python main.py; \
-    else \
-        exec poetry run python main.py; \
-    fi
+CMD poetry run python main.py

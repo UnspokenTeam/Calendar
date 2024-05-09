@@ -3,7 +3,8 @@ import logging
 
 from grpc import RpcError, StatusCode
 
-from components.errors import PermissionDeniedError
+from errors import PermissionDeniedError, UnauthenticatedError
+
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
@@ -67,6 +68,10 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
                     return JSONResponse(
                         status_code=500, content={"message": "Internal server error"}
                     )
+        except UnauthenticatedError:
+            return JSONResponse(
+                status_code=401, content={"message": "Unauthenticated"}
+            )
         except PermissionDeniedError:
             return JSONResponse(
                 status_code=403, content={"message": "Permission denied"}

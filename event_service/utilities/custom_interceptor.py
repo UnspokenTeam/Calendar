@@ -1,5 +1,5 @@
 # mypy: ignore-errors
-"""Interceptor"""
+"""Interceptor decorator"""
 from typing import Any, Callable
 import logging
 
@@ -7,8 +7,7 @@ import grpc
 
 from prisma.errors import PrismaError
 
-from components import UniqueError
-from components.errors import PermissionDeniedError, ValueNotFoundError
+from errors_package.errors import AiResponseError, PermissionDeniedError, ValueNotFoundError, WrongIntervalError
 from grpc_interceptor.server import AsyncServerInterceptor
 
 
@@ -55,9 +54,6 @@ class CustomInterceptor(AsyncServerInterceptor):
             await context.abort(
                 grpc.StatusCode.UNKNOWN, "Prisma error: Unknown error happened"
             )
-        except UniqueError as unique_error:
-            logging.error(unique_error)
-            await context.abort(grpc.StatusCode.ALREADY_EXISTS, str(unique_error))
         except ValueNotFoundError as value_not_found_error:
             logging.error(value_not_found_error)
             await context.abort(grpc.StatusCode.NOT_FOUND, str(value_not_found_error))
@@ -65,4 +61,12 @@ class CustomInterceptor(AsyncServerInterceptor):
             logging.error(permission_denied_error)
             await context.abort(
                 grpc.StatusCode.PERMISSION_DENIED, str(permission_denied_error)
+            )
+        except AiResponseError as ai_response_error:
+            logging.error(ai_response_error)
+            await context.abort(grpc.StatusCode.CANCELLED, str(ai_response_error))
+        except WrongIntervalError as wrong_interval_error:
+            logging.error(wrong_interval_error)
+            await context.abort(
+                grpc.StatusCode.INVALID_ARGUMENT, str(wrong_interval_error)
             )

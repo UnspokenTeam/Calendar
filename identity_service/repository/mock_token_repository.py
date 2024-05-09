@@ -1,7 +1,7 @@
 """Mock token repository"""
 
-from components.errors import ValueNotFoundError
-from components.utils import singleton
+from errors_package.errors import ValueNotFoundError
+from utils_package.utils import singleton
 from repository.token_repository_interface import TokenRepositoryInterface
 
 

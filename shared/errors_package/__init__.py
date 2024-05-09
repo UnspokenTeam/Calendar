@@ -1,22 +1,19 @@
-"""Components module."""
-from .db import PostgresClient
-from .errors import (
+from errors_package.errors import (
     AiResponseError,
     InvalidTokenError,
     PermissionDeniedError,
     UniqueError,
     ValueNotFoundError,
     WrongIntervalError,
+    UnauthenticatedError
 )
-from .utils import singleton
 
 __all__ = [
-    "PostgresClient",
     "AiResponseError",
     "InvalidTokenError",
     "PermissionDeniedError",
     "UniqueError",
     "ValueNotFoundError",
     "WrongIntervalError",
-    "singleton",
+    "UnauthenticatedError"
 ]

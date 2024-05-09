@@ -2,7 +2,7 @@
 
 from os import environ
 
-from components.errors import AiResponseError
+from errors_package.errors import AiResponseError
 from constants import AI_ROLE_FOR_PROMPT
 from httpx import AsyncClient
 

@@ -1,13 +1,14 @@
 """Mock notification repository"""
 
-from datetime import datetime
-from typing import List
+from calendar import monthrange
+from datetime import datetime, timedelta
+from typing import List, Optional
 from uuid import uuid4
 
 from src.models.notification import Notification
 
-from components.errors import UniqueError, ValueNotFoundError
-from components.utils import singleton
+from errors_package.errors import UniqueError, ValueNotFoundError, WrongIntervalError
+from utils_package.utils import singleton
 from repository.notification_repository_interface import NotificationRepositoryInterface
 
 
@@ -23,8 +24,10 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
 
     Methods
     -------
-    async get_notifications_by_author_id(author_id, page_number, items_per_page)
+    async get_notifications_by_author_id(author_id, page_number, items_per_page, start, end)
         Returns page with notifications that have matches with given author id.
+    async get_notifications_by_event_id(event_id, page_number, items_per_page)
+        Returns page with notifications that have matches with given event id.
     async get_notification_by_event_and_author_ids(event_id, author_id)
         Returns notification that has matches with given event and author ids.
     async get_notification_by_notification_id(notification_id)
@@ -54,7 +57,12 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         self._notifications = []
 
     async def get_notifications_by_author_id(
-        self, author_id: str, page_number: int, items_per_page: int
+        self,
+        author_id: str,
+        page_number: int,
+        items_per_page: int,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
     ) -> List[Notification]:
         """
         Get notifications by author id.
@@ -67,6 +75,10 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             Number of page to get.
         items_per_page : int
             Number of items per page to load.
+        start : Optional[datetime]
+            Start of time interval for search.
+        end : Optional[datetime]
+            End of time interval for search.
 
         Returns
         -------
@@ -75,25 +87,102 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
 
         Raises
         ------
-        ValueNotFoundError
-            No notifications were found for given author id.
+        WrongIntervalError
+            Start of time interval is later than end of time interval.
 
         """
+        if start is not None and end is not None and start > end:
+            raise WrongIntervalError("Request failed. Wrong time interval.")
         notifications = [
             notification
             for notification in self._notifications
-            if notification.author_id == author_id and notification.deleted_at is None
+            if notification.author_id == author_id
+            and notification.enabled
+            and notification.deleted_at is None
         ]
-        notifications = (
+        if notifications is None or len(notifications) == 0:
+            return []
+        if start is not None and end is None:
+            end = start + timedelta(
+                days=current_month_len - start.day + next_month_len
+                if (current_month_len := monthrange(start.year, start.month)[1])
+                > (
+                    next_month_len := monthrange(
+                        start.year + start.month // 12, start.month % 12 + 1
+                    )[1]
+                )
+                and start.day > next_month_len
+                else current_month_len
+            )
+        for notification in notifications[:]:
+            if notification.repeating_delay is not None:
+                amount_of_repeats = 1
+                repeating_notification = notification.__copy__()
+                while True:
+                    repeating_notification.start += (
+                        Notification.delay_string_to_timedelta(
+                            notification.repeating_delay
+                        )
+                        * amount_of_repeats
+                    )
+                    if repeating_notification.start > end:
+                        break
+                    if (
+                        start <= repeating_notification.start
+                        if start is not None
+                        else True
+                    ) and (
+                        repeating_notification.start <= end if end is not None else True
+                    ):
+                        notifications.append(repeating_notification)
+                    amount_of_repeats += 1
+                    repeating_notification = notification.__copy__()
+        notifications = sorted(
+            notifications, key=lambda notification_sort: notification_sort.start
+        )
+        return (
             notifications[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
             if items_per_page != -1
             else notifications
         )
-        if notifications is None or len(notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
-        return notifications
+
+    async def get_notifications_by_event_id(
+        self, event_id: str, page_number: int, items_per_page: int
+    ) -> List[Notification]:
+        """
+        Get notifications by author id.
+
+        Parameters
+        ----------
+        event_id : str
+            Event's id.
+        page_number : int
+            Number of page to get.
+        items_per_page : int
+            Number of items per page to load.
+
+        Returns
+        -------
+        List[Notification]
+            List of notifications that match by event id.
+
+        """
+        notifications = [
+            notification
+            for notification in self._notifications
+            if notification.event_id == event_id
+            and notification.enabled
+            and notification.deleted_at is None
+        ]
+        return (
+            notifications[
+                items_per_page * (page_number - 1) : items_per_page * page_number
+            ]
+            if items_per_page != -1
+            else notifications
+        )
 
     async def get_notification_by_event_and_author_ids(
         self, event_id: str, author_id: str
@@ -125,6 +214,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
                 for notification in self._notifications
                 if notification.author_id == author_id
                 and notification.event_id == event_id
+                and notification.enabled
                 and notification.deleted_at is None
             )
         except StopIteration:
@@ -157,6 +247,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
                 notification
                 for notification in self._notifications
                 if notification.id == notification_id
+                and notification.enabled
                 and notification.deleted_at is None
             )
         except StopIteration:
@@ -182,27 +273,21 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         List[Notification]
             List of notifications that match by notification id.
 
-        Raises
-        ------
-        ValueNotFoundError
-            No notifications were found for given notification ids.
-
         """
         notifications = [
             notification
             for notification in self._notifications
-            if notification.id in notifications_ids and notification.deleted_at is None
+            if notification.id in notifications_ids
+            and notification.enabled
+            and notification.deleted_at is None
         ]
-        notifications = (
+        return (
             notifications[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
             if items_per_page != -1
             else notifications
         )
-        if notifications is None or len(notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
-        return notifications
 
     async def get_all_notifications(
         self, page_number: int, items_per_page: int
@@ -222,22 +307,14 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
         List[Notification]
             List of notifications.
 
-        Raises
-        ------
-        ValueNotFoundError
-            No notifications were found.
-
         """
-        notifications = (
+        return (
             self._notifications[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
             if items_per_page != -1
             else self._notifications
         )
-        if notifications is None or len(notifications) == 0:
-            raise ValueNotFoundError("Notifications not found")
-        return notifications
 
     async def create_notification(self, notification: Notification) -> Notification:
         """
@@ -272,12 +349,12 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
                 raise UniqueError("Notifications already exists")
             self._notifications[index].enabled = True
             if self._notifications[index].deleted_at is not None:
-                self._notifications[index].created_at = datetime.now()
+                self._notifications[index].created_at = datetime.utcnow()
                 self._notifications[index].deleted_at = None
             return self._notifications[index]
         except StopIteration:
             notification.id = str(uuid4())
-            notification.created_at = datetime.now()
+            notification.created_at = datetime.utcnow()
             notification.deleted_at = None
             notification.enabled = True
             self._notifications.append(notification)
@@ -339,7 +416,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
                 and self._notifications[i].deleted_at is None
             )
             self._notifications[index].enabled = False
-            self._notifications[index].deleted_at = datetime.now()
+            self._notifications[index].deleted_at = datetime.utcnow()
         except StopIteration:
             raise ValueNotFoundError("Notification not found")
 
@@ -373,7 +450,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             raise ValueNotFoundError("Notifications not found")
         for index in indexes:
             self._notifications[index].enabled = False
-            self._notifications[index].deleted_at = datetime.now()
+            self._notifications[index].deleted_at = datetime.utcnow()
 
     async def delete_notifications_by_author_id(self, author_id: str) -> None:
         """
@@ -400,7 +477,7 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             raise ValueNotFoundError("Notifications not found")
         for index in indexes:
             self._notifications[index].enabled = False
-            self._notifications[index].deleted_at = datetime.now()
+            self._notifications[index].deleted_at = datetime.utcnow()
 
     async def delete_notifications_by_event_id(self, event_id: str) -> None:
         """
@@ -427,4 +504,4 @@ class MockNotificationRepositoryImpl(NotificationRepositoryInterface):
             raise ValueNotFoundError("Notifications not found")
         for index in indexes:
             self._notifications[index].enabled = False
-            self._notifications[index].deleted_at = datetime.now()
+            self._notifications[index].deleted_at = datetime.utcnow()

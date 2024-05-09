@@ -106,8 +106,6 @@ class UserRepositoryInterface(ABC):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python
-        ValueNotFoundError
-            No users was found for given email
 
         """
         pass
@@ -199,8 +197,6 @@ class UserRepositoryInterface(ABC):
 
         Raises
         ------
-        ValueNotFoundError
-            No users found
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python
 

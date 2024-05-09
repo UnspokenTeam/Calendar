@@ -5,8 +5,8 @@ from uuid import uuid4
 
 from src.models.invite import Invite, InviteStatus
 
-from components.errors import UniqueError, ValueNotFoundError
-from components.utils import singleton
+from errors import UniqueError, ValueNotFoundError
+from utils import singleton
 from repository.invite_repository_interface import InviteRepositoryInterface
 
 
@@ -92,6 +92,8 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invites = invites[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
+        if invites is None or len(invites) == 0:
+            raise ValueNotFoundError("Invites not found")
         return invites
 
     async def get_invite_by_invite_id(self, invite_id: str) -> Invite:
@@ -149,11 +151,6 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         List[Invite]
             List of invites that have matching author id.
 
-        Raises
-        ------
-        ValueNotFoundError
-            No invites were found for given author id.
-
         """
         invites = [
             invite
@@ -166,8 +163,6 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invites = invites[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
-        if invites is None or len(invites) == 0:
-            raise ValueNotFoundError("Invites not found")
         return invites
 
     async def get_all_invites(
@@ -190,11 +185,6 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         List[Invite]
             List of all invites.
 
-        Raises
-        ------
-        ValueNotFoundError
-            No invites were found for given author id.
-
         """
         result = [
             invite
@@ -205,9 +195,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             result = result[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
-        if len(result) != 0:
-            return result
-        raise ValueNotFoundError("Invites not found")
+        return result
 
     async def get_invites_by_invitee_id(
         self,
@@ -235,11 +223,6 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         List[Invite]
             List of invitee that have matching invite id.
 
-        Raises
-        ------
-        ValueNotFoundError
-            No invites were found for given author id.
-
         """
         invites = [
             invite
@@ -252,18 +235,21 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invites = invites[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
-        if invites is None or len(invites) == 0:
-            raise ValueNotFoundError("Invites not found")
         return invites
 
-    async def create_invite(self, invite: Invite) -> None:
+    async def create_invite(self, invite: Invite) -> Invite:
         """
-        Creates invite with matching data
+        Creates invite with matching data.
 
         Parameters
         ----------
         invite : Invite
             Invite data
+
+        Returns
+        -------
+        Invite
+            Created invite.
 
         Raises
         ------
@@ -279,24 +265,34 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
                 and self._invites[i].invitee_id == invite.invitee_id
             )
 
-            if self._invites[old_invite_index].status == InviteStatus.PENDING and self._invites[old_invite_index].deleted_at is None:
+            if (
+                self._invites[old_invite_index].status == InviteStatus.PENDING
+                and self._invites[old_invite_index].deleted_at is None
+            ):
                 raise UniqueError("Invite already exists")
 
             self._invites[old_invite_index] = invite
         except StopIteration:
             invite.id = str(uuid4())
-            invite.created_at = datetime.now()
+            invite.created_at = datetime.utcnow()
             invite.deleted_at = None
+            invite.status = InviteStatus.PENDING
             self._invites.append(invite)
+        return invite
 
-    async def create_multiple_invites(self, invites: List[Invite]) -> None:
+    async def create_multiple_invites(self, invites: List[Invite]) -> List[Invite]:
         """
-        Create multiple invites or modify existing ones
+        Create multiple invites or modify existing ones.
 
         Parameters
         ----------
         invites : List[Invite]
-            List of invites to create
+            List of invites to create.
+
+        Returns
+        -------
+        List[Invite]
+            List of invites that have been created.
 
         Raises
         ------
@@ -307,29 +303,50 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
 
         """
         invite_ids = [invite.id for invite in invites]
-        db_invites = [(self._invites[i], i) for i in range(len(self._invites)) if self._invites[i].id in invite_ids]
+        db_invites = [
+            (self._invites[i], i)
+            for i in range(len(self._invites))
+            if self._invites[i].id in invite_ids
+        ]
+        updated_invites = []
+
+        if any(
+                [
+                    invite == InviteStatus.PENDING and invite.deleted_at is None
+                    for invite, _ in db_invites
+                ]
+        ):
+            raise UniqueError("Some invites already exist")
 
         for invite, index in db_invites:
-            if any([invite == InviteStatus.PENDING and invite.deleted_at is None for invite, _ in db_invites]):
-                raise UniqueError("Some invites already exist")
-
             self._invites[index].deleted_at = None
             self._invites[index].status = InviteStatus.PENDING
+            updated_invites.append(self._invites[index])
 
         ids = [db_invite.id for db_invite, _ in db_invites]
         invites = [invite for invite in invites if invite.id not in ids]
 
         for invite in invites:
+            invite.id = str(uuid4())
+            invite.created_at = datetime.utcnow()
+            invite.deleted_at = None
+            invite.status = InviteStatus.PENDING
             self._invites.append(invite)
+        return invites + updated_invites
 
-    async def update_invite(self, invite: Invite) -> None:
+    async def update_invite(self, invite: Invite) -> Invite:
         """
-        Updates invite with matching id
+        Updates invite with matching id.
 
         Parameters
         ----------
         invite : Invite
             Invite data
+
+        Returns
+        -------
+        Invite
+            Updated invite.
 
         Raises
         ------
@@ -344,6 +361,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
                 if self._invites[i].id == invite.id and invite.deleted_at is None
             )
             self._invites[index] = invite
+            return invite
         except StopIteration:
             raise ValueNotFoundError("Invite not found")
 
@@ -371,7 +389,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             )
         except StopIteration:
             raise ValueNotFoundError("Invite not found")
-        self._invites[index].deleted_at = datetime.now()
+        self._invites[index].deleted_at = datetime.utcnow()
 
     async def delete_invites_by_event_id(self, event_id: str) -> None:
         """
@@ -398,10 +416,10 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         if len(indexes) == 0:
             raise ValueNotFoundError("No invites found")
 
-        now = datetime.now()
+        current_time = datetime.utcnow()
 
         for index in indexes:
-            self._invites[index].deleted_at = now
+            self._invites[index].deleted_at = current_time
 
     async def delete_invites_by_author_id(self, author_id: str) -> None:
         """
@@ -428,10 +446,10 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         if len(indexes) == 0:
             raise ValueNotFoundError("No invites found")
 
-        now = datetime.now()
+        current_time = datetime.utcnow()
 
         for index in indexes:
-            self._invites[index].deleted_at = now
+            self._invites[index].deleted_at = current_time
 
     async def delete_invites_by_invitee_id(self, invitee_id: str) -> None:
         """
@@ -458,7 +476,7 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         if len(indexes) == 0:
             raise ValueNotFoundError("No invites found")
 
-        now = datetime.now()
+        current_time = datetime.utcnow()
 
         for index in indexes:
-            self._invites[index].deleted_at = now
+            self._invites[index].deleted_at = current_time

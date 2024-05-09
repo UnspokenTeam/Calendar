@@ -5,6 +5,7 @@ from .permission_denied_error import PermissionDeniedError
 from .unique_error import UniqueError
 from .value_not_found_error import ValueNotFoundError
 from .wrong_interval_error import WrongIntervalError
+from .unauthenticated_error import UnauthenticatedError
 
 __all__ = [
     "UniqueError",
@@ -12,5 +13,6 @@ __all__ = [
     "InvalidTokenError",
     "WrongIntervalError",
     "PermissionDeniedError",
-    "ValueNotFoundError"
+    "ValueNotFoundError",
+    "UnauthenticatedError"
 ]

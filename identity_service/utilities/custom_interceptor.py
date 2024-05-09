@@ -7,21 +7,11 @@ import grpc
 
 from prisma.errors import PrismaError
 
-from components.errors import PermissionDeniedError, UniqueError, ValueNotFoundError
+from errors_package.errors import InvalidTokenError, PermissionDeniedError, UniqueError, ValueNotFoundError
 from grpc_interceptor.server import AsyncServerInterceptor
 
 
 class CustomInterceptor(AsyncServerInterceptor):
-    """
-    GRPC Interceptor class for Error Handling.
-
-    Methods
-    -------
-    async intercept(method, request_or_iterator, context, _)
-        Handles exceptions and returns method call.
-
-    """
-
     async def intercept(
         self,
         method: Callable,
@@ -45,7 +35,6 @@ class CustomInterceptor(AsyncServerInterceptor):
         Returns
         -------
         Returns the result of method(request_or_iterator)
-
         """
         try:
             return await method(request_or_iterator, context)
@@ -54,12 +43,17 @@ class CustomInterceptor(AsyncServerInterceptor):
             await context.abort(
                 grpc.StatusCode.UNKNOWN, "Prisma error: Unknown error happened"
             )
-        except UniqueError as unique_error:
-            logging.error(unique_error)
-            await context.abort(grpc.StatusCode.ALREADY_EXISTS, str(unique_error))
         except ValueNotFoundError as value_not_found_error:
             logging.error(value_not_found_error)
             await context.abort(grpc.StatusCode.NOT_FOUND, str(value_not_found_error))
+        except InvalidTokenError as invalid_token_error:
+            logging.error(invalid_token_error)
+            await context.abort(
+                grpc.StatusCode.UNAUTHENTICATED, str(invalid_token_error)
+            )
+        except UniqueError as unique_error:
+            logging.error(unique_error)
+            await context.abort(grpc.StatusCode.ALREADY_EXISTS, str(unique_error))
         except PermissionDeniedError as permission_denied_error:
             logging.error(permission_denied_error)
             await context.abort(

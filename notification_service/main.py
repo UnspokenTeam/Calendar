@@ -6,9 +6,9 @@ import sys
 import grpc
 
 from src.notification_service_impl import NotificationServiceImpl
-from utils.custom_interceptor import CustomInterceptor
+from interceptor.custom_interceptor import CustomInterceptor
 
-from components.db import PostgresClient
+from db_package.db import PostgresClient
 from repository.mock_notification_repository import MockNotificationRepositoryImpl
 from repository.notification_repository_impl import NotificationRepositoryImpl
 import generated.notification_service.notification_service_pb2_grpc as notification_service_grpc

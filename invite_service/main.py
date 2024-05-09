@@ -6,9 +6,9 @@ import sys
 import grpc
 
 from src.invite_service_impl import InviteServiceImpl
-from utils.custom_interceptor import CustomInterceptor
+from interceptor.custom_interceptor import CustomInterceptor
 
-from components.db import PostgresClient
+from db import PostgresClient
 from repository.invite_repository_impl import InviteRepositoryImpl
 from repository.mock_invite_repository import MockInviteRepositoryImpl
 import generated.invite_service.invite_service_pb2_grpc as invite_service_grpc
@@ -29,7 +29,9 @@ async def serve() -> None:
     )
     server.add_insecure_port("0.0.0.0:8082")
     await server.start()
-    logging.info(f"Server started on http://localhost:8082 with environment {os.environ['ENVIRONMENT']}")
+    logging.info(
+        f"Server started on http://localhost:8082 with environment {os.environ['ENVIRONMENT']}"
+    )
     await server.wait_for_termination()
 
 

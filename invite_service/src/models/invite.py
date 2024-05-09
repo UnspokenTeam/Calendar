@@ -13,7 +13,6 @@ from generated.invite_service.invite_service_pb2 import (
 from generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
-from pytz import utc
 
 
 class InviteStatus(StrEnum):
@@ -142,9 +141,16 @@ class Invite:
             invitee_id=self.invitee_id,
             status=self.status.to_proto(),
         )
-        invite.created_at.FromDatetime(dt=self.created_at.astimezone(utc))
+        invite.created_at.FromNanoseconds(
+            int(self.created_at.replace(tzinfo=datetime.now().tzinfo).timestamp() * 1e9)
+        )
         if self.deleted_at is not None:
-            invite.deleted_at.FromDatetime(self.deleted_at.astimezone(utc))
+            invite.deleted_at.FromNanoseconds(
+                int(
+                    self.deleted_at.replace(tzinfo=datetime.now().tzinfo).timestamp()
+                    * 1e9
+                )
+            )
 
         return invite
 
@@ -217,11 +223,11 @@ class Invite:
             author_id=grpc_invite.author_id,
             invitee_id=grpc_invite.invitee_id,
             status=InviteStatus.from_proto(grpc_invite.status),
-            created_at=datetime.fromtimestamp(
+            created_at=datetime.utcfromtimestamp(
                 grpc_invite.created_at.seconds + grpc_invite.created_at.nanos / 1e9
             ),
             deleted_at=(
-                datetime.fromtimestamp(
+                datetime.utcfromtimestamp(
                     grpc_invite.deleted_at.seconds + grpc_invite.deleted_at.nanos / 1e9
                 )
                 if grpc_invite.WhichOneof("optional_deleted_at") is not None

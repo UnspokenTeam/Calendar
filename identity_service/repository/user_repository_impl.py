@@ -8,9 +8,9 @@ from prisma.models import User as PrismaUser
 
 from src.models.user import User
 
-from components.db import PostgresClient
-from components.errors import UniqueError, ValueNotFoundError
-from components.utils import singleton
+from db_package.db import PostgresClient
+from errors_package.errors import UniqueError, ValueNotFoundError
+from utils_package.utils import singleton
 from repository.user_repository_interface import UserRepositoryInterface
 
 
@@ -132,21 +132,13 @@ class UserRepositoryImpl(UserRepositoryInterface):
         ------
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python
-        ValueNotFoundError
-            No users was found for given email
 
         """
-        db_users: Optional[List[PrismaUser]] = await self._db_client.db.user.find_many(
+        db_users = await self._db_client.db.user.find_many(
             where={"id": {"in": user_ids}, "suspended_at": None},
             skip=(page - 1) * items_per_page if items_per_page != -1 else None,
             take=items_per_page if items_per_page != -1 else None,
         )
-
-        if db_users is None:
-            raise ValueNotFoundError("Value is None")
-
-        if len(db_users) == 0:
-            raise ValueNotFoundError("No users not found")
 
         return [User.from_prisma_user(db_user) for db_user in db_users]
 
@@ -268,8 +260,6 @@ class UserRepositoryImpl(UserRepositoryInterface):
 
         Raises
         ------
-        ValueNotFoundError
-            No users found
         prisma.errors.PrismaError
             Catch all for every exception raised by Prisma Client Python
 
@@ -278,8 +268,6 @@ class UserRepositoryImpl(UserRepositoryInterface):
             skip=(page - 1) * items_per_page if items_per_page != -1 else None,
             take=items_per_page if items_per_page != -1 else None,
         )
-        if len(users) == 0:
-            raise ValueNotFoundError("No users found")
         return [User.from_prisma_user(user) for user in users]
 
     async def get_user_by_session_id(self, session_id: str) -> User:

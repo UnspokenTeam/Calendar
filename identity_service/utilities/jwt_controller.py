@@ -5,10 +5,10 @@ from typing import Tuple
 import datetime
 import os
 
-from components.errors import InvalidTokenError
-from components.utils import singleton
+from errors_package.errors import InvalidTokenError
+from utils_package.utils import singleton
 from jwt import decode, encode
-from jwt.exceptions import DecodeError
+from jwt.exceptions import DecodeError, ExpiredSignatureError
 
 
 class TokenType(Enum):
@@ -147,4 +147,6 @@ class JwtController:
             )
             return str(data["user_id"]), str(data["session_id"])
         except DecodeError:
+            raise InvalidTokenError("Invalid token")
+        except ExpiredSignatureError:
             raise InvalidTokenError("Invalid token")
