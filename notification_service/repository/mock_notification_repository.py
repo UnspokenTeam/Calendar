@@ -5,13 +5,11 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import uuid4
 
-from errors.unique_error import UniqueError
-from errors.value_not_found_error import ValueNotFoundError
-from errors.wrong_inerval_error import WrongIntervalError
 from src.models.notification import Notification
-from utils.singleton import singleton
 
+from errors_package.errors import UniqueError, ValueNotFoundError, WrongIntervalError
 from repository.notification_repository_interface import NotificationRepositoryInterface
+from utils_package.utils import singleton
 
 
 @singleton

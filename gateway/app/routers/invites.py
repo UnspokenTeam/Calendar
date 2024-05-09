@@ -5,7 +5,6 @@ from uuid import UUID, uuid4
 
 from grpc import RpcError
 
-from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     EventRequestByEventId as GrpcGetEventByEventIdRequest,
 )
@@ -70,6 +69,8 @@ from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware import auth
 from app.models import Invite, InviteStatus
 from app.params import GrpcClientParams
+
+from errors import PermissionDeniedError
 
 from fastapi import APIRouter, Depends
 from pydantic import UUID4, AfterValidator, BaseModel, Field
@@ -532,11 +533,16 @@ async def check_permission_for_event(
                 )
             )
         )
-        if len(invites.invites.invites) == 0 or not any([invite.event_id == event_id for invite in invites.invites.invites]) :
+        if len(invites.invites.invites) == 0 or not any(
+                [invite.event_id == event_id for invite in invites.invites.invites]
+        ):
             raise PermissionDeniedError("Permission denied")
 
 
-async def check_user_existence(user_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))], grpc_clients: GrpcClientParams) -> None:
+async def check_user_existence(
+        user_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
+        grpc_clients: GrpcClientParams
+) -> None:
     """
     \f
 

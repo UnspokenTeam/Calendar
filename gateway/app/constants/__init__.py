@@ -1,3 +1,4 @@
+"""Constants module"""
 MIN_PASSWORD_LENGTH = 10
 MIN_USERNAME_LENGTH = 5
 

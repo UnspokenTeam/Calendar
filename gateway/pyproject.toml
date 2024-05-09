@@ -18,6 +18,7 @@ protoletariat = "^3.2.19"
 pytz = "^2024.1"
 python-multipart = "^0.0.9"
 python-dateutil = "^2.9.0.post0"
+errors_package = {path = "../shared/errors_package"}
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.1.0"

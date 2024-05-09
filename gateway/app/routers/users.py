@@ -6,7 +6,6 @@ from uuid import UUID, uuid4
 from grpc import RpcError
 
 from app.constants import MIN_PASSWORD_LENGTH, MIN_USERNAME_LENGTH
-from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     DeleteEventsByAuthorIdRequest as GrpcDeleteEventsByAuthorIdRequest,
 )
@@ -46,6 +45,8 @@ from app.middleware.auth import auth
 from app.models import User, UserType
 from app.params import GrpcClientParams
 from app.validators import str_special_characters_validator
+
+from errors import PermissionDeniedError
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
