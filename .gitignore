@@ -401,7 +401,7 @@ notification_service/generate.sh
 notification_service/generate.ps1
 notification_service/.env
 
-/init.sql
+/deployments/postgres/init.sql
 
 /deployments/postgres/postgres-secret.yaml
 /deployments/identity_service/identity_service_secret.yaml

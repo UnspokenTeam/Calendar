@@ -8,24 +8,30 @@ generator client {
 }
 
 model User {
-  id String @id @default(uuid())
-  username String
-  password String
-  email String
-  type UserRole @default(USER)
-  created_at DateTime @default(now())
-  suspended_at DateTime?
-  tokens Token[]
+  id           String    @id @default(uuid()) @map("id")
+  username     String    @map("username")
+  password     String    @map("password")
+  email        String    @unique @map("email")
+  type         UserRole  @default(USER) @map("type")
+  created_at   DateTime  @default(now()) @map("created_at")
+  suspended_at DateTime? @map("suspended_at")
+  tokens       Token[]
+
+  @@map("prisma_users")
 }
 
 model Token {
-  id String @id @default(uuid())
-  user_id String
-  user User @relation(fields: [user_id], references: [id])
-  token String
+  id      String @id @default(uuid()) @map("id")
+  user_id String @map("user_id")
+  user    User   @relation(fields: [user_id], references: [id])
+  token   String @map("token")
+
+  @@map("prisma_tokens")
 }
 
 enum UserRole {
   ADMIN
   USER
+
+  @@map("user_role")
 }
