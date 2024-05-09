@@ -103,6 +103,8 @@ class CredentialsResponse(BaseModel):
 @router.get("/me", response_model_exclude={"password"})
 async def get_current_user_info(user: Annotated[GrpcUser, Depends(auth)]) -> User:
     """
+    \f
+
     Fast api route to get current user info
 
     Parameters
@@ -127,6 +129,8 @@ async def get_all_users(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> List[User]:
     """
+    \f
+
     Fast api route to get all users
 
     Parameters
@@ -167,6 +171,8 @@ async def get_user(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> User:
     """
+    \f
+
     Fast api route to get user by id
 
     Parameters
@@ -232,6 +238,8 @@ async def register_user(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> CredentialsResponse:
     """
+    \f
+
     Fast api route to register user
 
     Parameters
@@ -276,6 +284,8 @@ async def login(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> CredentialsResponse:
     """
+    \f
+
     Fast api route to log in user
 
     Parameters
@@ -310,6 +320,8 @@ async def logout(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
+    \f
+
     Fast api route to log out user
 
     Parameters
@@ -336,6 +348,8 @@ async def get_new_access_token(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> str:
     """
+    \f
+
     Fast api route to get new access token
 
     Parameters
@@ -366,6 +380,8 @@ async def update_user(
         user_to_update: User,
 ) -> CredentialsResponse:
     """
+    \f
+
     Fast api route to update user
 
     Parameters
@@ -418,6 +434,8 @@ async def delete_user(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
+    \f
+
     Fast api route to delete user
 
     Parameters
