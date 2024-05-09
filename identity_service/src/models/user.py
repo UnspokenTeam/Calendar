@@ -9,7 +9,6 @@ from prisma.models import User as PrismaUser
 
 from generated.identity_service.update_user_pb2 import UserToModify as GrpcUserToModify
 from generated.user.user_pb2 import GrpcUser, GrpcUserType
-from pytz import utc
 
 
 class UserType(StrEnum):
@@ -137,7 +136,7 @@ class User:
             email=prisma_user.email,
             password=prisma_user.password,
             type=UserType(prisma_user.type),
-            created_at=prisma_user.created_at.astimezone(utc),
+            created_at=prisma_user.created_at,
             suspended_at=prisma_user.suspended_at,
         )
 

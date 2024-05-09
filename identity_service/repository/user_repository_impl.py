@@ -246,7 +246,7 @@ class UserRepositoryImpl(UserRepositoryInterface):
         """
         await self._db_client.db.user.update_many(
             where={"id": user_id, "suspended_at": None},
-            data={"suspended_at": datetime.now()},
+            data={"suspended_at": datetime.utcnow()},
         )
 
     async def get_all_users(self, page: int, items_per_page: int) -> List[User]:

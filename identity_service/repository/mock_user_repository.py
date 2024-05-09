@@ -9,7 +9,6 @@ from src.models.user import User
 from utils.jwt_controller import JwtController, TokenType
 from utils.singleton import singleton
 
-from pytz import utc
 from repository.mock_token_repository import MockTokenRepositoryImpl
 from repository.user_repository_interface import UserRepositoryInterface
 
@@ -234,7 +233,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
                 for i in range(len(self._users))
                 if self._users[i].id == user_id and self._users[i].suspended_at is None
             )
-            self._users[index].suspended_at = datetime.now().astimezone(utc)
+            self._users[index].suspended_at = datetime.utcnow()
         except StopIteration:
             raise ValueNotFoundError("No user found")
 
