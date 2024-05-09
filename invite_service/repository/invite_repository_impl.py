@@ -5,11 +5,11 @@ from typing import List, Optional
 
 from prisma.models import Invite as PrismaInvite
 
-from src.models.invite import Invite, InviteStatus
-
 from db import PostgresClient
 from errors import UniqueError, ValueNotFoundError
+from src.models.invite import Invite, InviteStatus
 from utils import singleton
+
 from repository.invite_repository_interface import InviteRepositoryInterface
 
 

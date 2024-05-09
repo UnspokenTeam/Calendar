@@ -10,8 +10,8 @@ from src.models.user import User
 
 from db_package.db import PostgresClient
 from errors_package.errors import UniqueError, ValueNotFoundError
-from utils_package.utils import singleton
 from repository.user_repository_interface import UserRepositoryInterface
+from utils_package.utils import singleton
 
 
 @singleton

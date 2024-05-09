@@ -46,9 +46,10 @@ from app.models import User, UserType
 from app.params import GrpcClientParams
 from app.validators import str_special_characters_validator
 
+from errors import PermissionDeniedError
+
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from errors import PermissionDeniedError
 from pydantic import UUID4, AfterValidator, BaseModel, EmailStr, Field
 
 router = APIRouter(prefix="/users", tags=["users"])

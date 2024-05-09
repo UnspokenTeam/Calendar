@@ -70,8 +70,9 @@ from app.middleware import auth
 from app.models import Invite, InviteStatus
 from app.params import GrpcClientParams
 
-from fastapi import APIRouter, Depends
 from errors import PermissionDeniedError
+
+from fastapi import APIRouter, Depends
 from pydantic import UUID4, AfterValidator, BaseModel, Field
 
 router = APIRouter(prefix="/invites", tags=["invites"])

@@ -3,10 +3,11 @@ from typing import Annotated
 
 from grpc import RpcError
 
-from errors import UnauthenticatedError
 from app.generated.identity_service.auth_pb2 import AccessToken
 from app.generated.user.user_pb2 import GrpcUser
 from app.params import GrpcClientParams
+
+from errors import UnauthenticatedError
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer

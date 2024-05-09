@@ -8,8 +8,8 @@ from uuid import uuid4
 from src.models.notification import Notification
 
 from errors_package.errors import UniqueError, ValueNotFoundError, WrongIntervalError
-from utils_package.utils import singleton
 from repository.notification_repository_interface import NotificationRepositoryInterface
+from utils_package.utils import singleton
 
 
 @singleton

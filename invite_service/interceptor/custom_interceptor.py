@@ -7,7 +7,8 @@ import grpc
 
 from prisma.errors import PrismaError
 
-from errors import UniqueError, PermissionDeniedError, ValueNotFoundError
+from errors import PermissionDeniedError, UniqueError, ValueNotFoundError
+
 from grpc_interceptor.server import AsyncServerInterceptor
 
 

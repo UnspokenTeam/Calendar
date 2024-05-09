@@ -7,15 +7,15 @@ from prisma.models import PrismaEvent
 
 from src.models.event import Event
 
-from db_package.db import PostgresClient
-from errors_package.errors import ValueNotFoundError, WrongIntervalError
-from utils_package.utils import singleton
 from constants import (
     GET_ALL_EVENTS_QUERY,
     GET_EVENTS_BY_AUTHOR_ID_QUERY,
     GET_EVENTS_BY_EVENT_IDS_QUERY,
 )
+from db_package.db import PostgresClient
+from errors_package.errors import ValueNotFoundError, WrongIntervalError
 from repository.event_repository_interface import EventRepositoryInterface
+from utils_package.utils import singleton
 
 
 @singleton

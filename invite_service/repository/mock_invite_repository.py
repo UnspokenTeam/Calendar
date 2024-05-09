@@ -3,10 +3,10 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import uuid4
 
-from src.models.invite import Invite, InviteStatus
-
 from errors import UniqueError, ValueNotFoundError
+from src.models.invite import Invite, InviteStatus
 from utils import singleton
+
 from repository.invite_repository_interface import InviteRepositoryInterface
 
 

@@ -5,7 +5,6 @@ from uuid import UUID, uuid4
 
 from grpc import RpcError
 
-from errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import DeleteEventByIdRequest as GrpcDeleteEventByIdRequest
 from app.generated.event_service.event_service_pb2 import EventRequest as GrpcEventRequest
 from app.generated.event_service.event_service_pb2 import EventRequestByEventId as GrpcGetEventByEventIdRequest
@@ -51,6 +50,8 @@ from app.middleware import auth
 from app.models import Event, User
 from app.models.event import Interval
 from app.params import GrpcClientParams
+
+from errors import PermissionDeniedError
 
 from fastapi import APIRouter, Depends
 from pydantic import UUID4, AfterValidator, BaseModel, Field

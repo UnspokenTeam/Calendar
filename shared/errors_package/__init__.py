@@ -2,10 +2,10 @@ from errors_package.errors import (
     AiResponseError,
     InvalidTokenError,
     PermissionDeniedError,
+    UnauthenticatedError,
     UniqueError,
     ValueNotFoundError,
     WrongIntervalError,
-    UnauthenticatedError
 )
 
 __all__ = [

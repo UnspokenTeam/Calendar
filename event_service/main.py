@@ -6,11 +6,11 @@ import sys
 import grpc
 
 from src.event_service_impl import EventServiceImpl
-from utilities.custom_interceptor import CustomInterceptor
 
 from db_package.db import PostgresClient
 from repository.event_repository_impl import EventRepositoryImpl
 from repository.mock_event_repository import MockEventRepositoryImpl
+from utilities.custom_interceptor import CustomInterceptor
 import generated.event_service.event_service_pb2_grpc as event_service_grpc
 
 

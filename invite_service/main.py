@@ -5,10 +5,10 @@ import sys
 
 import grpc
 
-from src.invite_service_impl import InviteServiceImpl
-from interceptor.custom_interceptor import CustomInterceptor
-
 from db import PostgresClient
+from src.invite_service_impl import InviteServiceImpl
+
+from interceptor.custom_interceptor import CustomInterceptor
 from repository.invite_repository_impl import InviteRepositoryImpl
 from repository.mock_invite_repository import MockInviteRepositoryImpl
 import generated.invite_service.invite_service_pb2_grpc as invite_service_grpc

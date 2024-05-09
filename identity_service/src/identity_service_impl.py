@@ -6,8 +6,6 @@ from uuid import uuid4
 import grpc
 
 from src.models.user import User, UserType
-from utilities.encoder import Encoder
-from utilities.jwt_controller import JwtController, TokenType
 
 from errors_package.errors import PermissionDeniedError, ValueNotFoundError
 from generated.identity_service.identity_service_pb2_grpc import (
@@ -16,6 +14,8 @@ from generated.identity_service.identity_service_pb2_grpc import (
 from google.protobuf.empty_pb2 import Empty
 from repository.token_repository_interface import TokenRepositoryInterface
 from repository.user_repository_interface import UserRepositoryInterface
+from utilities.encoder import Encoder
+from utilities.jwt_controller import JwtController, TokenType
 import generated.identity_service.auth_pb2 as auth_proto
 import generated.identity_service.delete_user_pb2 as delete_user_proto
 import generated.identity_service.get_access_token_pb2 as get_access_token_proto

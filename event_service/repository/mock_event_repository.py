@@ -8,8 +8,8 @@ from uuid import uuid4
 from src.models.event import Event
 
 from errors_package.errors import ValueNotFoundError, WrongIntervalError
-from utils_package.utils import singleton
 from repository.event_repository_interface import EventRepositoryInterface
+from utils_package.utils import singleton
 
 
 @singleton
