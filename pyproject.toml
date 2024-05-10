@@ -20,6 +20,7 @@ exclude = [
     "event_service/src/generated",
     "notification_service/src/generated",
     "invite_service/generated",
+    "invite_service/src/generated",
     "identity_service/generated",
     "gateway/generated",
     "singleton.py",

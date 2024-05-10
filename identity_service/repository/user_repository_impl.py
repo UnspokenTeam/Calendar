@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from typing import List, Optional
-import logging
 
 from prisma.models import User as PrismaUser
 
@@ -176,8 +175,7 @@ class UserRepositoryImpl(UserRepositoryInterface):
         )
         if db_user_counter != 0:
             raise UniqueError("User with this email or username already exists")
-        logging.info(user.to_dict())
-        prisma_user_data = await self._db_client.db.user.create(data=user.to_dict())
+        prisma_user_data = await self._db_client.db.user.create(data=user.to_dict(exclude=["deleted_at", "created_at"]))
         return User.from_prisma_user(prisma_user_data)
 
     async def update_user(self, user: User) -> User:
@@ -216,7 +214,7 @@ class UserRepositoryImpl(UserRepositoryInterface):
             raise UniqueError("User with this email or username already exists")
         prisma_user_data = await self._db_client.db.user.update(
             where={"id": user.id},
-            data=user.to_dict(exclude=["type"]),
+            data=user.to_dict(),
         )
         if prisma_user_data is None:
             raise ValueNotFoundError("User not found")
@@ -239,7 +237,7 @@ class UserRepositoryImpl(UserRepositoryInterface):
         """
         await self._db_client.db.user.update_many(
             where={"id": user_id, "suspended_at": None},
-            data={"suspended_at": datetime.now()},
+            data={"suspended_at": datetime.utcnow()},
         )
 
     async def get_all_users(self, page: int, items_per_page: int) -> List[User]:
