@@ -3,18 +3,18 @@
 import grpc
 
 from errors import PermissionDeniedError
-from src.models.invite import Invite, InviteStatus
-
-from generated.invite_service.invite_service_pb2 import (
+from src.generated.invite_service.invite_service_pb2 import (
     GetAllInvitesRequest as GrpcGetAllInvitesRequest,
 )
-from generated.invite_service.invite_service_pb2_grpc import (
+from src.generated.invite_service.invite_service_pb2_grpc import (
     InviteServiceServicer as GrpcServicer,
 )
-from generated.user.user_pb2 import GrpcUserType
+from src.generated.user.user_pb2 import GrpcUserType
+from src.models.invite import Invite, InviteStatus
+from src.repository.invite_repository_interface import InviteRepositoryInterface
+import src.generated.invite_service.invite_service_pb2 as proto
+
 from google.protobuf.empty_pb2 import Empty
-from repository.invite_repository_interface import InviteRepositoryInterface
-import generated.invite_service.invite_service_pb2 as proto
 
 
 class InviteServiceImpl(GrpcServicer):

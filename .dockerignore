@@ -10,7 +10,7 @@ event_service/.env
 event_service/generate.bat
 event_service/generate.sh
 
-invite_service/generated
+invite_service/src/generated
 invite_service/.idea
 invite_service/.env
 invite_service/generate.bat

@@ -5,9 +5,8 @@ from uuid import uuid4
 
 from errors import UniqueError, ValueNotFoundError
 from src.models.invite import Invite, InviteStatus
+from src.repository.invite_repository_interface import InviteRepositoryInterface
 from utils import singleton
-
-from repository.invite_repository_interface import InviteRepositoryInterface
 
 
 @singleton
@@ -311,10 +310,10 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
         updated_invites = []
 
         if any(
-                [
-                    invite == InviteStatus.PENDING and invite.deleted_at is None
-                    for invite, _ in db_invites
-                ]
+            [
+                invite == InviteStatus.PENDING and invite.deleted_at is None
+                for invite, _ in db_invites
+            ]
         ):
             raise UniqueError("Some invites already exist")
 
