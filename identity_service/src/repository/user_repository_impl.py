@@ -5,12 +5,11 @@ from typing import List, Optional
 
 from prisma.models import User as PrismaUser
 
-from src.models.user import User
-
-from db_package.db import PostgresClient
-from errors_package.errors import UniqueError, ValueNotFoundError
-from repository.user_repository_interface import UserRepositoryInterface
-from utils_package.utils import singleton
+from db import PostgresClient
+from errors import UniqueError, ValueNotFoundError
+from src.models import User
+from src.repository.user_repository_interface import UserRepositoryInterface
+from utils import singleton
 
 
 @singleton

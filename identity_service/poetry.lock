@@ -173,6 +173,7 @@ develop = false
 
 [package.dependencies]
 prisma = "^0.13.1"
+utils-package = {path = "../utils_package"}
 
 [package.source]
 type = "directory"

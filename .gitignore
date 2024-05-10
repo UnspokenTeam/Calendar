@@ -384,7 +384,7 @@ identity_service/.idea
 identity_service/generate.bat
 identity_service/generate.sh
 identity_service/generate.ps1
-identity_service/generated
+identity_service/src/generated
 identity_service/.env
 
 invite_service/.idea

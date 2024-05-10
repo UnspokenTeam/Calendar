@@ -1,4 +1,4 @@
-identity_service/generated
+identity_service/src/generated
 identity_service/.idea
 identity_service/.env
 identity_service/generate.bat
