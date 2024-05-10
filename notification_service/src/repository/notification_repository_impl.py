@@ -5,13 +5,14 @@ from typing import List, Optional
 
 from prisma.models import PrismaNotification
 
+from db import PostgresClient
+from errors import UniqueError, ValueNotFoundError, WrongIntervalError
+from src.constants.constants import GET_NOTIFICATIONS_BY_AUTHOR_ID_QUERY
 from src.models.notification import Notification
-
-from constants import GET_NOTIFICATIONS_BY_AUTHOR_ID_QUERY
-from db_package.db import PostgresClient
-from errors_package.errors import UniqueError, ValueNotFoundError, WrongIntervalError
-from repository.notification_repository_interface import NotificationRepositoryInterface
-from utils_package.utils import singleton
+from src.repository.notification_repository_interface import (
+    NotificationRepositoryInterface,
+)
+from utils import singleton
 
 
 @singleton

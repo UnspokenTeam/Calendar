@@ -5,13 +5,12 @@ import sys
 
 import grpc
 
+from db import PostgresClient
+from src.interceptor.custom_interceptor import CustomInterceptor
 from src.notification_service_impl import NotificationServiceImpl
-
-from db_package.db import PostgresClient
-from interceptor.custom_interceptor import CustomInterceptor
-from repository.mock_notification_repository import MockNotificationRepositoryImpl
-from repository.notification_repository_impl import NotificationRepositoryImpl
-import generated.notification_service.notification_service_pb2_grpc as notification_service_grpc
+from src.repository.mock_notification_repository import MockNotificationRepositoryImpl
+from src.repository.notification_repository_impl import NotificationRepositoryImpl
+import src.generated.notification_service.notification_service_pb2_grpc as notification_service_grpc
 
 
 async def serve() -> None:

@@ -6,10 +6,11 @@ from typing import Any, Dict, List, Optional, Self
 
 from prisma.models import PrismaNotification
 
-from constants import INTERVAL_SLOTS
+from src.constants.constants import INTERVAL_SLOTS
+from src.generated.interval.interval_pb2 import Interval
+from src.generated.notification_service.notification_service_pb2 import GrpcNotification
+
 from dateutil.relativedelta import relativedelta
-from generated.interval.interval_pb2 import Interval
-from generated.notification_service.notification_service_pb2 import GrpcNotification
 
 
 @dataclass

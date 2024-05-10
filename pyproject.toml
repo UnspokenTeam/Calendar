@@ -18,12 +18,14 @@ exclude = [
     ".venv",
     "__pycache__",
     "event_service/src/generated",
-    "notification_service/generated",
+    "notification_service/src/generated",
+    "invite_service/generated",
     "invite_service/src/generated",
     "identity_service/generated",
     "gateway/generated",
     "singleton.py",
-    "event_service/src/constants/constants.py"
+    "event_service/src/constants/constants.py",
+    "notification_service/src/constants/constants.py"
 ]
 
 line-length = 119

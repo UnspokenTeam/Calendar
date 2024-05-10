@@ -50,7 +50,7 @@ ___
       ```
       - Создайте .env файл в папке микросервиса. Добавьте вызов load_dotenv из модуля dotenv в методе serve в файле main.py и выполните команду:
       ```bash
-      poetry run python main.py
+      poetry run python -m src.main
       ```
 ---
 3. **О микросервисе**:
