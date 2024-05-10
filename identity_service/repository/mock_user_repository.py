@@ -173,6 +173,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
             raise UniqueError("User with this data already exists")
 
         user.id = str(uuid4())
+        user.created_at = datetime.utcnow()
         self._users.append(user)
         return user
 
@@ -224,7 +225,7 @@ class MockUserRepositoryImpl(UserRepositoryInterface):
                 for i in range(len(self._users))
                 if self._users[i].id == user_id and self._users[i].suspended_at is None
             )
-            self._users[index].suspended_at = datetime.now()
+            self._users[index].suspended_at = datetime.utcnow()
         except StopIteration:
             raise ValueNotFoundError("No user found")
 

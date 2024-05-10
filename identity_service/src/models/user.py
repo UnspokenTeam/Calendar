@@ -9,7 +9,6 @@ from prisma.models import User as PrismaUser
 
 from generated.identity_service.update_user_pb2 import UserToModify as GrpcUserToModify
 from generated.user.user_pb2 import GrpcUser, GrpcUserType
-from pytz import utc
 
 
 class UserType(StrEnum):
@@ -110,9 +109,9 @@ class User:
             ),
             suspended_at=None,
         )
-        user.created_at.FromDatetime(dt=self.created_at.astimezone(utc))
+        user.created_at.FromNanoseconds(int(self.created_at.replace(tzinfo=datetime.now().tzinfo).timestamp() * 1e9))
         if self.suspended_at is not None:
-            user.suspended_at.FromDatetime(dt=self.suspended_at.astimezone(utc))
+            user.suspended_at.FromNanoseconds(int(self.suspended_at.replace(tzinfo=datetime.now().tzinfo).timestamp() * 1e9))
         return user
 
     @classmethod
@@ -188,11 +187,11 @@ class User:
             password=grpc_user.password,
             email=grpc_user.email,
             type=UserType.from_grpc_user_type(grpc_user.type),
-            created_at=datetime.fromtimestamp(
+            created_at=datetime.utcfromtimestamp(
                 grpc_user.created_at.seconds + grpc_user.created_at.nanos / 1e9
             ),
             suspended_at=(
-                datetime.fromtimestamp(
+                datetime.utcfromtimestamp(
                     grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
                 )
                 if grpc_user.WhichOneof("optional_suspended_at") is not None
@@ -222,11 +221,11 @@ class User:
             password="",
             email=grpc_user.email,
             type=UserType.from_grpc_user_type(grpc_user.type),
-            created_at=datetime.fromtimestamp(
+            created_at=datetime.utcfromtimestamp(
                 grpc_user.created_at.seconds + grpc_user.created_at.nanos / 1e9
             ),
             suspended_at=(
-                datetime.fromtimestamp(
+                datetime.utcfromtimestamp(
                     grpc_user.suspended_at.seconds + grpc_user.suspended_at.nanos / 1e9
                 )
                 if grpc_user.WhichOneof("optional_suspended_at") is not None
