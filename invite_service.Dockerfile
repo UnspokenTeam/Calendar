@@ -35,7 +35,7 @@ COPY invite_service ./
 RUN mkdir ./src/generated
 
 RUN poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=./src/generated --grpc_python_out=./src/generated --pyi_out=./src/generated ../shared/proto/user/*.proto ../shared/proto/invite_service/*.proto
-RUN poetry run protol --create-package --in-place --python-out ./src/generated protoc  --experimental_allow_proto3_optional --proto-path=../shared/proto ../shared/proto/invite_service/*.proto ../shared/proto/user/*.proto
+RUN poetry run protol --create-package --in-place --python-out ./src/generated protoc --proto-path=../shared/proto ../shared/proto/invite_service/*.proto ../shared/proto/user/*.proto
 
 RUN poetry run prisma generate
 
