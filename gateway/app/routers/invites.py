@@ -3,11 +3,11 @@ from datetime import datetime
 from typing import Annotated, List
 from uuid import UUID, uuid4
 
+from errors import PermissionDeniedError
+from fastapi import APIRouter, Depends
 from grpc import RpcError
+from pydantic import UUID4, AfterValidator, BaseModel, Field
 
-from app.generated.event_service.event_service_pb2 import (
-    EventRequestByEventId as GrpcGetEventByEventIdRequest,
-)
 from app.generated.event_service.event_service_pb2 import (
     EventsRequestByEventsIds as GrpcGetEventsByEventIdsRequest,
 )
@@ -19,9 +19,6 @@ from app.generated.event_service.event_service_pb2 import (
 )
 from app.generated.identity_service.get_user_pb2 import (
     ListOfUser as GrpcListOfUsers,
-)
-from app.generated.identity_service.get_user_pb2 import (
-    UserByIdRequest as GrpcGetUserByIdRequest,
 )
 from app.generated.identity_service.get_user_pb2 import (
     UsersByIdRequest as GrpcGetUsersByIdRequest,
@@ -54,9 +51,6 @@ from app.generated.invite_service.invite_service_pb2 import (
     InvitesResponse as GrpcInvitesResponse,
 )
 from app.generated.invite_service.invite_service_pb2 import (
-    InviteStatus as GrpcInviteStatus,
-)
-from app.generated.invite_service.invite_service_pb2 import (
     ListOfInvites as GrpcListOfInvites,
 )
 from app.generated.notification_service.notification_service_pb2 import (
@@ -69,11 +63,8 @@ from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware import auth
 from app.models import Invite, InviteStatus
 from app.params import GrpcClientParams
-
-from errors import PermissionDeniedError
-
-from fastapi import APIRouter, Depends
-from pydantic import UUID4, AfterValidator, BaseModel, Field
+from app.utils.event_permission_checker import check_permission_for_event
+from app.utils.user_existence_checker import check_user_existence
 
 router = APIRouter(prefix="/invites", tags=["invites"])
 
@@ -291,11 +282,11 @@ async def create_invite(
     if user.id == str(invitee_id):
         raise ValueError("Invitee and author cannot be the same person")
 
-    await check_permission_for_event(
-        requesting_user=user, event_id=event_id, grpc_clients=grpc_clients
+    check_permission_for_event(
+        grpc_user=user, event_id=event_id, grpc_clients=grpc_clients
     )
 
-    await check_user_existence(user_id=invitee_id, grpc_clients=grpc_clients)
+    check_user_existence(user_id=invitee_id, grpc_clients=grpc_clients)
 
     invite = Invite(
         id=uuid4(),
@@ -426,12 +417,12 @@ async def update_invite(
     db_invite = Invite.from_proto(db_invite_response.invite)
 
     if db_invite.event_id != invite.event_id:
-        await check_permission_for_event(
-            requesting_user=user, event_id=invite.event_id, grpc_clients=grpc_clients
+        check_permission_for_event(
+            grpc_user=user, event_id=invite.event_id, grpc_clients=grpc_clients
         )
 
     if db_invite.invitee_id != invite.invitee_id:
-        await check_user_existence(user_id=invite.invitee_id, grpc_clients=grpc_clients)
+        check_user_existence(user_id=invite.invitee_id, grpc_clients=grpc_clients)
 
     invite.created_at = db_invite.created_at
     invite.deleted_at = db_invite.deleted_at
@@ -486,76 +477,4 @@ async def delete_invite(
 
     grpc_clients.invite_service_client.request().delete_invite_by_id(
         GrpcDeleteInviteByIdRequest(invite_id=str(invite_id), requesting_user=user)
-    )
-
-
-async def check_permission_for_event(
-        requesting_user: GrpcUser,
-        event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
-        grpc_clients: GrpcClientParams
-) -> None:
-    """
-    \f
-
-    Check if user can access event.
-
-    Parameters
-    ----------
-    requesting_user : GrpcUser
-        User's data
-    event_id : UUID4 | str
-        Event id
-    grpc_clients: GrpcClientParams
-        Grpc clients
-
-    Raises
-    ------
-    PermissionDeniedError
-        Permission denied
-
-    """
-    try:
-        _ = grpc_clients.event_service_client.request().get_event_by_event_id(
-            GrpcGetEventByEventIdRequest(
-                event_id=str(event_id),
-                requesting_user=requesting_user,
-            )
-        )
-    except RpcError:
-        invites: GrpcInvitesResponse = (
-            grpc_clients.invite_service_client.request().get_invites_by_invitee_id(
-                GrpcGetInvitesByInviteeIdRequest(
-                    invitee_id=requesting_user.id,
-                    invite_status=GrpcInviteStatus.ACCEPTED,
-                    requesting_user=requesting_user,
-                    page_number=1,
-                    items_per_page=-1,
-                )
-            )
-        )
-        if len(invites.invites.invites) == 0 or not any(
-                [invite.event_id == event_id for invite in invites.invites.invites]
-        ):
-            raise PermissionDeniedError("Permission denied")
-
-
-async def check_user_existence(
-        user_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
-        grpc_clients: GrpcClientParams
-) -> None:
-    """
-    \f
-
-    Check if user with given id exists
-
-    Parameters
-    ----------
-    user_id : UUID4 | str
-        User's id
-    grpc_clients : GrpcClientParams
-        Grpc clients
-
-    """
-    _ = grpc_clients.identity_service_client.request().get_user_by_id(
-        GrpcGetUserByIdRequest(user_id=str(user_id))
     )
