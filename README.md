@@ -2,18 +2,12 @@
 
 ###### Backend для приложения Calendar
 
----
-
 ## Содержание
-
----
 
 1. ### [Secrets](#secrets)
 2. ### [Запуск](#запуск)
 
 ## Secrets
-
----
 
 **_Для запуска проекта при помощи Kubernetes, требуется прописать несколько конфигурационных secret файлов_**
 
@@ -89,27 +83,26 @@
 
 ---
 
-###### Все комманды применяются в директории deployments
+###### Все команды применяются в директории deployments и для примера взят microk8s
 
-1. Применение Secrets
+1. Создание базы даннных
    ```shell
-   kubectl apply -f ./postgres/postgres-secret.yaml, event_service/event_service_secret.yaml,./invite_service/invite_service_secret.yaml,./identity_service/identity_service_secret.yaml,./notification_service/notification_service_secret.yaml
+   microk8s microk8s kubectl apply -f ./postgres
    ```
-2. Создание базы даннных
+2. Создание сервисов
    ```shell
-   kubectl apply -f ./postgres/postgres-stateful-set.yaml, ./postgres/postgres_service.yaml
+   microk8s kubectl apply -f ./notification_service
+   microk8s kubectl apply -f ./event_service
+   microk8s kubectl apply -f ./identity_service
+   microk8s kubectl apply -f ./notification_service
    ```
-3. Создание сервисов
+3. Создание Gateway
    ```shell
-   kubectl apply -f ./notification_service/notification_service-deployment.yaml, ./identity_service/identity_service-deployment.yaml, ./invite_service/invite_service-deployment.yaml, ./event_service/event_service-deployment.yaml
+   microk8s kubectl apply -f ./gateway
    ```
-4. Создание Service объектов для сервисов
+4. Создание тунеля
    ```shell
-   kubectl apply -f ./notification_service/notification_service-service.yaml, ./identity_service/identity_service-service.yaml, ./invite_service/invite_service-service.yaml, ./event_service/event_service-service.yaml
-   ```
-5. Создание Gateway
-   ```shell
-   kubectl apply -f ./gateway/gateway_deployment.yaml, ./gateway/gateway_service.yaml
+   microk8s kubectl port-forward --address 0.0.0.0 --namespace default svc/gateway-service 8084:8084
    ```
 
-###### Backend будет доступен по externalIp, который указан в ```deployments/gateway/gateway_service.yaml```
+###### Backend будет доступен по ip 0.0.0.0:8084
