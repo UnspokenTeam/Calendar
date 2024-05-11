@@ -37,14 +37,14 @@ from app.generated.invite_service.invite_service_pb2 import (
 from app.generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
+from app.generated.invite_service.invite_service_pb2 import (
+    ListOfInvites as GrpcListOfInvites,
+)
 from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationsByEventIdRequest as GrpcDeleteNotificationsByEventIdRequest,
 )
 from app.generated.notification_service.notification_service_pb2 import (
     GrpcNotification,
-)
-from app.generated.invite_service.invite_service_pb2 import (
-    ListOfInvites as GrpcListOfInvites,
 )
 from app.generated.notification_service.notification_service_pb2 import NotificationRequest as GrpcNotificationRequest
 from app.generated.notification_service.notification_service_pb2 import (
