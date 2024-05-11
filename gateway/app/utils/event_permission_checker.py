@@ -14,7 +14,7 @@ from app.generated.event_service.event_service_pb2 import ListOfEventsIds as Grp
 from app.generated.invite_service.invite_service_pb2 import (
     GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
 )
-from app.generated.invite_service.invite_service_pb2 import InvitesResponse as GrpcInvitesResponse
+from app.generated.invite_service.invite_service_pb2 import ListOfInvites as GrpcListOfInvites
 from app.generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
@@ -64,7 +64,7 @@ def check_permission_for_event(
         )
         return Event.from_proto(event)
     except RpcError:
-        invites: GrpcInvitesResponse = grpc_clients.invite_service_client.request().get_invites_by_invitee_id(
+        invites: GrpcListOfInvites = grpc_clients.invite_service_client.request().get_invites_by_invitee_id(
             GrpcGetInvitesByInviteeIdRequest(
                 invitee_id=grpc_user.id,
                 invite_status=GrpcInviteStatus.ACCEPTED,
@@ -75,14 +75,14 @@ def check_permission_for_event(
         )
 
         if (
-                len(invites.invites.invites) == 0 or
-                not any([invite.event_id == event_id for invite in invites.invites.invites])
+                len(invites.invites) == 0 or
+                not any([invite.event_id == event_id for invite in invites.invites])
         ):
             raise PermissionDeniedError("Permission denied")
 
         events_request: GrpcListOfEvents = grpc_clients.event_service_client.request().get_events_by_events_ids(
             GrpcEventsByEventsIdsRequest(
-                events_ids=GrpcListOfEventsIds(ids=[event_id]),
+                events_ids=GrpcListOfEventsIds(ids=[str(event_id)]),
                 page_number=1,
                 items_per_page=-1
             )

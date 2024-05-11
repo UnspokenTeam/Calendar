@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID, uuid4
 
+import grpc
 from grpc import RpcError
 
 from app.generated.event_service.event_service_pb2 import DeleteEventByIdRequest as GrpcDeleteEventByIdRequest
@@ -79,7 +80,7 @@ class EventResponse(BaseModel):
 
     event: Event
     invited_users: List[User]
-    notification: Notification
+    notification: Optional[Notification] = None
 
 
 class CreateEventRequest(BaseModel):
@@ -296,21 +297,26 @@ async def get_event(
         )
     )
 
-    notification: GrpcNotification = (
-        grpc_clients.notification_service_client.request().get_notification_by_event_and_author_ids(
-            GrpcGetNotificationByEventAndAuthorIdsRequest(
-                event_id=str(event_id),
-                author_id=user.id,
-                requesting_user=user
-            )
-        )
-    )
-
     response = EventResponse(
         event=Event.from_proto(event_response),
         invited_users=[],
-        notification=Notification.from_proto(notification)
+        notification=None
     )
+
+    try:
+        notification: GrpcNotification = (
+            grpc_clients.notification_service_client.request().get_notification_by_event_and_author_ids(
+                GrpcGetNotificationByEventAndAuthorIdsRequest(
+                    event_id=str(event_id),
+                    author_id=user.id,
+                    requesting_user=user
+                )
+            )
+        )
+        response.notification = Notification.from_proto(notification)
+    except RpcError as rpc_error:
+        if rpc_error.code() != grpc.StatusCode.NOT_FOUND:
+            raise rpc_error
 
     invited_people_request: GrpcGetInvitesResponse = (
         grpc_clients.invite_service_client.request().get_invites_by_event_id(
