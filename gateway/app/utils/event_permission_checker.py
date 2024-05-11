@@ -14,10 +14,10 @@ from app.generated.event_service.event_service_pb2 import ListOfEventsIds as Grp
 from app.generated.invite_service.invite_service_pb2 import (
     GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
 )
-from app.generated.invite_service.invite_service_pb2 import ListOfInvites as GrpcListOfInvites
 from app.generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
+from app.generated.invite_service.invite_service_pb2 import ListOfInvites as GrpcListOfInvites
 from app.generated.user.user_pb2 import GrpcUser
 from app.models import Event
 from app.params import GrpcClientParams

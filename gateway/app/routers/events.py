@@ -3,8 +3,8 @@ from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID, uuid4
 
-import grpc
 from grpc import RpcError
+import grpc
 
 from app.generated.event_service.event_service_pb2 import DeleteEventByIdRequest as GrpcDeleteEventByIdRequest
 from app.generated.event_service.event_service_pb2 import EventRequest as GrpcEventRequest
