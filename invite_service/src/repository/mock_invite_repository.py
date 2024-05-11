@@ -91,8 +91,6 @@ class MockInviteRepositoryImpl(InviteRepositoryInterface):
             invites = invites[
                 items_per_page * (page_number - 1) : items_per_page * page_number
             ]
-        if invites is None or len(invites) == 0:
-            raise ValueNotFoundError("Invites not found")
         return invites
 
     async def get_invite_by_invite_id(self, invite_id: str) -> Invite:
