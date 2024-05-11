@@ -45,6 +45,7 @@ from app.middleware import auth
 from app.models import Event, Notification, UserType
 from app.models.Interval import Interval
 from app.params import GrpcClientParams
+from app.utils import convert_event_start_to_notification_start
 from app.validators.int_validators import int_not_equal_zero_validator
 
 from errors import PermissionDeniedError
@@ -475,28 +476,3 @@ def check_permission_for_event(
             raise ValueError("No notifications found")
 
         return Event.from_proto(events_request.events[0])
-
-
-def convert_event_start_to_notification_start(event_start: datetime, delay: Optional[Interval]) -> datetime:
-    """
-    Convert event start to notification start with delay
-
-    Parameters
-    ----------
-    event_start : datetime
-        Event start datetime
-    delay : Interval
-        Delay of the notification
-
-    Returns
-    -------
-    datetime
-        Notification start datetime
-
-    """
-    start = event_start
-
-    if delay is not None:
-        start -= delay.to_relative_delta()
-
-    return start
