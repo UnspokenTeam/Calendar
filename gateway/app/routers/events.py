@@ -42,14 +42,16 @@ from app.generated.notification_service.notification_service_pb2 import (
 from app.generated.notification_service.notification_service_pb2 import (
     GrpcNotification,
 )
+from app.generated.notification_service.notification_service_pb2 import NotificationRequest as GrpcNotificationRequest
 from app.generated.notification_service.notification_service_pb2 import (
     NotificationRequestByEventAndAuthorIds as GrpcGetNotificationByEventAndAuthorIdsRequest,
 )
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware import auth
-from app.models import Event, User
+from app.models import Event, Notification, User
 from app.models.event import Interval
 from app.params import GrpcClientParams
+from app.utils.event_start_to_notification_start_converter import convert_event_start_to_notification_start
 
 from errors import PermissionDeniedError
 
@@ -70,14 +72,14 @@ class EventResponse(BaseModel):
         Event object.
     invited_users : List[User]
         List of users who are invited to the event.
-    notification_turned_on : bool
-        Whether the event is notified turned on.
+    notification : Notification
+        Notification object
 
     """
 
     event: Event
     invited_users: List[User]
-    notification_turned_on: bool
+    notification: Notification
 
 
 class CreateEventRequest(BaseModel):
@@ -98,6 +100,8 @@ class CreateEventRequest(BaseModel):
         Color of the event.
     repeating_delay : Optional[datetime]
         Repeating delay of the event.
+    delay : Optional[Interval]
+        Delay of the notification
 
     """
 
@@ -107,7 +111,24 @@ class CreateEventRequest(BaseModel):
     description: Optional[str]
     color: Optional[str]
     repeating_delay: Optional[Interval] = None
+    delay: Optional[Interval] = None
 
+
+class CreateEventResponse(BaseModel):
+    """
+    Create event response model
+
+    Attributes
+    ----------
+    event : Event
+        Created event
+    notification : Optional[Notification]
+        Created notification
+
+    """
+
+    event: Event
+    notification: Optional[Notification] = None
 
 @router.get("/my/created/")
 async def get_my_created_events(
@@ -275,10 +296,20 @@ async def get_event(
         )
     )
 
+    notification: GrpcNotification = (
+        grpc_clients.notification_service_client.request().get_notification_by_event_and_author_ids(
+            GrpcGetNotificationByEventAndAuthorIdsRequest(
+                event_id=str(event_id),
+                author_id=user.id,
+                requesting_user=user
+            )
+        )
+    )
+
     response = EventResponse(
         event=Event.from_proto(event_response),
         invited_users=[],
-        notification_turned_on=False,
+        notification=Notification.from_proto(notification)
     )
 
     invited_people_request: GrpcGetInvitesResponse = (
@@ -309,18 +340,6 @@ async def get_event(
         response.invited_users = [
             User.from_proto(person) for person in invited_people_response.users
         ]
-
-    notification_request: GrpcNotification = (
-        grpc_clients.notification_service_client.request().get_notification_by_event_and_author_ids(
-            GrpcGetNotificationByEventAndAuthorIdsRequest(
-                event_id=str(event_id),
-                author_id=user.id,
-                requesting_user=user
-            )
-        )
-    )
-
-    response.notification_turned_on = notification_request.enabled
 
     return response
 
@@ -425,7 +444,7 @@ async def create_event(
         event_data: CreateEventRequest,
         user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> Event:
+) -> CreateEventResponse:
     """
     \f
 
@@ -463,7 +482,33 @@ async def create_event(
         GrpcEventRequest(event=event.to_proto(), requesting_user=user)
     )
 
-    return Event.from_proto(proto_event)
+    created_event = Event.from_proto(proto_event)
+
+    response = CreateEventResponse(
+        event=event,
+        notification=None,
+    )
+
+    if event_data.delay is not None:
+        notification = Notification(
+            id=uuid4(),
+            event_id=event.id,
+            author_id=user.id,
+            enabled=True,
+            created_at=datetime.utcnow(),
+            deleted_at=None,
+            start=convert_event_start_to_notification_start(created_event.start.astimezone(tz=utc), event_data.delay),
+            repeating_delay=created_event.repeating_delay
+        )
+        notification_request: GrpcNotification = grpc_clients.notification_service_client.request().create_notification(
+            GrpcNotificationRequest(
+                notification=notification.to_proto(),
+                requesting_user=user
+            )
+        )
+        response.notification = Notification.from_proto(notification_request)
+
+    return response
 
 
 @router.put("/")
