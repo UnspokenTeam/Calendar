@@ -38,11 +38,32 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 
 class ModifyNotificationRequest(BaseModel):
+    """
+    Modify notification request.
+
+    Attributes
+    ----------
+    id : UUID4 | str
+        Notification id
+    event_id : UUID4 | str
+        Event id
+    author_id : UUID4 | str
+        Author id
+    enabled : bool
+        Flag which is true if notification is enabled and false if disabled
+    created_at : datetime
+        Timestamp when notification was created
+    deleted_at : Optional[datetime]
+        Timestamp when notification was deleted
+    delay : Interval
+        Delay before event
+
+    """
     id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     author_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     enabled: Annotated[bool, Field(True)]
-    interval: Optional[Interval]
+    delay: Optional[Interval]
     created_at: datetime
     deleted_at: Optional[datetime] = None
 
@@ -198,7 +219,7 @@ async def get_my_notifications(
 @router.post("/")
 async def create_notification(
         event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
-        interval: Optional[Interval],
+        delay: Optional[Interval],
         user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Notification:
@@ -211,7 +232,7 @@ async def create_notification(
     ----------
     event_id : UUID4 | str
         Event id
-    interval : Optional[Interval]
+    delay : Optional[Interval]
         Interval to calculate notification start
     user : Annotated[GrpcUser, Depends(auth)]
         Authenticated user data in proto format
@@ -231,7 +252,8 @@ async def create_notification(
         event_id=event_id,
         author_id=user.id,
         created_at=datetime.now(),
-        start=convert_event_start_to_notification_start(event.start.astimezone(tz=utc), interval),
+        start=convert_event_start_to_notification_start(event.start.astimezone(tz=utc), delay),
+        delay=delay,
         repeating_delay=event.repeating_delay,
         deleted_at=None,
         enabled=True,
@@ -303,9 +325,10 @@ async def update_notification_as_author(
 
     stored_notification.start = convert_event_start_to_notification_start(
         stored_notification.start,
-        modify_notification_request.interval
+        modify_notification_request.delay
     )
 
+    stored_notification.delay = modify_notification_request.delay
     stored_notification.event_id = modify_notification_request.event_id
     stored_notification.enabled = modify_notification_request.enabled
 

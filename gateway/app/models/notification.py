@@ -32,6 +32,8 @@ class Notification(BaseModel):
         Start date from where notification will work
     repeating_delay : Optional[Interval]
         Repeating delay between notifications
+    delay : Interval
+        Delay before event
 
     Methods
     -------
@@ -48,6 +50,7 @@ class Notification(BaseModel):
     enabled: Annotated[bool, Field(True)]
     start: datetime
     repeating_delay: Optional[Interval]
+    delay: Interval
     created_at: datetime
     deleted_at: Optional[datetime] = None
 
@@ -75,6 +78,7 @@ class Notification(BaseModel):
             start=datetime.fromtimestamp(
                 proto.start.seconds + proto.start.nanos / 1e9
             ),
+            delay=Interval.from_proto(proto.delay_to_event),
             repeating_delay=Interval.from_proto(proto.repeating_delay)
             if proto.WhichOneof("optional_repeating_delay") is not None
             else None,
@@ -104,6 +108,7 @@ class Notification(BaseModel):
             author_id=str(self.author_id),
             enabled=self.enabled,
             repeating_delay=self.repeating_delay.to_proto() if self.repeating_delay is not None else None,
+            delay_to_event=self.delay.to_proto()
         )
         notification.start.FromDatetime(self.start)
         notification.created_at.FromDatetime(self.created_at.astimezone(utc))

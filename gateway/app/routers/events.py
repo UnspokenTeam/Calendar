@@ -503,6 +503,7 @@ async def create_event(
             enabled=True,
             created_at=datetime.utcnow(),
             deleted_at=None,
+            delay=event_data.delay,
             start=convert_event_start_to_notification_start(created_event.start.astimezone(tz=utc), event_data.delay),
             repeating_delay=created_event.repeating_delay
         )
