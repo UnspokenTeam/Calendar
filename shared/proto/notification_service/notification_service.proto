@@ -66,14 +66,15 @@ message GrpcNotification {
   string author_id = 3;
   bool enabled = 4;
   google.protobuf.Timestamp start = 5;
+  Interval delay_to_event = 6;
   oneof optional_repeating_delay {
-    google.protobuf.NullValue repeating_delay_null = 6;
-    Interval repeating_delay = 7;
+    google.protobuf.NullValue repeating_delay_null = 7;
+    Interval repeating_delay = 8;
   }
-  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp created_at = 9;
   oneof optional_deleted_at {
-    google.protobuf.NullValue deleted_at_null = 9;
-    google.protobuf.Timestamp deleted_at = 10;
+    google.protobuf.NullValue deleted_at_null = 10;
+    google.protobuf.Timestamp deleted_at = 11;
   }
 }
 

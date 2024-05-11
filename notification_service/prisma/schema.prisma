@@ -13,6 +13,7 @@ model PrismaNotification {
   author_id       String    @map("author_id")
   enabled         Boolean   @default(true) @map("enabled")
   start           DateTime  @map("start")
+  delay_to_event  String?   @map("delay_to_event")
   repeating_delay String?   @map("repeating_delay")
   created_at      DateTime  @default(now()) @map("created_at")
   deleted_at      DateTime? @map("deleted_at")
