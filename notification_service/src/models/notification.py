@@ -30,6 +30,8 @@ class Notification:
         Enable notification flag.
     start : datetime
         Start time of notification.
+    delay_to_event : str
+        The delay to event defined by user.
     repeating_delay : Optional[str]
         The delay between the same event.
     created_at : datetime
@@ -58,6 +60,7 @@ class Notification:
     event_id: str
     author_id: str
     start: datetime
+    delay_to_event: str
     created_at: datetime
     repeating_delay: Optional[str] = None
     deleted_at: Optional[datetime] = None
@@ -127,6 +130,7 @@ class Notification:
             event_id=self.event_id,
             author_id=self.author_id,
             enabled=self.enabled,
+            delay_to_event=self.delay_string_to_interval(self.delay_to_event),
             repeating_delay=self.delay_string_to_interval(self.repeating_delay)
             if self.repeating_delay is not None
             else None,
@@ -184,6 +188,7 @@ class Notification:
             author_id=self.author_id,
             enabled=self.enabled,
             start=self.start,
+            delay_to_event=self.delay_to_event,
             repeating_delay=self.repeating_delay,
             created_at=self.created_at,
             deleted_at=self.deleted_at,
@@ -211,6 +216,7 @@ class Notification:
             author_id=prisma_notification.author_id,
             enabled=prisma_notification.enabled,
             start=prisma_notification.start,
+            delay_to_event=prisma_notification.delay_to_event,
             repeating_delay=prisma_notification.repeating_delay,
             created_at=prisma_notification.created_at,
             deleted_at=prisma_notification.deleted_at,
@@ -239,6 +245,12 @@ class Notification:
             enabled=grpc_notification.enabled,
             start=datetime.utcfromtimestamp(
                 grpc_notification.start.seconds + grpc_notification.start.nanos / 1e9
+            ),
+            delay_to_event=(
+                " ".join(
+                    f"{getattr(grpc_notification.delay_to_event, name)} {name.upper()}"
+                    for name in INTERVAL_SLOTS
+                )
             ),
             repeating_delay=(
                 None
