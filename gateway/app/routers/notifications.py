@@ -59,6 +59,7 @@ class ModifyNotificationRequest(BaseModel):
         Delay before event
 
     """
+
     id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
     author_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
