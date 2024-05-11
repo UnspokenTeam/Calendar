@@ -2,12 +2,12 @@
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import UUID4, AfterValidator
-
 from app.generated.identity_service.get_user_pb2 import (
     UserByIdRequest as GrpcGetUserByIdRequest,
 )
 from app.params import GrpcClientParams
+
+from pydantic import UUID4, AfterValidator
 
 
 def check_user_existence(

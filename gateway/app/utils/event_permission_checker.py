@@ -2,27 +2,29 @@
 from typing import Annotated
 from uuid import UUID
 
-from errors import PermissionDeniedError
 from grpc import RpcError
-from pydantic import AfterValidator, UUID4
 
 from app.generated.event_service.event_service_pb2 import (
     EventRequestByEventId as GrpcGetEventByEventIdRequest,
 )
+from app.generated.event_service.event_service_pb2 import EventsRequestByEventsIds as GrpcEventsByEventsIdsRequest
+from app.generated.event_service.event_service_pb2 import GrpcEvent
+from app.generated.event_service.event_service_pb2 import ListOfEvents as GrpcListOfEvents
+from app.generated.event_service.event_service_pb2 import ListOfEventsIds as GrpcListOfEventsIds
+from app.generated.invite_service.invite_service_pb2 import (
+    GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
+)
+from app.generated.invite_service.invite_service_pb2 import InvitesResponse as GrpcInvitesResponse
 from app.generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
-from app.generated.invite_service.invite_service_pb2 import (
-    GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest
-)
-from app.generated.event_service.event_service_pb2 import GrpcEvent
-from app.generated.event_service.event_service_pb2 import ListOfEventsIds as GrpcListOfEventsIds
-from app.generated.event_service.event_service_pb2 import EventsRequestByEventsIds as GrpcEventsByEventsIdsRequest
-from app.generated.event_service.event_service_pb2 import ListOfEvents as GrpcListOfEvents
-from app.generated.invite_service.invite_service_pb2 import InvitesResponse as GrpcInvitesResponse
 from app.generated.user.user_pb2 import GrpcUser
 from app.models import Event
 from app.params import GrpcClientParams
+
+from errors import PermissionDeniedError
+
+from pydantic import UUID4, AfterValidator
 
 
 def check_permission_for_event(

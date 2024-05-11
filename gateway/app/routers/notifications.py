@@ -3,26 +3,6 @@ from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID, uuid4
 
-from grpc import RpcError
-
-from app.generated.event_service.event_service_pb2 import (
-    EventRequestByEventId as GrpcGetEventByEventIdRequest,
-)
-from app.generated.event_service.event_service_pb2 import EventsRequestByEventsIds as GrpcEventsByEventsIdsRequest
-from app.generated.event_service.event_service_pb2 import (
-    GrpcEvent,
-)
-from app.generated.event_service.event_service_pb2 import ListOfEvents as GrpcListOfEvents
-from app.generated.event_service.event_service_pb2 import ListOfEventsIds as GrpcListOfEventsIds
-from app.generated.invite_service.invite_service_pb2 import (
-    GetInvitesByInviteeIdRequest as GrpcGetInvitesByInviteeIdRequest,
-)
-from app.generated.invite_service.invite_service_pb2 import (
-    InvitesResponse as GrpcInvitesResponse,
-)
-from app.generated.invite_service.invite_service_pb2 import (
-    InviteStatus as GrpcInviteStatus,
-)
 from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationByIdRequest as GrpcDeleteNotificationByIdRequest,
 )
@@ -42,10 +22,10 @@ from app.generated.notification_service.notification_service_pb2 import (
 )
 from app.generated.user.user_pb2 import GrpcUser
 from app.middleware import auth
-from app.models import Event, Notification, UserType
+from app.models import Notification, UserType
 from app.models.Interval import Interval
 from app.params import GrpcClientParams
-from app.utils import convert_event_start_to_notification_start
+from app.utils import check_permission_for_event, convert_event_start_to_notification_start
 from app.validators.int_validators import int_not_equal_zero_validator
 
 from errors import PermissionDeniedError

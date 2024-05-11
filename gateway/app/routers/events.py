@@ -42,16 +42,16 @@ from app.generated.notification_service.notification_service_pb2 import (
 from app.generated.notification_service.notification_service_pb2 import (
     GrpcNotification,
 )
+from app.generated.notification_service.notification_service_pb2 import NotificationRequest as GrpcNotificationRequest
 from app.generated.notification_service.notification_service_pb2 import (
     NotificationRequestByEventAndAuthorIds as GrpcGetNotificationByEventAndAuthorIdsRequest,
 )
-from app.generated.notification_service.notification_service_pb2 import NotificationRequest as GrpcNotificationRequest
-from app.utils.event_start_to_notification_start_converter import convert_event_start_to_notification_start
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware import auth
-from app.models import Event, User, Notification
+from app.models import Event, Notification, User
 from app.models.event import Interval
 from app.params import GrpcClientParams
+from app.utils.event_start_to_notification_start_converter import convert_event_start_to_notification_start
 
 from errors import PermissionDeniedError
 
@@ -126,6 +126,7 @@ class CreateEventResponse(BaseModel):
         Created notification
 
     """
+
     event: Event
     notification: Optional[Notification] = None
 

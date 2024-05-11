@@ -3,10 +3,7 @@ from datetime import datetime
 from typing import Annotated, List
 from uuid import UUID, uuid4
 
-from errors import PermissionDeniedError
-from fastapi import APIRouter, Depends
 from grpc import RpcError
-from pydantic import UUID4, AfterValidator, BaseModel, Field
 
 from app.generated.event_service.event_service_pb2 import (
     EventsRequestByEventsIds as GrpcGetEventsByEventIdsRequest,
@@ -65,6 +62,11 @@ from app.models import Invite, InviteStatus
 from app.params import GrpcClientParams
 from app.utils.event_permission_checker import check_permission_for_event
 from app.utils.user_existence_checker import check_user_existence
+
+from errors import PermissionDeniedError
+
+from fastapi import APIRouter, Depends
+from pydantic import UUID4, AfterValidator, BaseModel, Field
 
 router = APIRouter(prefix="/invites", tags=["invites"])
 
