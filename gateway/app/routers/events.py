@@ -37,6 +37,9 @@ from app.generated.invite_service.invite_service_pb2 import (
 from app.generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
+from app.generated.invite_service.invite_service_pb2 import (
+    ListOfInvites as GrpcListOfInvites,
+)
 from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationsByEventIdRequest as GrpcDeleteNotificationsByEventIdRequest,
 )
@@ -130,6 +133,7 @@ class CreateEventResponse(BaseModel):
 
     event: Event
     notification: Optional[Notification] = None
+
 
 @router.get("/my/created/")
 async def get_my_created_events(
@@ -318,7 +322,7 @@ async def get_event(
         if rpc_error.code() != grpc.StatusCode.NOT_FOUND:
             raise rpc_error
 
-    invited_people_request: GrpcGetInvitesResponse = (
+    invited_people_request: GrpcListOfInvites = (
         grpc_clients.invite_service_client.request().get_invites_by_event_id(
             GrpcInvitesByEventIdRequest(
                 event_id=str(event_id),
@@ -329,7 +333,7 @@ async def get_event(
 
     invited_people_ids = [
         invite.event_id
-        for invite in invited_people_request.invites.invites
+        for invite in invited_people_request.invites
     ]
 
     if len(invited_people_ids) != 0:
@@ -491,7 +495,7 @@ async def create_event(
     created_event = Event.from_proto(proto_event)
 
     response = CreateEventResponse(
-        event=event,
+        event=Event.from_proto(proto_event),
         notification=None,
     )
 
@@ -503,6 +507,7 @@ async def create_event(
             enabled=True,
             created_at=datetime.utcnow(),
             deleted_at=None,
+            delay=event_data.delay,
             start=convert_event_start_to_notification_start(created_event.start.astimezone(tz=utc), event_data.delay),
             repeating_delay=created_event.repeating_delay
         )
