@@ -81,7 +81,7 @@ REDIS_URL="redis://localhost:6543"
 4. Создать папку ```generated``` в папке ```app```
 5. Сгенерировать прото файлы при помощи
    ```bash
-   poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=app/generated --grpc_python_out=app/generated --pyi_out=app/generated ../shared/proto/event_service/*.proto ../shared/proto/invite_service/*.proto ../shared/proto/identity_service/*.proto ../shared/proto/user/*.proto ../shared/proto/interval/*.proto ../shared/proto/notification_service/*.proto 
+   poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=app/generated --grpc_python_out=app/generated --pyi_out=app/generated ../shared/proto/event_service/*.proto ../shared/proto/invite_service/*.proto ../shared/proto/identity_service/*.proto ../shared/proto/user/*.proto ../shared/proto/interval/*.proto ../shared/proto/notification_service/*.proto
    poetry run protol --create-package --in-place --python-out app/generated protoc --experimental_allow_proto3_optional --proto-path=../shared/proto ../shared/proto/event_service/*.proto ../shared/proto/invite_service/*.proto ../shared/proto/identity_service/*.proto ../shared/proto/user/*.proto ../shared/proto/interval/*.proto ../shared/proto/notification_service/*.proto
    ```
 6. Прописать переменные окружения в PyCharm или в dotenv файле (Если используется dotenv файл, то требуется в начало файла ```app/main.py``` вставить строчку ```dotenv.load_dotenv()``` предварительно импортировав пакет ```dotenv```)
