@@ -87,7 +87,7 @@ REDIS_URL="redis://localhost:6543"
 6. Прописать переменные окружения в PyCharm или в dotenv файле (Если используется dotenv файл, то требуется в начало файла ```app/main.py``` вставить строчку ```dotenv.load_dotenv()``` предварительно импортировав пакет ```dotenv```)
 7. Запустить проект при помощи
    ```bash
-   poetry run uvicorn app.main:app
+   poetry run uvicorn app.main:app --port 8084
    ```
 
 ## Документация
