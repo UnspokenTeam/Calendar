@@ -20,7 +20,7 @@ spec:
       containers:
         - name: gateway-deployment
           image: "ghcr.io/unspokenteam/gateway"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - name: "INVITE_SERVICE_HOST"
               valueFrom:
