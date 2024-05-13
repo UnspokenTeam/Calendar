@@ -46,9 +46,13 @@ from app.generated.notification_service.notification_service_pb2 import (
 from app.generated.notification_service.notification_service_pb2 import (
     GrpcNotification,
 )
+from app.generated.notification_service.notification_service_pb2 import ListOfNotifications as GrpcListOfNotifications
 from app.generated.notification_service.notification_service_pb2 import NotificationRequest as GrpcNotificationRequest
 from app.generated.notification_service.notification_service_pb2 import (
     NotificationRequestByEventAndAuthorIds as GrpcGetNotificationByEventAndAuthorIdsRequest,
+)
+from app.generated.notification_service.notification_service_pb2 import (
+    NotificationsRequestByEventId as GrpcGetNotificationsRequestByEventIdRequest,
 )
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware import auth
@@ -118,7 +122,7 @@ class CreateEventRequest(BaseModel):
     delay: Optional[Interval] = None
 
 
-class CreateEventResponse(BaseModel):
+class ModifyEventResponse(BaseModel):
     """
     Create event response model
 
@@ -454,7 +458,7 @@ async def create_event(
         event_data: CreateEventRequest,
         user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> CreateEventResponse:
+) -> ModifyEventResponse:
     """
     \f
 
@@ -494,7 +498,7 @@ async def create_event(
 
     created_event = Event.from_proto(proto_event)
 
-    response = CreateEventResponse(
+    response = ModifyEventResponse(
         event=Event.from_proto(proto_event),
         notification=None,
     )
@@ -527,7 +531,7 @@ async def update_event(
         event: Event,
         user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> Event:
+) -> ModifyEventResponse:
     """
     \f
 
@@ -571,7 +575,40 @@ async def update_event(
         GrpcEventRequest(event=event.to_proto(), requesting_user=user)
     )
 
-    return Event.from_proto(event_proto)
+    my_notification = None
+
+    if event.start != db_event.start:
+        notifications_request: GrpcListOfNotifications = (
+            grpc_clients.notification_service_client.request().get_notifications_by_event_id(
+                GrpcGetNotificationsRequestByEventIdRequest(
+                    event_id=db_event.id,
+                    page_number=1,
+                    items_per_page=-1,
+                )
+            )
+        )
+
+        user.type = GrpcUserType.ADMIN
+
+        for notification_proto in notifications_request.notifications:
+            notification = Notification.from_proto(notification_proto)
+            notification.start = convert_event_start_to_notification_start(event.start.astimezone(tz=utc), event.delay)
+            grpc_clients.notification_service_client.request().update_notification(
+                GrpcNotificationRequest(
+                    notification=notification.to_proto(),
+                    requesting_user=user
+                )
+            )
+
+            if notification.author_id == user.id:
+                my_notification = notification
+
+        user.type = GrpcUserType.USER
+
+    return ModifyEventResponse(
+        event=Event.from_proto(event_proto),
+        notification=my_notification,
+    )
 
 
 @router.put("/admin/")
