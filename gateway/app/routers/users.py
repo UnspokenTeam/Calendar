@@ -6,7 +6,6 @@ from uuid import UUID, uuid4
 from grpc import RpcError
 
 from app.constants import MIN_PASSWORD_LENGTH, MIN_USERNAME_LENGTH
-from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import (
     DeleteEventsByAuthorIdRequest as GrpcDeleteEventsByAuthorIdRequest,
 )
@@ -42,12 +41,15 @@ from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationsByAuthorIdRequest as GrpcDeleteNotificationsByAuthorIdRequest,
 )
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
-from app.middleware.auth import api_key_header, auth
+from app.middleware.auth import auth
 from app.models import User, UserType
 from app.params import GrpcClientParams
 from app.validators import str_special_characters_validator
 
-from fastapi import APIRouter, Depends, Security
+from errors import PermissionDeniedError
+
+from fastapi import APIRouter, Depends
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import UUID4, AfterValidator, BaseModel, EmailStr, Field
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -81,27 +83,6 @@ class RegisterRequest(BaseModel):
     ]
 
 
-class LoginRequest(BaseModel):
-    """
-    Login request model
-
-    Attributes
-    ----------
-    email : EmailStr
-        User's email
-    password : str
-        User's password
-
-    """
-
-    email: EmailStr
-    password: Annotated[
-        str,
-        Field("", min_length=MIN_PASSWORD_LENGTH),
-        AfterValidator(str_special_characters_validator),
-    ]
-
-
 class CredentialsResponse(BaseModel):
     """
     Credentials response model
@@ -121,13 +102,13 @@ class CredentialsResponse(BaseModel):
 
 
 @router.get("/me", response_model_exclude={"password"})
-async def get_current_user_info(user: Annotated[GrpcUser, Security(auth)]) -> User:
+async def get_current_user_info(user: Annotated[GrpcUser, Depends(auth)]) -> User:
     """
     Fast api route to get current user info
 
     Parameters
     ----------
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
 
     Returns
@@ -143,7 +124,7 @@ async def get_current_user_info(user: Annotated[GrpcUser, Security(auth)]) -> Us
 async def get_all_users(
         items_per_page: int,
         page: int,
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> List[User]:
     """
@@ -155,7 +136,7 @@ async def get_all_users(
         Number of items per page
     page : int
         Page number
-    user : Annotated[GrpcUser, Security(auth)]
+    user : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
@@ -182,9 +163,9 @@ async def get_all_users(
 
 @router.get("/{user_id}", response_model_exclude={"password", "email"})
 async def get_user(
-    user_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
-    _: Annotated[GrpcUser, Security(auth)],
-    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
+        user_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
+        _: Annotated[GrpcUser, Depends(auth)],
+        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> User:
     """
     Fast api route to get user by id
@@ -193,7 +174,7 @@ async def get_user(
     ----------
     user_id : UUID4 | str
         User's id
-    _ : Annotated[GrpcUser, Security(auth)]
+    _ : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
     grpc_clients
         Grpc clients injected by DI
@@ -215,7 +196,7 @@ async def get_user(
 @router.get("/email/")
 async def get_user_by_email(
         email: EmailStr,
-        _: Annotated[GrpcUser, Security(auth)],
+        _: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> User:
     """
@@ -227,7 +208,7 @@ async def get_user_by_email(
     ----------
     email : str
         User's email
-    _ : Annotated[GrpcUser, Security(auth)]
+    _ : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
     grpc_clients
         Grpc clients injected by DI
@@ -292,7 +273,7 @@ async def register_user(
 
 @router.post("/login")
 async def login(
-        login_request: LoginRequest,
+        data: Annotated[OAuth2PasswordRequestForm, Depends()],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> CredentialsResponse:
     """
@@ -300,7 +281,7 @@ async def login(
 
     Parameters
     ----------
-    login_request : LoginRequest
+    data : ExtendedOAuth2PasswordRequestForm
         Login request data
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
@@ -313,7 +294,7 @@ async def login(
     """
     credentials: GrpcCredentialsResponse = (
         grpc_clients.identity_service_client.request().login(
-            GrpcLoginRequest(email=login_request.email, password=login_request.password)
+            GrpcLoginRequest(email=data.username, password=data.password)
         )
     )
     return CredentialsResponse(
@@ -325,8 +306,8 @@ async def login(
 
 @router.post("/logout")
 async def logout(
-        _: Annotated[GrpcUser, Security(auth)],
-        access_token: Annotated[str, api_key_header],
+        _: Annotated[GrpcUser, Depends(auth)],
+        access_token: Annotated[str, OAuth2PasswordBearer],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
@@ -334,7 +315,7 @@ async def logout(
 
     Parameters
     ----------
-    _ : Annotated[GrpcUser, Security(auth)]
+    _ : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
     access_token : str
         Access token
@@ -349,11 +330,11 @@ async def logout(
 
 @router.get("/access_token/")
 async def get_new_access_token(
-    refresh_token: Annotated[
-        str,
-        Field("", min_length=1),
-    ],
-    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
+        refresh_token: Annotated[
+            str,
+            Field("", min_length=1),
+        ],
+        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> str:
     """
     Fast api route to get new access token
@@ -381,16 +362,16 @@ async def get_new_access_token(
 
 @router.put("/")
 async def update_user(
-    grpc_user: Annotated[GrpcUser, Security(auth)],
-    grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-    user_to_update: User,
+        grpc_user: Annotated[GrpcUser, Depends(auth)],
+        grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
+        user_to_update: User,
 ) -> CredentialsResponse:
     """
     Fast api route to update user
 
     Parameters
     ----------
-    grpc_user : Annotated[GrpcUser, Security(auth)]
+    grpc_user : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
@@ -434,7 +415,7 @@ async def update_user(
 
 @router.delete("/")
 async def delete_user(
-        grpc_user: Annotated[GrpcUser, Security(auth)],
+        grpc_user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
@@ -442,7 +423,7 @@ async def delete_user(
 
     Parameters
     ----------
-    grpc_user : Annotated[GrpcUser, Security(auth)]
+    grpc_user : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI

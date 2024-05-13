@@ -38,9 +38,9 @@ WORKDIR /app/gateway
 
 COPY gateway ./
 
-RUN poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=app/generated --grpc_python_out=app/generated --pyi_out=app/generated ../shared/proto/event_service/*.proto ../shared/proto/invite_service/*.proto ../shared/proto/identity_service/*.proto ../shared/proto/user/*.proto
-RUN poetry run protol --create-package --in-place --python-out app/generated protoc --proto-path=../shared/proto ../shared/proto/event_service/*.proto ../shared/proto/invite_service/*.proto ../shared/proto/identity_service/*.proto ../shared/proto/user/*.proto
+RUN poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=app/generated --grpc_python_out=app/generated --pyi_out=app/generated ../shared/proto/event_service/*.proto ../shared/proto/notification_service/*.proto ../shared/proto/invite_service/*.proto ../shared/proto/identity_service/*.proto ../shared/proto/user/*.proto ../shared/proto/interval/*.proto
+RUN poetry run protol --create-package --in-place --python-out app/generated protoc --proto-path=../shared/proto ../shared/proto/event_service/*.proto ../shared/proto/invite_service/*.proto ../shared/proto/identity_service/*.proto ../shared/proto/notification_service/*.proto ../shared/proto/user/*.proto ../shared/proto/interval/*.proto
 
 EXPOSE 8084
 
-CMD poetry run uvicorn app.main:app
+CMD poetry run uvicorn app.main:app --port 8084 --host 0.0.0.0

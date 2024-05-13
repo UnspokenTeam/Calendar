@@ -1,17 +1,21 @@
 """Notification Service Controller."""
 
+from datetime import datetime
+
 import grpc
 
-from errors.permission_denied_error import PermissionDeniedError
-from src.models.notification import Notification
-
-from generated.notification_service.notification_service_pb2_grpc import (
+from errors import PermissionDeniedError
+from src.generated.notification_service.notification_service_pb2_grpc import (
     NotificationServiceServicer as GrpcServicer,
 )
-from generated.user.user_pb2 import GrpcUserType
+from src.generated.user.user_pb2 import GrpcUserType
+from src.models.notification import Notification
+from src.repository.notification_repository_interface import (
+    NotificationRepositoryInterface,
+)
+import src.generated.notification_service.notification_service_pb2 as proto
+
 from google.protobuf.empty_pb2 import Empty
-from repository.notification_repository_interface import NotificationRepositoryInterface
-import generated.notification_service.notification_service_pb2 as proto
 
 
 class NotificationServiceImpl(GrpcServicer):
@@ -26,6 +30,8 @@ class NotificationServiceImpl(GrpcServicer):
     Methods
     -------
     async get_notifications_by_author_id(request, context)
+        Function that need to be bind to the server that returns notifications list.
+    async get_notifications_by_event_id(request, context)
         Function that need to be bind to the server that returns notifications list.
     async get_notification_by_event_and_author_ids(request, context)
         Function that need to be bind to the server that returns notifications list.
@@ -92,6 +98,51 @@ class NotificationServiceImpl(GrpcServicer):
         notifications = (
             await self._notification_repository.get_notifications_by_author_id(
                 author_id=request.author_id,
+                page_number=request.page_number,
+                items_per_page=request.items_per_page,
+                start=datetime.utcfromtimestamp(
+                    request.start.seconds + request.start.nanos / 1e9
+                )
+                if request.WhichOneof("optional_start") is not None
+                else None,
+                end=datetime.utcfromtimestamp(
+                    request.end.seconds + request.end.nanos / 1e9
+                )
+                if request.WhichOneof("optional_end") is not None
+                else None,
+            )
+        )
+        context.set_code(grpc.StatusCode.OK)
+        return proto.ListOfNotifications(
+            notifications=[
+                notification.to_grpc_notification() for notification in notifications
+            ]
+        )
+
+    async def get_notifications_by_event_id(
+        self,
+        request: proto.NotificationsRequestByEventId,
+        context: grpc.ServicerContext,
+    ) -> proto.ListOfNotifications:
+        """
+        Get notifications by event id.
+
+        Parameters
+        ----------
+        request : proto.NotificationsRequestByEventId
+            Request data.
+        context : grpc.ServicerContext
+            Request context.
+
+        Returns
+        -------
+        proto.ListOfNotifications
+            Response object for several notifications.
+
+        """
+        notifications = (
+            await self._notification_repository.get_notifications_by_event_id(
+                event_id=request.event_id,
                 page_number=request.page_number,
                 items_per_page=request.items_per_page,
             )
@@ -211,10 +262,7 @@ class NotificationServiceImpl(GrpcServicer):
         context.set_code(grpc.StatusCode.OK)
         return proto.ListOfNotifications(
             notifications=[
-                notification.to_grpc_notification()
-                for notification in notifications
-                if notification.author_id == request.requesting_user.id
-                or request.requesting_user.id == GrpcUserType.ADMIN
+                notification.to_grpc_notification() for notification in notifications
             ]
         )
 

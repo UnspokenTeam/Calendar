@@ -9,6 +9,7 @@ from .middleware.rate_limiter import handler as rate_limiter_handler
 from .params import GrpcClientParams
 from .routers import Events, Invites, Notifications, Users
 from fastapi import Depends, FastAPI
+from starlette.middleware.cors import CORSMiddleware
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 import redis.asyncio as redis
@@ -29,6 +30,17 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     AsyncContextManager[Never]
         None
 
+app = FastAPI(
+    dependencies=[Depends(GrpcClientParams)],
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
     """
     redis_client = redis.from_url(environ["REDIS_URL"])
     await FastAPILimiter.init(redis_client, http_callback=rate_limiter_handler)

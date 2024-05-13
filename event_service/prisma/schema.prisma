@@ -8,14 +8,16 @@ generator client {
 }
 
 model PrismaEvent {
-  id String @id @default(uuid())
-  title String
-  description String?
-  color String?
-  start DateTime
-  end DateTime
-  repeating_delay String?
-  author_id String
-  created_at DateTime @default(now())
-  deleted_at DateTime?
+  id              String    @id @default(uuid()) @map("id")
+  title           String    @map("title")
+  description     String?   @map("description")
+  color           String?   @map("color")
+  start           DateTime  @map("start")
+  end             DateTime  @map("end")
+  repeating_delay String?   @map("repeating_delay")
+  author_id       String    @map("author_id")
+  created_at      DateTime  @default(now()) @map("created_at")
+  deleted_at      DateTime? @map("deleted_at")
+
+  @@map("prisma_events")
 }

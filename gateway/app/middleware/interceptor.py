@@ -3,7 +3,7 @@ import logging
 
 from grpc import RpcError, StatusCode
 
-from app.errors import PermissionDeniedError, RateLimitError
+from errors import PermissionDeniedError, UnauthenticatedError, RateLimitError
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -65,11 +65,21 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
                     return JSONResponse(
                         status_code=404, content={"message": "Not found"}
                     )
+                case StatusCode.CANCELLED:
+                    return JSONResponse(
+                        status_code=400, content={"message": "Request was cancelled"}
+                    )
                 case _:
                     return JSONResponse(
                         status_code=500, content={"message": "Internal server error"}
                     )
-        except PermissionDeniedError:
+        except UnauthenticatedError as unauthenticated_error:
+            logging.error(unauthenticated_error)
+            return JSONResponse(
+                status_code=401, content={"message": "Unauthenticated"}
+            )
+        except PermissionDeniedError as permission_denied_error:
+            logging.error(permission_denied_error)
             return JSONResponse(
                 status_code=403, content={"message": "Permission denied"}
             )
@@ -79,7 +89,8 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
                 content={"message": "Too Many Requests"},
                 headers={"Retry-After": str(rate_limit_error.retry_after)},
             )
-        except ValueError as e:
+        except ValueError as value_error:
+            logging.error(value_error)
             return JSONResponse(
-                status_code=422, content={"message": f"Bad Request {e}"}
+                status_code=422, content={"message": f"Bad Request {value_error}"}
             )

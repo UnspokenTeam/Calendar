@@ -40,4 +40,19 @@ spec:
                 secretKeyRef:
                   name: identity-service-secret
                   key: REFRESH_SECRET
+            - name: "ENVIRONMENT"
+              valueFrom:
+                secretKeyRef:
+                  name: identity-service-secret
+                  key: ENVIRONMENT
+            - name: "ACCESS_TOKEN_EXPIRATION"
+              valueFrom:
+                secretKeyRef:
+                  name: identity-service-secret
+                  key: ACCESS_TOKEN_EXPIRATION
+            - name: "REFRESH_TOKEN_EXPIRATION"
+              valueFrom:
+                secretKeyRef:
+                  name: identity-service-secret
+                  key: REFRESH_TOKEN_EXPIRATION
       restartPolicy: Always

@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "db-package"
+version = "0.1.0"
+description = ""
+authors = ["Nhsdkk <38581029+Nhsdkk@users.noreply.github.com>"]
+packages = [{include = "db"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+prisma = "^0.13.1"
+utils-package = {path="../utils_package"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

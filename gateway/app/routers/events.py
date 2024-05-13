@@ -4,8 +4,8 @@ from typing import Annotated, List, Optional
 from uuid import UUID, uuid4
 
 from grpc import RpcError
+import grpc
 
-from app.errors import PermissionDeniedError
 from app.generated.event_service.event_service_pb2 import DeleteEventByIdRequest as GrpcDeleteEventByIdRequest
 from app.generated.event_service.event_service_pb2 import EventRequest as GrpcEventRequest
 from app.generated.event_service.event_service_pb2 import EventRequestByEventId as GrpcGetEventByEventIdRequest
@@ -37,22 +37,29 @@ from app.generated.invite_service.invite_service_pb2 import (
 from app.generated.invite_service.invite_service_pb2 import (
     InviteStatus as GrpcInviteStatus,
 )
+from app.generated.invite_service.invite_service_pb2 import (
+    ListOfInvites as GrpcListOfInvites,
+)
 from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationsByEventIdRequest as GrpcDeleteNotificationsByEventIdRequest,
 )
 from app.generated.notification_service.notification_service_pb2 import (
     GrpcNotification,
 )
+from app.generated.notification_service.notification_service_pb2 import NotificationRequest as GrpcNotificationRequest
 from app.generated.notification_service.notification_service_pb2 import (
     NotificationRequestByEventAndAuthorIds as GrpcGetNotificationByEventAndAuthorIdsRequest,
 )
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.middleware import auth
-from app.models import Event, User
+from app.models import Event, Notification, User
 from app.models.event import Interval
 from app.params import GrpcClientParams
+from app.utils.event_start_to_notification_start_converter import convert_event_start_to_notification_start
 
-from fastapi import APIRouter, Depends, Security
+from errors import PermissionDeniedError
+
+from fastapi import APIRouter, Depends
 from pydantic import UUID4, AfterValidator, BaseModel, Field
 from pytz import utc
 
@@ -69,14 +76,14 @@ class EventResponse(BaseModel):
         Event object.
     invited_users : List[User]
         List of users who are invited to the event.
-    notification_turned_on : bool
-        Whether the event is notified turned on.
+    notification : Notification
+        Notification object
 
     """
 
     event: Event
     invited_users: List[User]
-    notification_turned_on: bool
+    notification: Optional[Notification] = None
 
 
 class CreateEventRequest(BaseModel):
@@ -97,6 +104,8 @@ class CreateEventRequest(BaseModel):
         Color of the event.
     repeating_delay : Optional[datetime]
         Repeating delay of the event.
+    delay : Optional[Interval]
+        Delay of the notification
 
     """
 
@@ -105,14 +114,32 @@ class CreateEventRequest(BaseModel):
     end: datetime
     description: Optional[str]
     color: Optional[str]
-    repeating_delay: Optional[Interval]
+    repeating_delay: Optional[Interval] = None
+    delay: Optional[Interval] = None
 
 
-@router.get("/my/created")
+class CreateEventResponse(BaseModel):
+    """
+    Create event response model
+
+    Attributes
+    ----------
+    event : Event
+        Created event
+    notification : Optional[Notification]
+        Created notification
+
+    """
+
+    event: Event
+    notification: Optional[Notification] = None
+
+
+@router.get("/my/created/")
 async def get_my_created_events(
         page: Annotated[int, Field(1, ge=1)],
         items_per_page: Annotated[int, Field(-1, ge=-1)],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
@@ -133,9 +160,9 @@ async def get_my_created_events(
     items_per_page : int
         Number of items per page. If -1 then all items are returned.
     start : Optional[datetime]
-        Start date and time.
+        Start date and time of the interval.
     end : Optional[datetime]
-        End date and time.
+        End date and time of the interval.
 
     Returns
     -------
@@ -168,7 +195,7 @@ async def get_my_created_events(
 async def get_my_invited_events(
         page: Annotated[int, Field(1, ge=1)],
         items_per_page: Annotated[int, Field(-1, ge=-1)],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
@@ -189,9 +216,9 @@ async def get_my_invited_events(
     items_per_page : int
         Number of items per page. If -1 then all items are returned.
     start : Optional[datetime]
-        Start date and time.
+        Start date and time of the interval.
     end : Optional[datetime]
-        End date and time.
+        End date and time of the interval.
 
     Returns
     -------
@@ -211,9 +238,12 @@ async def get_my_invited_events(
         )
     )
 
-    invited_events_id_list = set(
+    invited_events_id_list = list(
         item.event_id for item in invite_result.invites.invites
     )
+
+    if len(invited_events_id_list) == 0:
+        return []
 
     events_request = GrpcGetEventsRequestByEventsIdsRequest(
         events_ids=ListOfEventsIds(ids=invited_events_id_list),
@@ -236,10 +266,10 @@ async def get_my_invited_events(
     return [Event.from_proto(event) for event in invited_events_request.events]
 
 
-@router.get("/{id}")
+@router.get("/{event_id}")
 async def get_event(
         event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> EventResponse:
     """
@@ -274,48 +304,52 @@ async def get_event(
     response = EventResponse(
         event=Event.from_proto(event_response),
         invited_users=[],
-        notification_turned_on=False,
+        notification=None
     )
 
     try:
-        invited_people_request: GrpcGetInvitesResponse = (
-            grpc_clients.invite_service_client.request().get_invites_by_event_id(
-                GrpcInvitesByEventIdRequest(
+        notification: GrpcNotification = (
+            grpc_clients.notification_service_client.request().get_notification_by_event_and_author_ids(
+                GrpcGetNotificationByEventAndAuthorIdsRequest(
                     event_id=str(event_id),
-                    invite_status=GrpcInviteStatus.ACCEPTED
+                    author_id=user.id,
+                    requesting_user=user
                 )
             )
         )
+        response.notification = Notification.from_proto(notification)
+    except RpcError as rpc_error:
+        if rpc_error.code() != grpc.StatusCode.NOT_FOUND:
+            raise rpc_error
 
+    invited_people_request: GrpcListOfInvites = (
+        grpc_clients.invite_service_client.request().get_invites_by_event_id(
+            GrpcInvitesByEventIdRequest(
+                event_id=str(event_id),
+                invite_status=GrpcInviteStatus.ACCEPTED
+            )
+        )
+    )
+
+    invited_people_ids = [
+        invite.event_id
+        for invite in invited_people_request.invites
+    ]
+
+    if len(invited_people_ids) != 0:
         invited_people_response: GrpcListOfUsers = (
             grpc_clients.identity_service_client.request().get_users_by_id(
                 GrpcGetUsersByIdsRequest(
                     page=-1,
                     items_per_page=-1,
-                    id=[
-                        invite.event_id
-                        for invite in invited_people_request.invites.invites
-                    ],
+                    id=invited_people_ids,
                 )
             )
         )
+
         response.invited_users = [
             User.from_proto(person) for person in invited_people_response.users
         ]
-    except RpcError:
-        pass
-
-    notification_request: GrpcNotification = (
-        grpc_clients.notification_service_client.request().get_notification_by_event_and_author_ids(
-            GrpcGetNotificationByEventAndAuthorIdsRequest(
-                event_id=str(event_id),
-                author_id=user.id,
-                requesting_user=user
-            )
-        )
-    )
-
-    response.notification_turned_on = notification_request.enabled
 
     return response
 
@@ -324,7 +358,7 @@ async def get_event(
 async def get_all_events(
         page: Annotated[int, Field(1, ge=1)],
         items_per_page: Annotated[int, Field(-1, ge=-1)],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
@@ -345,9 +379,9 @@ async def get_all_events(
     items_per_page : int
         Number of items per page. If -1 then all items are returned.
     start : Optional[datetime]
-        Start date and time.
+        Start date and time of the interval.
     end : Optional[datetime]
-        End date and time.
+        End date and time of the interval.
 
     Raises
     ------
@@ -384,7 +418,7 @@ async def get_all_events(
 @router.get("/description/")
 async def generate_event_description(
         event_title: str,
-        _: Annotated[GrpcUser, Security(auth)],
+        _: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> str:
     """
@@ -418,9 +452,9 @@ async def generate_event_description(
 @router.post("/")
 async def create_event(
         event_data: CreateEventRequest,
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-) -> Event:
+) -> CreateEventResponse:
     """
     \f
 
@@ -458,13 +492,40 @@ async def create_event(
         GrpcEventRequest(event=event.to_proto(), requesting_user=user)
     )
 
-    return Event.from_proto(proto_event)
+    created_event = Event.from_proto(proto_event)
+
+    response = CreateEventResponse(
+        event=Event.from_proto(proto_event),
+        notification=None,
+    )
+
+    if event_data.delay is not None:
+        notification = Notification(
+            id=uuid4(),
+            event_id=created_event.id,
+            author_id=user.id,
+            enabled=True,
+            created_at=datetime.utcnow(),
+            deleted_at=None,
+            delay=event_data.delay,
+            start=convert_event_start_to_notification_start(created_event.start.astimezone(tz=utc), event_data.delay),
+            repeating_delay=created_event.repeating_delay
+        )
+        notification_request: GrpcNotification = grpc_clients.notification_service_client.request().create_notification(
+            GrpcNotificationRequest(
+                notification=notification.to_proto(),
+                requesting_user=user
+            )
+        )
+        response.notification = Notification.from_proto(notification_request)
+
+    return response
 
 
 @router.put("/")
 async def update_event(
         event: Event,
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Event:
     """
@@ -516,7 +577,7 @@ async def update_event(
 @router.put("/admin/")
 async def update_event_as_admin(
         event: Event,
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> Event:
     """
@@ -557,7 +618,7 @@ async def update_event_as_admin(
 @router.delete("/")
 async def delete_event(
         event_id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))],
-        user: Annotated[GrpcUser, Security(auth)],
+        user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """

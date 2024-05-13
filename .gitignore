@@ -374,7 +374,7 @@ cython_debug/
 .idea
 
 event_service/.idea
-event_service/generated
+event_service/src/generated
 event_service/generate.bat
 event_service/generate.sh
 event_service/generate.ps1
@@ -384,30 +384,31 @@ identity_service/.idea
 identity_service/generate.bat
 identity_service/generate.sh
 identity_service/generate.ps1
-identity_service/generated
+identity_service/src/generated
 identity_service/.env
 
 invite_service/.idea
 invite_service/generate.bat
 invite_service/generate.sh
 invite_service/generate.ps1
-invite_service/generated
+invite_service/src/generated
 invite_service/.env
 
 notification_service/.idea
-notification_service/generated
+notification_service/src/generated
 notification_service/generate.bat
 notification_service/generate.sh
 notification_service/generate.ps1
 notification_service/.env
 
-/init.sql
+/deployments/postgres/init.sql
 
 /deployments/postgres/postgres-secret.yaml
 /deployments/identity_service/identity_service_secret.yaml
 /deployments/invite_service/invite_service_secret.yaml
 /deployments/event_service/event_service_secret.yaml
 /deployments/notification_service/notification_service_secret.yaml
+deployments/gateway/gateway_secret.yaml
 
 invite_service/proto/*.py
 invite_service/proto/*.pyi

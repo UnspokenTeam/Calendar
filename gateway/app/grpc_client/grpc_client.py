@@ -35,8 +35,8 @@ class GrpcClient(Generic[T]):
     _stub: T
 
     def __init__(self, host: str, port: int, stub: type[T]) -> None:
-        self._host = host
         self._port = port
+        self._host = host
         self._channel = insecure_channel(f"{host}:{port}")
         self._stub = stub(self._channel)
 

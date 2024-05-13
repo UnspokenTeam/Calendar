@@ -30,19 +30,15 @@ COPY invite_service/poetry.lock ./invite_service/pyproject.toml ./
 
 RUN poetry install --no-interaction --no-cache --without dev
 
-RUN mkdir generated
-
 COPY invite_service ./
 
-RUN poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=generated --grpc_python_out=generated --pyi_out=generated ../shared/proto/invite_service/*.proto ../shared/proto/user/*.proto
-RUN poetry run protol --create-package --in-place --python-out generated protoc --proto-path=../shared/proto ../shared/proto/invite_service/*.proto ../shared/proto/user/*.proto
+RUN mkdir ./src/generated
+
+RUN poetry run python -m grpc_tools.protoc -I ../shared/proto --python_out=./src/generated --grpc_python_out=./src/generated --pyi_out=./src/generated ../shared/proto/user/*.proto ../shared/proto/invite_service/*.proto
+RUN poetry run protol --create-package --in-place --python-out ./src/generated protoc --proto-path=../shared/proto ../shared/proto/invite_service/*.proto ../shared/proto/user/*.proto
 
 RUN poetry run prisma generate
 
 EXPOSE 8082
 
-CMD if [ "$ENVIRONMENT" = "PRODUCTION" ]; then \
-        exec poetry run prisma db push && poetry run python main.py; \
-    else \
-        exec poetry run python main.py; \
-    fi
+CMD poetry run python -m src.main

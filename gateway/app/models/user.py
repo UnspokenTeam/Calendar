@@ -96,7 +96,11 @@ class User(BaseModel):
     """
 
     id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
-    username: Annotated[str, Field("", min_length=MIN_USERNAME_LENGTH), AfterValidator(str_special_characters_validator)]
+    username: Annotated[
+        str,
+        Field("", min_length=MIN_USERNAME_LENGTH),
+        AfterValidator(str_special_characters_validator)
+    ]
     email: EmailStr
     password: Annotated[str, AfterValidator(str_special_characters_validator)]
     created_at: datetime

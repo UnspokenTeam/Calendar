@@ -3,17 +3,17 @@ from datetime import datetime
 
 import grpc
 
-from errors.permission_denied_error import PermissionDeniedError
-from src.models.event import Event
-from utils.ai_client import AIClient
-
-from generated.event_service.event_service_pb2_grpc import (
+from errors import PermissionDeniedError
+from src.generated.event_service.event_service_pb2_grpc import (
     EventServiceServicer as GrpcServicer,
 )
-from generated.user.user_pb2 import GrpcUserType
+from src.generated.user.user_pb2 import GrpcUserType
+from src.models.event import Event
+from src.repository.event_repository_interface import EventRepositoryInterface
+from src.utilities.ai_client import AIClient
+import src.generated.event_service.event_service_pb2 as proto
+
 from google.protobuf.empty_pb2 import Empty
-from repository.event_repository_interface import EventRepositoryInterface
-import generated.event_service.event_service_pb2 as proto
 
 
 class EventServiceImpl(GrpcServicer):
@@ -79,12 +79,12 @@ class EventServiceImpl(GrpcServicer):
             author_id=request.author_id,
             page_number=request.page_number,
             items_per_page=request.items_per_page,
-            start=datetime.fromtimestamp(
+            start=datetime.utcfromtimestamp(
                 request.start.seconds + request.start.nanos / 1e9
             )
             if request.WhichOneof("optional_start") is not None
             else None,
-            end=datetime.fromtimestamp(request.end.seconds + request.end.nanos / 1e9)
+            end=datetime.utcfromtimestamp(request.end.seconds + request.end.nanos / 1e9)
             if request.WhichOneof("optional_end") is not None
             else None,
         )
@@ -114,7 +114,7 @@ class EventServiceImpl(GrpcServicer):
             event_id=request.event_id
         )
         if (
-            request.requesting_user.type != GrpcUserType.USER
+            request.requesting_user.type != GrpcUserType.ADMIN
             and request.requesting_user.id != event.author_id
         ):
             raise PermissionDeniedError("Permission denied.")
@@ -144,12 +144,12 @@ class EventServiceImpl(GrpcServicer):
             events_ids=list(request.events_ids.ids),
             page_number=request.page_number,
             items_per_page=request.items_per_page,
-            start=datetime.fromtimestamp(
+            start=datetime.utcfromtimestamp(
                 request.start.seconds + request.start.nanos / 1e9
             )
             if request.WhichOneof("optional_start") is not None
             else None,
-            end=datetime.fromtimestamp(request.end.seconds + request.end.nanos / 1e9)
+            end=datetime.utcfromtimestamp(request.end.seconds + request.end.nanos / 1e9)
             if request.WhichOneof("optional_end") is not None
             else None,
         )
@@ -185,12 +185,12 @@ class EventServiceImpl(GrpcServicer):
         events = await self._event_repository.get_all_events(
             page_number=request.page_number,
             items_per_page=request.items_per_page,
-            start=datetime.fromtimestamp(
+            start=datetime.utcfromtimestamp(
                 request.start.seconds + request.start.nanos / 1e9
             )
             if request.WhichOneof("optional_start") is not None
             else None,
-            end=datetime.fromtimestamp(request.end.seconds + request.end.nanos / 1e9)
+            end=datetime.utcfromtimestamp(request.end.seconds + request.end.nanos / 1e9)
             if request.WhichOneof("optional_end") is not None
             else None,
         )
