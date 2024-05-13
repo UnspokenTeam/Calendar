@@ -69,7 +69,10 @@ class AIClient:
                         "model": "anthropic/claude-3-haiku",
                         "messages": [
                             {"role": "system", "content": AI_ROLE_FOR_PROMPT[index]},
-                            {"role": "user", "content": ("Опиши ", "Describe ")[index] + prompt},
+                            {
+                                "role": "user",
+                                "content": ("Опиши ", "Describe ")[index] + prompt,
+                            },
                         ],
                     },
                 )

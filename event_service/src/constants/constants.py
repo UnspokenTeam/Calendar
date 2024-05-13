@@ -1,68 +1,4 @@
-"""
-Event service constants.
-
-Constants description:
-    GET_EVENTS_BY_AUTHOR_ID_QUERY example:
-        SET datestyle = DMY;
-        SELECT pattern."id", pattern."title", pattern."description", pattern."color", pattern."event_start" as "start",
-        (pattern."event_start" + (pattern."end" - pattern."start")) as "end", pattern."repeating_delay",
-        pattern."author_id", pattern."created_at", pattern."deleted_at"
-        FROM (
-            SELECT *
-            FROM "PrismaEvent" as event,
-                GENERATE_SERIES(event.start, '01/01/1970 05:00:00'::timestamp, event.repeating_delay::interval
-                ) as "event_start"
-            WHERE event.repeating_delay IS NOT NULL
-        ) as pattern
-        WHERE
-            pattern.author_id = 'AUTHOR_ID'
-            AND pattern.deleted_at IS NULL
-            AND '01/01/1970 01:00:00'::timestamp <= pattern."event_start"
-            AND pattern."event_start" <= '01/01/1970 05:00:00'::timestamp
-        ORDER BY start
-        LIMIT 10
-        OFFSET 0;
-
-    GET_EVENTS_BY_EVENT_IDS_QUERY example:
-        SET datestyle = DMY;
-        SELECT pattern."id", pattern."title", pattern."description", pattern."color", pattern."event_start" as "start",
-         (pattern."event_start" + (pattern."end" - pattern."start")) as "end", pattern."repeating_delay",
-         pattern."author_id", pattern."created_at", pattern."deleted_at"
-        FROM (
-            SELECT *
-            FROM "PrismaEvent" as event,
-                GENERATE_SERIES(event.start, '01/01/1970 05:00:00'::timestamp, event.repeating_delay::interval
-                ) as "event_start"
-            WHERE event.repeating_delay IS NOT NULL
-        ) as pattern
-        WHERE
-            pattern.id IN ('FIRST_EVENT_ID', 'SECOND_EVENT_ID')
-            AND pattern.deleted_at IS NULL
-            AND '01/01/1970 01:00:00'::timestamp <= pattern."event_start"
-            AND pattern."event_start" <= '01/01/1970 05:00:00'::timestamp
-        ORDER BY start
-        LIMIT 10
-        OFFSET 0;
-
-    GET_ALL_EVENTS_QUERY example:
-        SET datestyle = DMY;
-        SELECT pattern."id", pattern."title", pattern."description", pattern."color", pattern."event_start" as "start",
-        (pattern."event_start" + (pattern."end" - pattern."start")) as "end", pattern."repeating_delay",
-        pattern."author_id", pattern."created_at", pattern."deleted_at"
-        FROM (
-            SELECT *
-            FROM "PrismaEvent" as event,
-                GENERATE_SERIES(event.start, '01/01/1970 05:00:00'::timestamp, event.repeating_delay::interval
-                ) as "event_start"
-            WHERE event.repeating_delay IS NOT NULL
-        ) as pattern
-        WHERE
-            '01/01/1970 01:00:00'::timestamp <= pattern."event_start"
-            AND pattern."event_start" <= '01/01/1970 05:00:00'::timestamp
-        ORDER BY start
-        LIMIT 10
-        OFFSET 0;
-"""
+"""Event service constants."""
 
 INTERVAL_SLOTS = (
     "years",
@@ -101,6 +37,32 @@ GET_EVENTS_BY_AUTHOR_ID_QUERY = (
     "event.repeating_delay::interval) as \"event_start\"\n\tWHERE event.repeating_delay IS NOT NULL\n) as pattern\n"
     "WHERE\n\tpattern.author_id = {}\n\tAND pattern.deleted_at IS NULL{}{}\nORDER BY start{};"
 )
+"""
+str: SQL query for get events by author id request.
+
+GET_EVENTS_BY_AUTHOR_ID_QUERY example:
+
+    SET datestyle = DMY;
+    SELECT pattern."id", pattern."title", pattern."description", pattern."color", pattern."event_start" as "start",
+    (pattern."event_start" + (pattern."end" - pattern."start")) as "end", pattern."repeating_delay",
+    pattern."author_id", pattern."created_at", pattern."deleted_at"
+    FROM (
+        SELECT *
+        FROM "PrismaEvent" as event,
+            GENERATE_SERIES(event.start, '01/01/1970 05:00:00'::timestamp, event.repeating_delay::interval
+            ) as "event_start"
+        WHERE event.repeating_delay IS NOT NULL
+    ) as pattern
+    WHERE
+        pattern.author_id = 'AUTHOR_ID'
+        AND pattern.deleted_at IS NULL
+        AND '01/01/1970 01:00:00'::timestamp <= pattern."event_start"
+        AND pattern."event_start" <= '01/01/1970 05:00:00'::timestamp
+    ORDER BY start
+    LIMIT 10
+    OFFSET 0;
+
+"""
 
 GET_EVENTS_BY_EVENT_IDS_QUERY = (
     "SELECT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", pattern.\"event_start\" as "
@@ -110,6 +72,32 @@ GET_EVENTS_BY_EVENT_IDS_QUERY = (
     "event.repeating_delay::interval) as \"event_start\"\n\tWHERE event.repeating_delay IS NOT NULL\n) as pattern\n"
     "WHERE\n\tpattern.id IN ({})\n\tAND pattern.deleted_at IS NULL{}{}\nORDER BY start{};"
 )
+"""
+str: SQL query for get events by event ids request.
+
+    GET_EVENTS_BY_EVENT_IDS_QUERY example:
+
+        SET datestyle = DMY;
+        SELECT pattern."id", pattern."title", pattern."description", pattern."color", pattern."event_start" as "start",
+         (pattern."event_start" + (pattern."end" - pattern."start")) as "end", pattern."repeating_delay",
+         pattern."author_id", pattern."created_at", pattern."deleted_at"
+        FROM (
+            SELECT *
+            FROM "PrismaEvent" as event,
+                GENERATE_SERIES(event.start, '01/01/1970 05:00:00'::timestamp, event.repeating_delay::interval
+                ) as "event_start"
+            WHERE event.repeating_delay IS NOT NULL
+        ) as pattern
+        WHERE
+            pattern.id IN ('FIRST_EVENT_ID', 'SECOND_EVENT_ID')
+            AND pattern.deleted_at IS NULL
+            AND '01/01/1970 01:00:00'::timestamp <= pattern."event_start"
+            AND pattern."event_start" <= '01/01/1970 05:00:00'::timestamp
+        ORDER BY start
+        LIMIT 10
+        OFFSET 0;
+
+"""
 
 GET_ALL_EVENTS_QUERY = (
     "SELECT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", pattern.\"event_start\" as "
@@ -119,4 +107,28 @@ GET_ALL_EVENTS_QUERY = (
     "event.repeating_delay::interval) as \"event_start\"\n\tWHERE event.repeating_delay IS NOT NULL\n) as pattern\n"
     "{}\nORDER BY start{};"
 )
+"""
+str: SQL query for get all events request.
+
+    GET_ALL_EVENTS_QUERY example:
+
+        SET datestyle = DMY;
+        SELECT pattern."id", pattern."title", pattern."description", pattern."color", pattern."event_start" as "start",
+        (pattern."event_start" + (pattern."end" - pattern."start")) as "end", pattern."repeating_delay",
+        pattern."author_id", pattern."created_at", pattern."deleted_at"
+        FROM (
+            SELECT *
+            FROM "PrismaEvent" as event,
+                GENERATE_SERIES(event.start, '01/01/1970 05:00:00'::timestamp, event.repeating_delay::interval
+                ) as "event_start"
+            WHERE event.repeating_delay IS NOT NULL
+        ) as pattern
+        WHERE
+            '01/01/1970 01:00:00'::timestamp <= pattern."event_start"
+            AND pattern."event_start" <= '01/01/1970 05:00:00'::timestamp
+        ORDER BY start
+        LIMIT 10
+        OFFSET 0;
+
+"""
 # fmt: on
