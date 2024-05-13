@@ -31,17 +31,6 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     AsyncContextManager[Never]
         None
 
-    app = FastAPI(
-    dependencies=[Depends(GrpcClientParams)],
-    )
-
-    app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"]
-    )
     """
     if os.environ["ENVIRONMENT"] == "PRODUCTION":
         redis_client = redis.from_url(environ["REDIS_URL"])
