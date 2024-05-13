@@ -502,7 +502,7 @@ async def create_event(
     if event_data.delay is not None:
         notification = Notification(
             id=uuid4(),
-            event_id=event.id,
+            event_id=created_event.id,
             author_id=user.id,
             enabled=True,
             created_at=datetime.utcnow(),
