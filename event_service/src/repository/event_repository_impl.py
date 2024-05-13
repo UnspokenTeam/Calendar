@@ -340,7 +340,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             )
             where_condition_for_repeating_events = (
                 (
-                        "\nWHERE\n\t"
+                        "WHERE\n\t"
                         + (
                             f"{start_date}::timestamp <= pattern.\"event_start\""
                             if start is not None
