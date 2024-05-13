@@ -409,6 +409,7 @@ notification_service/.env
 /deployments/event_service/event_service_secret.yaml
 /deployments/notification_service/notification_service_secret.yaml
 deployments/gateway/gateway_secret.yaml
+deployments/redis/redis_secret.yaml
 
 invite_service/proto/*.py
 invite_service/proto/*.pyi

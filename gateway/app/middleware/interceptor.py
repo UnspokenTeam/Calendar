@@ -3,11 +3,12 @@ import logging
 
 from grpc import RpcError, StatusCode
 
-from errors import PermissionDeniedError, UnauthenticatedError
+from errors import PermissionDeniedError, RateLimitError, UnauthenticatedError
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
+from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 from starlette.types import ASGIApp
 
 
@@ -81,6 +82,12 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
             logging.error(permission_denied_error)
             return JSONResponse(
                 status_code=403, content={"message": "Permission denied"}
+            )
+        except RateLimitError as rate_limit_error:
+            return JSONResponse(
+                status_code=HTTP_429_TOO_MANY_REQUESTS,
+                content={"message": "Too Many Requests"},
+                headers={"Retry-After": str(rate_limit_error.retry_after)},
             )
         except ValueError as value_error:
             logging.error(value_error)
