@@ -321,11 +321,8 @@ async def update_notification_as_author(
 
     stored_notification.start = stored_notification.start.astimezone(tz=utc)
 
-    if modify_notification_request.event_id != stored_notification.event_id:
-        stored_notification.start = event.start.astimezone(tz=utc)
-
     stored_notification.start = convert_event_start_to_notification_start(
-        stored_notification.start,
+        event.start.astimezone(tz=utc),
         modify_notification_request.delay
     )
 
