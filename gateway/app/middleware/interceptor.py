@@ -3,7 +3,7 @@ import logging
 
 from grpc import RpcError, StatusCode
 
-from errors import PermissionDeniedError, UnauthenticatedError, RateLimitError
+from errors import PermissionDeniedError, RateLimitError, UnauthenticatedError
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request

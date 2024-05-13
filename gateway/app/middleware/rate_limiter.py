@@ -1,6 +1,6 @@
 from math import ceil
 
-from app.errors import RateLimitError
+from errors import RateLimitError
 
 from starlette.requests import Request
 from starlette.responses import Response
