@@ -64,19 +64,26 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
                     return JSONResponse(
                         status_code=404, content={"message": "Not found"}
                     )
+                case StatusCode.CANCELLED:
+                    return JSONResponse(
+                        status_code=400, content={"message": "Request was cancelled"}
+                    )
                 case _:
                     return JSONResponse(
                         status_code=500, content={"message": "Internal server error"}
                     )
-        except UnauthenticatedError:
+        except UnauthenticatedError as unauthenticated_error:
+            logging.error(unauthenticated_error)
             return JSONResponse(
                 status_code=401, content={"message": "Unauthenticated"}
             )
-        except PermissionDeniedError:
+        except PermissionDeniedError as permission_denied_error:
+            logging.error(permission_denied_error)
             return JSONResponse(
                 status_code=403, content={"message": "Permission denied"}
             )
-        except ValueError as e:
+        except ValueError as value_error:
+            logging.error(value_error)
             return JSONResponse(
-                status_code=422, content={"message": f"Bad Request {e}"}
+                status_code=422, content={"message": f"Bad Request {value_error}"}
             )
