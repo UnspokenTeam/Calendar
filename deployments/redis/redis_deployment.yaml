@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+  labels:
+    db: redis-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      db: redis-deployment
+  template:
+    metadata:
+      name: redis-deployment
+      labels:
+        db: redis-deployment
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: redis-deployment
+          image: redis:latest
+          ports:
+            - containerPort: 6379
+              name: redis-port
+          imagePullPolicy: Always
+      restartPolicy: Always

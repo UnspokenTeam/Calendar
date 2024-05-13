@@ -3,6 +3,7 @@
 from contextlib import asynccontextmanager
 from os import environ
 from typing import AsyncIterator
+import os
 
 from .middleware import InterceptorMiddleware
 from .middleware.rate_limiter import handler as rate_limiter_handler
@@ -42,10 +43,11 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     allow_headers=["*"]
     )
     """
-    redis_client = redis.from_url(environ["REDIS_URL"])
-    await FastAPILimiter.init(redis_client, http_callback=rate_limiter_handler)
-    yield None
-    await FastAPILimiter.close()
+    if os.environ["ENVIRONMENT"] == "PRODUCTION":
+        redis_client = redis.from_url(environ["REDIS_URL"])
+        await FastAPILimiter.init(redis_client, http_callback=rate_limiter_handler)
+        yield None
+        await FastAPILimiter.close()
 
 
 app = FastAPI(

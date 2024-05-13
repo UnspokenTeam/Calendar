@@ -79,6 +79,35 @@
      # Пароль для админа бд
      POSTGRES_PASSWORD: "VALUE_IN_BASE_64_ENCODING"
    ```
+6. ### ```deployments/gateway/gateway-secret.yaml```
+   ```yaml
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: gateway-secret
+   data:
+     # Ссылка для подключения к identity сервису, где хост - identity-service-service.default.svc.cluster.local
+     IDENTITY_SERVICE_HOST: "VALUE_IN_BASE_64_ENCODING"
+     # Порт на котором работает identity cервис
+     IDENTITY_SERVICE_PORT: "VALUE_IN_BASE_64_ENCODING"
+     # Ссылка для подключения к event сервису, где хост - identity-service-service.default.svc.cluster.local
+     EVENT_SERVICE_HOST: "VALUE_IN_BASE_64_ENCODING"
+   # Порт на котором работает event cервис
+     EVENT_SERVICE_PORT: "VALUE_IN_BASE_64_ENCODING"
+     # Ссылка для подключения к invite сервису, где хост - identity-service-service.default.svc.cluster.local
+     INVITE_SERVICE_HOST: "VALUE_IN_BASE_64_ENCODING"
+   # Порт на котором работает invite cервис
+     INVITE_SERVICE_PORT: "VALUE_IN_BASE_64_ENCODING"
+     # Ссылка для подключения к notification сервису, где хост - identity-service-service.default.svc.cluster.local
+     NOTIFICATION_SERVICE_HOST: "VALUE_IN_BASE_64_ENCODING"
+     # Порт на котором работает notification cервис
+     NOTIFICATION_SERVICE_PORT: "VALUE_IN_BASE_64_ENCODING"
+     # Ссылка для подключения к инстансу redis, где хост - redis-service.default.svc.cluster.local
+     REDIS_URL: "VALUE_IN_BASE_64_ENCODING"
+     # Вид окружения DEVELOPMENT или PRODUCTION
+     ENVIRONMENT: "VALUE_IN_BASE_64_ENCODING"
+
+   ```
 ## Запуск
 
 ---
@@ -89,18 +118,22 @@
    ```shell
    microk8s microk8s kubectl apply -f ./postgres
    ```
-2. Создание сервисов
+2. Создание redis
+   ```shell
+   microk8s microk8s kubectl apply -f ./redis
+   ```
+3. Создание сервисов
    ```shell
    microk8s kubectl apply -f ./notification_service
    microk8s kubectl apply -f ./event_service
    microk8s kubectl apply -f ./identity_service
    microk8s kubectl apply -f ./notification_service
    ```
-3. Создание Gateway
+4. Создание Gateway
    ```shell
    microk8s kubectl apply -f ./gateway
    ```
-4. Создание тунеля
+5. Создание тунеля
    ```shell
    microk8s kubectl port-forward --address 0.0.0.0 --namespace default svc/gateway-service 8084:8084
    ```
