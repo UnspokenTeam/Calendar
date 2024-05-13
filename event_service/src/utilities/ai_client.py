@@ -54,7 +54,7 @@ class AIClient:
                         or "А" <= char.upper().replace("Ё", "Е") <= "Я"  # noqa: RUF001
                     )
                 )
-                for char in prompt
+                for char in prompt.replace(" ", "")
             )
             else 0
         )
