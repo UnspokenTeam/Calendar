@@ -5,7 +5,7 @@ from os import environ
 from errors import AiResponseError
 from src.constants.constants import AI_ROLE_FOR_PROMPT
 
-from httpx import AsyncClient
+from httpx import AsyncClient, CookieConflict, HTTPError, InvalidURL, StreamError
 
 
 class AIClient:
@@ -43,23 +43,43 @@ class AIClient:
         api_key = environ["OPENROUTER_API_KEY"]
 
         prompt = event_name
+        index = (
+            1
+            if all(
+                char.isalpha()
+                and (
+                    "A" <= char.upper() <= "Z"
+                    or not (
+                        "A" <= char.upper() <= "Z"
+                        or "А" <= char.upper().replace("Ё", "Е") <= "Я"  # noqa: RUF001
+                    )
+                )
+                for char in prompt
+            )
+            else 0
+        )
         async with AsyncClient() as client:
-            response = await client.post(
-                url="https://openrouter.ai/api/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                },
-                json={
-                    "model": "anthropic/claude-3-haiku",
-                    "messages": [
-                        {"role": "system", "content": AI_ROLE_FOR_PROMPT},
-                        {"role": "user", "content": prompt},
-                    ],
-                },
-            )
-        try:
-            return str(response.json()["choices"][0]["message"]["content"])
-        except KeyError:
-            raise AiResponseError(
-                ". ".join(str(response.json()["error"]["message"]).split(". ")[:2])
-            )
+            try:
+                response = await client.post(
+                    url="https://openrouter.ai/api/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                    },
+                    json={
+                        "model": "anthropic/claude-3-haiku",
+                        "messages": [
+                            {"role": "system", "content": AI_ROLE_FOR_PROMPT[index]},
+                            {"role": "user", "content": prompt},
+                        ],
+                    },
+                )
+                try:
+                    return str(response.json()["choices"][0]["message"]["content"])
+                except KeyError:
+                    raise AiResponseError(
+                        ". ".join(
+                            str(response.json()["error"]["message"]).split(". ")[:2]
+                        )
+                    )
+            except (HTTPError, InvalidURL, CookieConflict, StreamError) as e:
+                raise AiResponseError(e)
