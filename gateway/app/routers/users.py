@@ -41,7 +41,7 @@ from app.generated.notification_service.notification_service_pb2 import (
     DeleteNotificationsByAuthorIdRequest as GrpcDeleteNotificationsByAuthorIdRequest,
 )
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
-from app.middleware.auth import auth
+from app.middleware.auth import auth, oauth_2
 from app.models import User, UserType
 from app.params import GrpcClientParams
 from app.validators import str_special_characters_validator
@@ -49,7 +49,7 @@ from app.validators import str_special_characters_validator
 from errors import PermissionDeniedError
 
 from fastapi import APIRouter, Depends
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import UUID4, AfterValidator, BaseModel, EmailStr, Field
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -104,6 +104,8 @@ class CredentialsResponse(BaseModel):
 @router.get("/me", response_model_exclude={"password"})
 async def get_current_user_info(user: Annotated[GrpcUser, Depends(auth)]) -> User:
     """
+    \f
+
     Fast api route to get current user info
 
     Parameters
@@ -128,6 +130,8 @@ async def get_all_users(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> List[User]:
     """
+    \f
+
     Fast api route to get all users
 
     Parameters
@@ -168,6 +172,8 @@ async def get_user(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> User:
     """
+    \f
+
     Fast api route to get user by id
 
     Parameters
@@ -233,6 +239,8 @@ async def register_user(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> CredentialsResponse:
     """
+    \f
+
     Fast api route to register user
 
     Parameters
@@ -277,6 +285,8 @@ async def login(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> CredentialsResponse:
     """
+    \f
+
     Fast api route to log in user
 
     Parameters
@@ -307,17 +317,19 @@ async def login(
 @router.post("/logout")
 async def logout(
         _: Annotated[GrpcUser, Depends(auth)],
-        access_token: Annotated[str, OAuth2PasswordBearer],
+        access_token: Annotated[str, Depends(oauth_2)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
+    \f
+
     Fast api route to log out user
 
     Parameters
     ----------
     _ : Annotated[GrpcUser, Depends(auth)]
         Authorized user's data in proto format
-    access_token : str
+    access_token : Annotated[str, Depends(oauth_2)]
         Access token
     grpc_clients : Annotated[GrpcClientParams, Depends(GrpcClientParams)]
         Grpc clients injected by DI
@@ -337,6 +349,8 @@ async def get_new_access_token(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> str:
     """
+    \f
+
     Fast api route to get new access token
 
     Parameters
@@ -367,6 +381,8 @@ async def update_user(
         user_to_update: User,
 ) -> CredentialsResponse:
     """
+    \f
+
     Fast api route to update user
 
     Parameters
@@ -419,6 +435,8 @@ async def delete_user(
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
 ) -> None:
     """
+    \f
+
     Fast api route to delete user
 
     Parameters
