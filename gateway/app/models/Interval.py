@@ -110,9 +110,9 @@ class Interval(BaseModel):
             seconds=self.seconds
         )
 
-    def __eq__(self, other: Self) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Interval):
-            raise ValueError("Can only compare Interval objects")
+            raise NotImplemented
 
         self_dict = self.dict()
         other_dict = other.dict()
