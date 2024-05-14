@@ -3,7 +3,9 @@
 from contextlib import asynccontextmanager
 from os import environ
 from typing import AsyncIterator
+import logging
 import os
+import sys
 
 from .middleware import InterceptorMiddleware
 from .middleware.rate_limiter import handler as rate_limiter_handler
@@ -37,6 +39,8 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         await FastAPILimiter.init(redis_client, http_callback=rate_limiter_handler)
         yield None
         await FastAPILimiter.close()
+    else:
+        yield None
 
 
 app = FastAPI(
@@ -57,3 +61,8 @@ app.include_router(Events)
 app.include_router(Users)
 app.include_router(Notifications)
 app.include_router(Invites)
+
+logging.basicConfig(
+    level=logging.INFO, handlers=[logging.StreamHandler(sys.stdout)]
+)
+logging.info(f"Server started. Current environment is {os.environ['ENVIRONMENT']}")

@@ -577,7 +577,7 @@ async def update_event(
 
     my_notification = None
 
-    if event.start != db_event.start:
+    if event.start != db_event.start or event.repeating_delay != db_event.repeating_delay:
         notifications_request: GrpcListOfNotifications = (
             grpc_clients.notification_service_client.request().get_notifications_by_event_id(
                 GrpcGetNotificationsRequestByEventIdRequest(
@@ -593,6 +593,7 @@ async def update_event(
         for notification_proto in notifications_request.notifications:
             notification = Notification.from_proto(notification_proto)
             notification.start = convert_event_start_to_notification_start(event.start.astimezone(tz=utc), event.delay)
+            notification.repeating_delay = event.repeating_delay
             grpc_clients.notification_service_client.request().update_notification(
                 GrpcNotificationRequest(
                     notification=notification.to_proto(),
