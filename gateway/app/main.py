@@ -34,18 +34,15 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         None
 
     """
-    if os.environ["ENVIRONMENT"] == "PRODUCTION":
-        redis_client = redis.from_url(environ["REDIS_URL"])
-        await FastAPILimiter.init(redis_client, http_callback=rate_limiter_handler)
-        yield None
-        await FastAPILimiter.close()
-    else:
-        yield None
+    redis_client = redis.from_url(environ["REDIS_URL"])
+    await FastAPILimiter.init(redis_client, http_callback=rate_limiter_handler)
+    yield None
+    await FastAPILimiter.close()
 
 
 app = FastAPI(
     dependencies=[Depends(GrpcClientParams), Depends(RateLimiter(times=1, seconds=2))],
-    lifespan=lifespan,
+    lifespan=lifespan if os.environ["ENVIRONMENT"] == "PRODUCTION" else None,
 )
 
 app.add_middleware(

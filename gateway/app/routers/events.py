@@ -581,7 +581,7 @@ async def update_event(
         notifications_request: GrpcListOfNotifications = (
             grpc_clients.notification_service_client.request().get_notifications_by_event_id(
                 GrpcGetNotificationsRequestByEventIdRequest(
-                    event_id=db_event.id,
+                    event_id=str(db_event.id),
                     page_number=1,
                     items_per_page=-1,
                 )
@@ -592,7 +592,10 @@ async def update_event(
 
         for notification_proto in notifications_request.notifications:
             notification = Notification.from_proto(notification_proto)
-            notification.start = convert_event_start_to_notification_start(event.start.astimezone(tz=utc), event.delay)
+            notification.start = convert_event_start_to_notification_start(
+                event.start.astimezone(tz=utc),
+                notification.delay
+            )
             notification.repeating_delay = event.repeating_delay
             grpc_clients.notification_service_client.request().update_notification(
                 GrpcNotificationRequest(
@@ -601,7 +604,7 @@ async def update_event(
                 )
             )
 
-            if notification.author_id == user.id:
+            if str(notification.author_id) == user.id:
                 my_notification = notification
 
         user.type = GrpcUserType.USER

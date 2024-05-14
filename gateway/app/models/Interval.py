@@ -112,7 +112,7 @@ class Interval(BaseModel):
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Interval):
-            raise NotImplemented
+            raise NotImplementedError
 
         self_dict = self.dict()
         other_dict = other.dict()
