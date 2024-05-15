@@ -5,7 +5,6 @@ from typing import Annotated, Optional, Self
 from uuid import UUID
 
 from app.constants import MIN_USERNAME_LENGTH
-from app.generated.identity_service.update_user_pb2 import UserToModify
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.validators import str_special_characters_validator
 

@@ -32,7 +32,10 @@ from app.generated.identity_service.get_user_pb2 import (
     UserByIdRequest as GrpcGetUserByIdRequest,
 )
 from app.generated.identity_service.update_user_pb2 import (
-    UpdateUserRequest as GrpcUpdateUserRequest, UserToModify,
+    UpdateUserRequest as GrpcUpdateUserRequest,
+)
+from app.generated.identity_service.update_user_pb2 import (
+    UserToModify,
 )
 from app.generated.invite_service.invite_service_pb2 import (
     DeleteInvitesByAuthorIdRequest as GrpcDeleteInvitesByAuthorId,
@@ -45,14 +48,13 @@ from app.middleware.auth import auth, oauth_2
 from app.models import User, UserType
 from app.params import GrpcClientParams
 from app.validators import str_special_characters_validator
+from app.validators.str_validators import optional_str_special_characters_validator
 
 from errors import PermissionDeniedError
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import UUID4, AfterValidator, BaseModel, EmailStr, Field
-
-from app.validators.str_validators import optional_str_special_characters_validator
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -103,9 +105,9 @@ class CredentialsResponse(BaseModel):
     user: User
 
 
-class ModifyUser(BaseModel):
+class ModifyUserRequest(BaseModel):
     """
-    User model
+    Modify user request
 
     Attributes
     ----------
@@ -438,7 +440,7 @@ async def get_new_access_token(
 async def update_user(
         grpc_user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-        user_to_update: ModifyUser,
+        user_to_update: ModifyUserRequest,
 ) -> CredentialsResponse:
     """
     \f
