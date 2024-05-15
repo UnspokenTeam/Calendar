@@ -91,6 +91,15 @@ class Interval(BaseModel):
         )
 
     def to_relative_delta(self) -> relativedelta:
+        """
+        Translates the interval to relative delta.
+
+        Returns
+        -------
+        relativedelta
+            Relative delta
+
+        """
         return relativedelta(
             years=self.years,
             months=self.months,
@@ -100,3 +109,12 @@ class Interval(BaseModel):
             minutes=self.minutes,
             seconds=self.seconds
         )
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Interval):
+            raise NotImplementedError
+
+        self_dict = self.dict()
+        other_dict = other.dict()
+
+        return all([self_dict[key] == other_dict[key] for key in self.dict().keys()])

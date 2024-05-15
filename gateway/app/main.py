@@ -3,7 +3,9 @@
 from contextlib import asynccontextmanager
 from os import environ
 from typing import AsyncIterator
+import logging
 import os
+import sys
 
 from .middleware import InterceptorMiddleware
 from .middleware.rate_limiter import handler as rate_limiter_handler
@@ -32,16 +34,19 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         None
 
     """
-    if os.environ["ENVIRONMENT"] == "PRODUCTION":
-        redis_client = redis.from_url(environ["REDIS_URL"])
-        await FastAPILimiter.init(redis_client, http_callback=rate_limiter_handler)
-        yield None
-        await FastAPILimiter.close()
+    redis_client = redis.from_url(environ["REDIS_URL"])
+    await FastAPILimiter.init(redis_client, http_callback=rate_limiter_handler)
+    yield None
+    await FastAPILimiter.close()
 
 
 app = FastAPI(
-    dependencies=[Depends(GrpcClientParams), Depends(RateLimiter(times=1, seconds=2))],
-    lifespan=lifespan,
+    dependencies=(
+        [Depends(GrpcClientParams), Depends(RateLimiter(times=1, seconds=2))]
+        if os.environ["ENVIRONMENT"] == "PRODUCTION" else
+        [Depends(GrpcClientParams)]
+    ),
+    lifespan=lifespan if os.environ["ENVIRONMENT"] == "PRODUCTION" else None,
 )
 
 app.add_middleware(
@@ -57,3 +62,8 @@ app.include_router(Events)
 app.include_router(Users)
 app.include_router(Notifications)
 app.include_router(Invites)
+
+logging.basicConfig(
+    level=logging.INFO, handlers=[logging.StreamHandler(sys.stdout)]
+)
+logging.info(f"Server started. Current environment is {os.environ['ENVIRONMENT']}")
