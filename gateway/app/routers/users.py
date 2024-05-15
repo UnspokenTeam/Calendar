@@ -318,7 +318,7 @@ async def register_user(
         Access and refresh token
 
     """
-    user = User(
+    user = ModifyUserRequest(
         id=uuid4(),
         username=register_request.username,
         email=register_request.email,
