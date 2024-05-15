@@ -138,25 +138,3 @@ class User(BaseModel):
             ),
             type=UserType.from_proto(proto.type),
         )
-
-    def to_modify_proto(self) -> UserToModify:
-        """
-        Convert object to update proto
-
-        Returns
-        -------
-        UserToUpdate
-            Update proto
-
-        """
-        user = UserToModify(
-            id=str(self.id),
-            username=self.username,
-            password=self.password,
-            type=self.type.to_proto(),
-            email=self.email,
-        )
-        user.created_at.FromDatetime(self.created_at)
-        if self.suspended_at is not None:
-            user.suspended_at.FromDatetime(self.suspended_at)
-        return user

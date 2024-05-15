@@ -1,6 +1,6 @@
 """Users route"""
 from datetime import datetime
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 from uuid import UUID, uuid4
 
 from grpc import RpcError
@@ -32,7 +32,7 @@ from app.generated.identity_service.get_user_pb2 import (
     UserByIdRequest as GrpcGetUserByIdRequest,
 )
 from app.generated.identity_service.update_user_pb2 import (
-    UpdateUserRequest as GrpcUpdateUserRequest,
+    UpdateUserRequest as GrpcUpdateUserRequest, UserToModify,
 )
 from app.generated.invite_service.invite_service_pb2 import (
     DeleteInvitesByAuthorIdRequest as GrpcDeleteInvitesByAuthorId,
@@ -51,6 +51,8 @@ from errors import PermissionDeniedError
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import UUID4, AfterValidator, BaseModel, EmailStr, Field
+
+from app.validators.str_validators import optional_str_special_characters_validator
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -99,6 +101,64 @@ class CredentialsResponse(BaseModel):
     access_token: str
     refresh_token: str
     user: User
+
+
+class ModifyUser(BaseModel):
+    """
+    User model
+
+    Attributes
+    ----------
+    id : UUID4 | str
+        ID of the user
+    username : str
+        User's name
+    email : str
+        Email of the user
+    password : Optional[str]
+        Hashed password of the user
+    type: UserType
+        Type of the user
+    created_at: datetime
+        Date and time when the user was created
+    suspended_at: datetime
+        Date and time when the user was suspended
+
+    """
+
+    id: UUID4 | Annotated[str, AfterValidator(lambda x: UUID(x, version=4))]
+    username: Annotated[
+        str,
+        Field("", min_length=MIN_USERNAME_LENGTH),
+        AfterValidator(str_special_characters_validator)
+    ]
+    email: EmailStr
+    password: Annotated[Optional[str], Field(None), AfterValidator(optional_str_special_characters_validator)]
+    created_at: datetime
+    suspended_at: Optional[datetime]
+    type: UserType
+
+    def to_modify_proto(self) -> UserToModify:
+        """
+        Convert object to update proto
+
+        Returns
+        -------
+        UserToUpdate
+            Update proto
+
+        """
+        user = UserToModify(
+            id=str(self.id),
+            username=self.username,
+            password=self.password,
+            type=self.type.to_proto(),
+            email=self.email,
+        )
+        user.created_at.FromDatetime(self.created_at)
+        if self.suspended_at is not None:
+            user.suspended_at.FromDatetime(self.suspended_at)
+        return user
 
 
 @router.get("/me", response_model_exclude={"password"})
@@ -378,7 +438,7 @@ async def get_new_access_token(
 async def update_user(
         grpc_user: Annotated[GrpcUser, Depends(auth)],
         grpc_clients: Annotated[GrpcClientParams, Depends(GrpcClientParams)],
-        user_to_update: User,
+        user_to_update: ModifyUser,
 ) -> CredentialsResponse:
     """
     \f
