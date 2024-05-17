@@ -13,11 +13,14 @@ message UserToModify {
   string id = 1;
   string username = 2;
   string email = 3;
-  string password = 4;
-  google.protobuf.Timestamp created_at = 5;
-  oneof optional_suspended_at {
-    google.protobuf.NullValue suspended_at_null = 6;
-    google.protobuf.Timestamp suspended_at = 7;
+  oneof optional_password {
+    string password = 4;
+    google.protobuf.NullValue password_null = 5;
   }
-  GrpcUserType type = 8;
+  google.protobuf.Timestamp created_at = 6;
+  oneof optional_suspended_at {
+    google.protobuf.NullValue suspended_at_null = 7;
+    google.protobuf.Timestamp suspended_at = 8;
+  }
+  GrpcUserType type = 9;
 }

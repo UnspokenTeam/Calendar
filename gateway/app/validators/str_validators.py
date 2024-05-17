@@ -1,4 +1,5 @@
 """String validators."""
+from typing import Optional
 
 
 def str_special_characters_validator(value: str) -> str:
@@ -28,3 +29,24 @@ def str_special_characters_validator(value: str) -> str:
         raise ValueError("Value contains reserved characters")
 
     return value
+
+
+def optional_str_special_characters_validator(value: Optional[str]) -> Optional[str]:
+    """
+    Check if string contains special characters.
+
+    Parameters
+    ----------
+    value : Optional[str]
+        String to be checked.
+
+    Returns
+    -------
+    Optional[str]
+        String without special characters.
+
+    """
+    if value is None:
+        return value
+
+    return str_special_characters_validator(value)

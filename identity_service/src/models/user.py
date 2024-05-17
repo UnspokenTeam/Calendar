@@ -184,7 +184,7 @@ class User:
         return cls(
             id=grpc_user.id,
             username=grpc_user.username,
-            password=grpc_user.password,
+            password=grpc_user.password if grpc_user.WhichOneof("optional_password") is not None else "",
             email=grpc_user.email,
             type=UserType.from_grpc_user_type(grpc_user.type),
             created_at=datetime.utcfromtimestamp(

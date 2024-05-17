@@ -5,7 +5,6 @@ from typing import Annotated, Optional, Self
 from uuid import UUID
 
 from app.constants import MIN_USERNAME_LENGTH
-from app.generated.identity_service.update_user_pb2 import UserToModify
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.validators import str_special_characters_validator
 
@@ -138,25 +137,3 @@ class User(BaseModel):
             ),
             type=UserType.from_proto(proto.type),
         )
-
-    def to_modify_proto(self) -> UserToModify:
-        """
-        Convert object to update proto
-
-        Returns
-        -------
-        UserToUpdate
-            Update proto
-
-        """
-        user = UserToModify(
-            id=str(self.id),
-            username=self.username,
-            password=self.password,
-            type=self.type.to_proto(),
-            email=self.email,
-        )
-        user.created_at.FromDatetime(self.created_at)
-        if self.suspended_at is not None:
-            user.suspended_at.FromDatetime(self.suspended_at)
-        return user

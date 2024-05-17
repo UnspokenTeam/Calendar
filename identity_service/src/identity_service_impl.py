@@ -361,7 +361,7 @@ class IdentityServiceImpl(GrpcServicer):
         if requesting_user.type != UserType.ADMIN and db_user.type != UserType.ADMIN and user.type == UserType.ADMIN:
             raise PermissionDeniedError("Permission denied")
 
-        if self._encoder.compare(user.password, db_user.password):
+        if request.new_user.WhichOneof("optional_password") is None:
             user.password = db_user.password
         else:
             user.password = self._encoder.encode(password=user.password)
