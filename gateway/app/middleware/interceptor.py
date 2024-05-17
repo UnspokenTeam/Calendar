@@ -76,7 +76,12 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
         except UnauthenticatedError as unauthenticated_error:
             logging.error(unauthenticated_error)
             return JSONResponse(
-                status_code=401, content={"message": "Unauthenticated"}
+                status_code=401,
+                content={"message": "Unauthenticated"},
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "*"
+                }
             )
         except PermissionDeniedError as permission_denied_error:
             logging.error(permission_denied_error)
