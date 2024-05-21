@@ -106,7 +106,7 @@
      REDIS_URL: "VALUE_IN_BASE_64_ENCODING"
      # Вид окружения DEVELOPMENT или PRODUCTION
      ENVIRONMENT: "VALUE_IN_BASE_64_ENCODING"
-     # Количество запросов в секунду 
+     # Количество запросов в секунду
      TIMES_PER_SECOND: "VALUE_IN_BASE_64_ENCODING"
 
    ```
