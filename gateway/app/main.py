@@ -42,7 +42,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(
     dependencies=(
-        [Depends(GrpcClientParams), Depends(RateLimiter(times=1, seconds=2))]
+        [Depends(GrpcClientParams), Depends(RateLimiter(times=int(os.environ["TIMES_PER_SECOND"]), seconds=1))]
         if os.environ["ENVIRONMENT"] == "PRODUCTION" else
         [Depends(GrpcClientParams)]
     ),

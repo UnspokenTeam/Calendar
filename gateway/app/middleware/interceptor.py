@@ -92,7 +92,11 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
             return JSONResponse(
                 status_code=HTTP_429_TOO_MANY_REQUESTS,
                 content={"message": "Too Many Requests"},
-                headers={"Retry-After": str(rate_limit_error.retry_after)},
+                headers={
+                    "Retry-After": str(rate_limit_error.retry_after),
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "*"
+                },
             )
         except ValueError as value_error:
             logging.error(value_error)

@@ -72,6 +72,11 @@ spec:
                 secretKeyRef:
                   name: gateway-secret
                   key: ENVIRONMENT
+            - name: "TIMES_PER_SECOND"
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-secret
+                  key: TIMES_PER_SECOND
           ports:
             - containerPort: 8084
               name: gateway-port

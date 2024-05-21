@@ -92,11 +92,11 @@
      IDENTITY_SERVICE_PORT: "VALUE_IN_BASE_64_ENCODING"
      # Ссылка для подключения к event сервису, где хост - identity-service-service.default.svc.cluster.local
      EVENT_SERVICE_HOST: "VALUE_IN_BASE_64_ENCODING"
-   # Порт на котором работает event cервис
+     # Порт на котором работает event cервис
      EVENT_SERVICE_PORT: "VALUE_IN_BASE_64_ENCODING"
      # Ссылка для подключения к invite сервису, где хост - identity-service-service.default.svc.cluster.local
      INVITE_SERVICE_HOST: "VALUE_IN_BASE_64_ENCODING"
-   # Порт на котором работает invite cервис
+     # Порт на котором работает invite cервис
      INVITE_SERVICE_PORT: "VALUE_IN_BASE_64_ENCODING"
      # Ссылка для подключения к notification сервису, где хост - identity-service-service.default.svc.cluster.local
      NOTIFICATION_SERVICE_HOST: "VALUE_IN_BASE_64_ENCODING"
@@ -106,6 +106,8 @@
      REDIS_URL: "VALUE_IN_BASE_64_ENCODING"
      # Вид окружения DEVELOPMENT или PRODUCTION
      ENVIRONMENT: "VALUE_IN_BASE_64_ENCODING"
+     # Количество запросов в секунду 
+     TIMES_PER_SECOND: "VALUE_IN_BASE_64_ENCODING"
 
    ```
 ## Запуск
