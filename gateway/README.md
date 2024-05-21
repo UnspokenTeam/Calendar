@@ -37,6 +37,8 @@ NOTIFICATION_SERVICE_HOST="localhost"
 NOTIFICATION_SERVICE_PORT="8083"
 ; Url для подключения к локальному инстансу redis
 REDIS_URL="redis://localhost:6543"
+; Количество запросов в секунду
+TIMES_PER_SECOND="20"
 ```
 
 ## Установка
