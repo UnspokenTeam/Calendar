@@ -67,6 +67,11 @@ spec:
                 secretKeyRef:
                   name: gateway-secret
                   key: REDIS_URL
+            - name: "ENVIRONMENT"
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-secret
+                  key: ENVIRONMENT
           ports:
             - containerPort: 8084
               name: gateway-port
