@@ -23,8 +23,9 @@ GET_NOTIFICATIONS_BY_AUTHOR_ID_QUERY = (
 """
 str: SQL query for get events by author id request.
 
-GET_EVENTS_BY_AUTHOR_ID_QUERY example:
+GET_NOTIFICATIONS_BY_AUTHOR_ID_QUERY example:
 
+    SET datestyle = DMY;
     SELECT pattern."id", pattern."event_id", pattern."author_id", pattern."notification_start" as "start",
     pattern."delay_to_event", pattern."repeating_delay", pattern."enabled", pattern."created_at", pattern."deleted_at"
     FROM (
