@@ -122,8 +122,7 @@ str: SQL query for get events by event ids request.
 """
 
 GET_ALL_EVENTS_QUERY = (
-    "SELECT *\nFROM \"prisma_events\" as event\n{}\t\nAND event.repeating_delay IS NULL\n"
-    "\tAND event.repeating_delay IS NULL\nUNION\n"
+    "SELECT *\nFROM \"prisma_events\" as event\n{}\n\tAND event.repeating_delay IS NULL\nUNION\n"
     "SELECT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", pattern.\"event_start\" as "
     "\"start\", (pattern.\"event_start\" + (pattern.\"end\" - pattern.\"start\")) as \"end\", "
     "pattern.\"repeating_delay\", pattern.\"author_id\", pattern.\"created_at\", pattern.\"deleted_at\"\n"

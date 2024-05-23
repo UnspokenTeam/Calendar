@@ -373,7 +373,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 )
                 if start is not None or end is not None
                 else ""
-            ),
+            )
             where_condition_for_repeating_events = (
                 (
                         "WHERE\n\t"
