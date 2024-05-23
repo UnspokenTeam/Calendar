@@ -577,7 +577,7 @@ async def update_event(
 
     my_notification = None
 
-    if (event.start != db_event.start or sum([e.repeating_delay for e in [event, db_event]]) == 1 or
+    if (event.start != db_event.start or sum([1 if e.repeating_delay is None else 0 for e in [event, db_event]]) == 1 or
             event.repeating_delay != db_event.repeating_delay):
         notifications_request: GrpcListOfNotifications = (
             grpc_clients.notification_service_client.request().get_notifications_by_event_id(
