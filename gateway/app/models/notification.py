@@ -7,7 +7,7 @@ from app.generated.notification_service.notification_service_pb2 import GrpcNoti
 from app.models.Interval import Interval
 
 from pydantic import UUID4, AfterValidator, BaseModel, Field
-from pytz import utc
+from pytz import utc, UTC
 
 
 class Notification(BaseModel):
@@ -76,17 +76,20 @@ class Notification(BaseModel):
             author_id=proto.author_id,
             enabled=proto.enabled,
             start=datetime.fromtimestamp(
-                proto.start.seconds + proto.start.nanos / 1e9
+                proto.start.seconds + proto.start.nanos / 1e9,
+                tz=UTC
             ),
             delay=Interval.from_proto(proto.delay_to_event),
             repeating_delay=Interval.from_proto(proto.repeating_delay)
             if proto.WhichOneof("optional_repeating_delay") is not None
             else None,
             created_at=datetime.fromtimestamp(
-                proto.created_at.seconds + proto.created_at.nanos / 1e9
+                proto.created_at.seconds + proto.created_at.nanos / 1e9,
+                tz=UTC
             ),
             deleted_at=datetime.fromtimestamp(
-                proto.deleted_at.seconds + proto.deleted_at.nanos / 1e9
+                proto.deleted_at.seconds + proto.deleted_at.nanos / 1e9,
+                tz=UTC
             )
             if proto.WhichOneof("optional_deleted_at") is not None
             else None,

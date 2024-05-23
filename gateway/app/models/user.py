@@ -4,6 +4,8 @@ from enum import StrEnum
 from typing import Annotated, Optional, Self
 from uuid import UUID
 
+from pytz import UTC
+
 from app.constants import MIN_USERNAME_LENGTH
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.validators import str_special_characters_validator
@@ -128,12 +130,14 @@ class User(BaseModel):
             email=proto.email,
             password="",
             created_at=datetime.fromtimestamp(
-                proto.created_at.seconds + proto.created_at.nanos / 1e9
+                proto.created_at.seconds + proto.created_at.nanos / 1e9,
+                tz=UTC
             ),
             suspended_at=None
             if proto.WhichOneof("optional_suspended_at") is None
             else datetime.fromtimestamp(
-                proto.suspended_at.seconds + proto.suspended_at.nanos / 1e9
+                proto.suspended_at.seconds + proto.suspended_at.nanos / 1e9,
+                tz=UTC
             ),
             type=UserType.from_proto(proto.type),
         )

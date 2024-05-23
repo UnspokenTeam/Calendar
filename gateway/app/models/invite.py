@@ -12,7 +12,7 @@ from app.generated.invite_service.invite_service_pb2 import (
 )
 
 from pydantic import UUID4, AfterValidator, BaseModel
-from pytz import utc
+from pytz import utc, UTC
 
 
 class InviteStatus(StrEnum):
@@ -144,10 +144,12 @@ class Invite(BaseModel):
             invitee_id=proto.invitee_id,
             status=InviteStatus.from_proto(proto.status),
             created_at=datetime.fromtimestamp(
-                proto.created_at.seconds + proto.created_at.nanos / 1e9
+                proto.created_at.seconds + proto.created_at.nanos / 1e9,
+                tz=UTC
             ),
             deleted_at=datetime.fromtimestamp(
-                proto.deleted_at.seconds + proto.deleted_at.nanos / 1e9
+                proto.deleted_at.seconds + proto.deleted_at.nanos / 1e9,
+                tz=UTC
             )
             if proto.WhichOneof("optional_deleted_at") is not None
             else None,
