@@ -4,13 +4,12 @@ from enum import StrEnum
 from typing import Annotated, Optional, Self
 from uuid import UUID
 
-from pytz import UTC
-
 from app.constants import MIN_USERNAME_LENGTH
 from app.generated.user.user_pb2 import GrpcUser, GrpcUserType
 from app.validators import str_special_characters_validator
 
 from pydantic import UUID4, AfterValidator, BaseModel, EmailStr, Field
+from pytz import UTC
 
 
 class UserType(StrEnum):

@@ -7,7 +7,7 @@ from app.generated.notification_service.notification_service_pb2 import GrpcNoti
 from app.models.Interval import Interval
 
 from pydantic import UUID4, AfterValidator, BaseModel, Field
-from pytz import utc, UTC
+from pytz import UTC, utc
 
 
 class Notification(BaseModel):

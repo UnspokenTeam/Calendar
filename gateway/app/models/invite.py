@@ -12,7 +12,7 @@ from app.generated.invite_service.invite_service_pb2 import (
 )
 
 from pydantic import UUID4, AfterValidator, BaseModel
-from pytz import utc, UTC
+from pytz import UTC, utc
 
 
 class InviteStatus(StrEnum):

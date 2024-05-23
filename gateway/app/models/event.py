@@ -6,7 +6,7 @@ from app.generated.event_service.event_service_pb2 import GrpcEvent
 from app.models.Interval import Interval
 
 from pydantic import UUID4, AfterValidator, BaseModel
-from pytz import utc, UTC
+from pytz import UTC, utc
 
 
 class Event(BaseModel):
