@@ -6,7 +6,7 @@ from app.generated.event_service.event_service_pb2 import GrpcEvent
 from app.models.Interval import Interval
 
 from pydantic import UUID4, AfterValidator, BaseModel
-from pytz import utc
+from pytz import UTC, utc
 
 
 class Event(BaseModel):
@@ -75,11 +75,12 @@ class Event(BaseModel):
         return cls(
             id=proto.id,
             title=proto.title,
-            start=datetime.fromtimestamp(proto.start.seconds + proto.start.nanos / 1e9),
-            end=datetime.fromtimestamp(proto.end.seconds + proto.end.nanos / 1e9),
+            start=datetime.fromtimestamp(proto.start.seconds + proto.start.nanos / 1e9, tz=UTC),
+            end=datetime.fromtimestamp(proto.end.seconds + proto.end.nanos / 1e9, tz=UTC),
             author_id=proto.author_id,
             created_at=datetime.fromtimestamp(
-                proto.created_at.seconds + proto.created_at.nanos / 1e9
+                proto.created_at.seconds + proto.created_at.nanos / 1e9,
+                tz=UTC
             ),
             description=proto.description if proto.WhichOneof("optional_description") is not None else None,
             color=proto.color if proto.WhichOneof("optional_color") is not None else None,
@@ -87,7 +88,8 @@ class Event(BaseModel):
             if proto.WhichOneof("optional_repeating_delay") is not None
             else None,
             deleted_at=datetime.fromtimestamp(
-                proto.deleted_at.seconds + proto.deleted_at.nanos / 1e9
+                proto.deleted_at.seconds + proto.deleted_at.nanos / 1e9,
+                tz=UTC
             )
             if proto.WhichOneof("optional_deleted_at") is not None
             else None,
