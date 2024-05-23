@@ -119,6 +119,14 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 else f"{start_date}::timestamp + \'1 MONTH\'::interval"
             )
             author_id_for_query = f"'{author_id}'"
+            event_start_condition = (
+                f"\n\tAND {start_date}::timestamp <= event.start"
+                if start is not None
+                else ""
+            )
+            event_end_condition = (
+                f"\n\tAND event.start <= {end_date}::timestamp" if end is not None else ""
+            )
             repeating_event_start_condition = (
                 f"\n\tAND {start_date}::timestamp <= pattern.\"event_start\""
                 if start is not None
@@ -136,6 +144,9 @@ class EventRepositoryImpl(EventRepositoryInterface):
             await self._db_client.db.execute_raw("SET datestyle = DMY;")
             db_events = await self._db_client.db.query_raw(
                 GET_EVENTS_BY_AUTHOR_ID_QUERY.format(
+                    author_id_for_query,
+                    event_start_condition,
+                    event_end_condition,
                     time_interval,
                     author_id_for_query,
                     repeating_event_start_condition,
@@ -248,6 +259,14 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 else f"{start_date}::timestamp + \'1 MONTH\'::interval"
             )
             events_ids_for_query = ", ".join(f"'{event_id}'" for event_id in events_ids)
+            event_start_condition = (
+                f"\n\tAND {start_date}::timestamp <= event.start"
+                if start is not None
+                else ""
+            )
+            event_end_condition = (
+                f"\n\tAND event.start <= {end_date}::timestamp" if end is not None else ""
+            )
             repeating_event_start_condition = (
                 f"\n\tAND {start_date}::timestamp <= pattern.\"event_start\""
                 if start is not None
@@ -265,6 +284,9 @@ class EventRepositoryImpl(EventRepositoryInterface):
             await self._db_client.db.execute_raw("SET datestyle = DMY;")
             db_events = await self._db_client.db.query_raw(
                 GET_EVENTS_BY_EVENT_IDS_QUERY.format(
+                    events_ids_for_query,
+                    event_start_condition,
+                    event_end_condition,
                     time_interval,
                     events_ids_for_query,
                     repeating_event_start_condition,
@@ -338,6 +360,20 @@ class EventRepositoryImpl(EventRepositoryInterface):
                 if end is not None
                 else f"{start_date}::timestamp + \'1 MONTH\'::interval"
             )
+            where_condition_for_events = (
+                (
+                        "WHERE\n\t"
+                        + (
+                            f"{start_date}::timestamp <= event.start"
+                            if start is not None
+                            else ""
+                        )
+                        + ("\n\tAND " if start is not None and end is not None else "")
+                        + (f"event.start <= {end_date}::timestamp" if end is not None else "")
+                )
+                if start is not None or end is not None
+                else ""
+            )
             where_condition_for_repeating_events = (
                 (
                         "WHERE\n\t"
@@ -361,6 +397,7 @@ class EventRepositoryImpl(EventRepositoryInterface):
             await self._db_client.db.execute_raw("SET datestyle = DMY;")
             db_events = await self._db_client.db.query_raw(
                 GET_ALL_EVENTS_QUERY.format(
+                    where_condition_for_events,
                     time_interval,
                     where_condition_for_repeating_events,
                     pagination_parameters,

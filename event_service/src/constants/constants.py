@@ -30,6 +30,8 @@ AI_ROLE_FOR_PROMPT = (
 )
 
 GET_EVENTS_BY_AUTHOR_ID_QUERY = (
+    "SELECT *\nFROM \"prisma_events\" as event\nWHERE\n\tevent.author_id = {}\n\tAND event.deleted_at IS NULL{}{}\n"
+    "\tAND event.repeating_delay IS NULL\nUNION\n"
     "SELECT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", pattern.\"event_start\" as "
     "\"start\", (pattern.\"event_start\" + (pattern.\"end\" - pattern.\"start\")) as \"end\", "
     "pattern.\"repeating_delay\", pattern.\"author_id\", pattern.\"created_at\", pattern.\"deleted_at\"\n"
@@ -43,6 +45,15 @@ str: SQL query for get events by author id request.
 GET_EVENTS_BY_AUTHOR_ID_QUERY example:
 
     SET datestyle = DMY;
+    SELECT *
+    FROM "prisma_events" as event
+    WHERE
+        event.author_id = 'AUTHOR_ID'
+        AND event.deleted_at IS NULL
+        AND '01/01/1970 01:00:00'::timestamp <= event.start
+        AND event.start <= '01/01/1970 05:00:00'::timestamp
+        AND event.repeating_delay IS NULL
+    UNION
     SELECT pattern."id", pattern."title", pattern."description", pattern."color", pattern."event_start" as "start",
     (pattern."event_start" + (pattern."end" - pattern."start")) as "end", pattern."repeating_delay",
     pattern."author_id", pattern."created_at", pattern."deleted_at"
@@ -65,6 +76,8 @@ GET_EVENTS_BY_AUTHOR_ID_QUERY example:
 """
 
 GET_EVENTS_BY_EVENT_IDS_QUERY = (
+    "SELECT *\nFROM \"prisma_events\" as event\nWHERE\n\tevent.id IN ({})\n\tAND event.deleted_at IS NULL{}{}\n"
+    "\tAND event.repeating_delay IS NULL\nUNION\n"
     "SELECT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", pattern.\"event_start\" as "
     "\"start\", (pattern.\"event_start\" + (pattern.\"end\" - pattern.\"start\")) as \"end\", "
     "pattern.\"repeating_delay\", pattern.\"author_id\", pattern.\"created_at\", pattern.\"deleted_at\"\n"
@@ -78,6 +91,15 @@ str: SQL query for get events by event ids request.
     GET_EVENTS_BY_EVENT_IDS_QUERY example:
 
         SET datestyle = DMY;
+        SELECT *
+        FROM "prisma_events" as event
+        WHERE
+            event.id IN ('FIRST_EVENT_ID', 'SECOND_EVENT_ID')
+            AND event.deleted_at IS NULL
+            AND '01/01/1970 01:00:00'::timestamp <= event.start
+            AND event.start <= '01/01/1970 05:00:00'::timestamp
+            AND event.repeating_delay IS NULL
+        UNION
         SELECT pattern."id", pattern."title", pattern."description", pattern."color", pattern."event_start" as "start",
          (pattern."event_start" + (pattern."end" - pattern."start")) as "end", pattern."repeating_delay",
          pattern."author_id", pattern."created_at", pattern."deleted_at"
@@ -100,6 +122,7 @@ str: SQL query for get events by event ids request.
 """
 
 GET_ALL_EVENTS_QUERY = (
+    "SELECT *\nFROM \"prisma_events\" as event\n{}\n\tAND event.repeating_delay IS NULL\nUNION\n"
     "SELECT pattern.\"id\", pattern.\"title\", pattern.\"description\", pattern.\"color\", pattern.\"event_start\" as "
     "\"start\", (pattern.\"event_start\" + (pattern.\"end\" - pattern.\"start\")) as \"end\", "
     "pattern.\"repeating_delay\", pattern.\"author_id\", pattern.\"created_at\", pattern.\"deleted_at\"\n"
@@ -113,6 +136,13 @@ str: SQL query for get all events request.
     GET_ALL_EVENTS_QUERY example:
 
         SET datestyle = DMY;
+        SELECT *
+        FROM "prisma_events" as event
+        WHERE
+            '01/01/1970 01:00:00'::timestamp <= event.start
+            AND event.start <= '01/01/1970 05:00:00'::timestamp
+            AND event.repeating_delay IS NULL
+        UNION
         SELECT pattern."id", pattern."title", pattern."description", pattern."color", pattern."event_start" as "start",
         (pattern."event_start" + (pattern."end" - pattern."start")) as "end", pattern."repeating_delay",
         pattern."author_id", pattern."created_at", pattern."deleted_at"
