@@ -12,6 +12,9 @@ INTERVAL_SLOTS = (
 
 # fmt: off
 GET_NOTIFICATIONS_BY_AUTHOR_ID_QUERY = (
+    "SELECT *\nFROM \"prisma_notifications\" as notification\nWHERE\n\tnotificationt.author_id = {}\n\tAND "
+    "notification.enabled = TRUE\n\tAND notification.deleted_at IS NULL{}{}\n"
+    "\tAND notification.repeating_delay IS NULL\nUNION\n"
     "SELECT pattern.\"id\", pattern.\"event_id\", pattern.\"author_id\","
     " pattern.\"notification_start\" as \"start\", pattern.\"delay_to_event\", pattern.\"repeating_delay\", "
     "pattern.\"enabled\", pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM "
@@ -26,6 +29,16 @@ str: SQL query for get events by author id request.
 GET_NOTIFICATIONS_BY_AUTHOR_ID_QUERY example:
 
     SET datestyle = DMY;
+    SELECT *
+    FROM "prisma_notifications" as notification
+    WHERE
+        notification.author_id = 'AUTHOR_ID'
+        AND notification.enabled = TRUE
+        AND notification.deleted_at IS NULL
+        AND '01/01/1970 01:00:00'::timestamp <= notification.start
+        AND notification.start <= '01/01/1970 05:00:00'::timestamp
+        AND notification.repeating_delay IS NULL
+    UNION
     SELECT pattern."id", pattern."event_id", pattern."author_id", pattern."notification_start" as "start",
     pattern."delay_to_event", pattern."repeating_delay", pattern."enabled", pattern."created_at", pattern."deleted_at"
     FROM (

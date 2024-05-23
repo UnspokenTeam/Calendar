@@ -125,6 +125,14 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
                 else f"{start_date}::timestamp + \'1 MONTH\'::interval"
             )
             author_id_for_query = f"'{author_id}'"
+            notification_start_condition = (
+                f"\n\tAND {start_date}::timestamp <= notification.start"
+                if start is not None
+                else ""
+            )
+            notification_end_condition = (
+                f"\n\tAND notification.start <= {end_date}::timestamp" if end is not None else ""
+            )
             repeating_notification_start_condition = (
                 f"\n\tAND {start_date}::timestamp <= pattern.\"notification_start\""
                 if start is not None
@@ -142,6 +150,9 @@ class NotificationRepositoryImpl(NotificationRepositoryInterface):
             await self._db_client.db.execute_raw("SET datestyle = DMY;")
             db_notifications = await self._db_client.db.query_raw(
                 GET_NOTIFICATIONS_BY_AUTHOR_ID_QUERY.format(
+                    author_id_for_query,
+                    notification_start_condition,
+                    notification_end_condition,
                     time_interval,
                     author_id_for_query,
                     repeating_notification_start_condition,
