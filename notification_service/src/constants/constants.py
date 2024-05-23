@@ -12,12 +12,12 @@ INTERVAL_SLOTS = (
 
 # fmt: off
 GET_NOTIFICATIONS_BY_AUTHOR_ID_QUERY = (
-    "SELECT *\nFROM \"prisma_notifications\" as notification\nWHERE\n\tnotificationt.author_id = {}\n\tAND "
+    "SELECT *\nFROM \"prisma_notifications\" as notification\nWHERE\n\tnotification.author_id = {}\n\tAND "
     "notification.enabled = TRUE\n\tAND notification.deleted_at IS NULL{}{}\n"
     "\tAND notification.repeating_delay IS NULL\nUNION\n"
-    "SELECT pattern.\"id\", pattern.\"event_id\", pattern.\"author_id\","
+    "SELECT pattern.\"id\", pattern.\"event_id\", pattern.\"author_id\", pattern.\"enabled\","
     " pattern.\"notification_start\" as \"start\", pattern.\"delay_to_event\", pattern.\"repeating_delay\", "
-    "pattern.\"enabled\", pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM "
+    "pattern.\"created_at\", pattern.\"deleted_at\"\nFROM (\n\tSELECT *\n\tFROM "
     "\"prisma_notifications\" as notification,\n\t\tGENERATE_SERIES(notification.start, {}, "
     "notification.repeating_delay::interval) as \"notification_start\"\n\tWHERE notification.repeating_delay IS"
     " NOT NULL\n) as pattern\nWHERE\n\tpattern.author_id = {}\n\tAND pattern.enabled = TRUE\n\tAND pattern.deleted_at "
